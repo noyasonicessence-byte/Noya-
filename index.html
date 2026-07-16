@@ -11,13 +11,12 @@
     --ink-dim:#a99f8c;
     --accent:#d9a441;
     --accent-soft:#b98a34;
-    /* annotation card */
     --card:#efe9dc;
     --card-ink:#2a2320;
-    --c-strike:#b1a897;   /* 吞音/划掉 灰 */
-    --c-weak:#3f8f43;     /* 弱读 绿 */
-    --c-arc:#c8563d;      /* 连读弧线 暖红 */
-    --c-ins:#3f78c9;      /* w/y 增音 蓝 */
+    --c-strike:#b1a897;
+    --c-weak:#3f8f43;
+    --c-arc:#c8563d;
+    --c-ins:#3f78c9;
     --serif:"Georgia","Times New Roman","Songti SC","STSong","Noto Serif CJK SC","SimSun",serif;
     --sans:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
   }
@@ -25,14 +24,12 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)}
   body{padding:22px 26px 60px;min-height:100vh}
 
-  /* ---------- header ---------- */
   header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:20px}
   .brand .cn{font-size:15px;letter-spacing:.28em;color:var(--ink-dim)}
   .brand .en{font-family:var(--serif);font-style:italic;font-size:22px;margin-top:2px}
-  .hint{font-size:13px;color:var(--ink-dim);max-width:360px;text-align:right;line-height:1.6}
+  .hint{font-size:13px;color:var(--ink-dim);max-width:380px;text-align:right;line-height:1.6}
 
-  /* ---------- input panel ---------- */
-  .setup{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:16px 16px 14px;margin-bottom:16px}
+  .setup{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:16px 16px 14px;margin-bottom:14px}
   .setup .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:820px){.setup .grid{grid-template-columns:1fr}}
   .field label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 6px 2px;letter-spacing:.06em}
@@ -41,18 +38,17 @@
   textarea:focus{outline:none;border-color:var(--accent-soft)}
   .rowbtns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
   .rowbtns .spacer{flex:1}
-  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;padding:9px 18px;font-size:13px;
+  button{font-family:var(--sans);cursor:pointer;border-radius:999px;padding:9px 18px;font-size:13px;
     background:#2c251a;color:var(--ink);border:1px solid var(--panel-line);transition:.15s}
   button:hover{border-color:var(--accent-soft)}
+  button:disabled{opacity:.4;cursor:not-allowed}
   button.primary{background:var(--accent);color:#241a06;font-weight:600;border-color:transparent}
   button.primary:hover{background:#e6b556}
   button.ghost{background:transparent}
   .filebtn{position:relative;overflow:hidden}
   .filebtn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
 
-  /* ---------- workspace ---------- */
   .work{display:flex;gap:16px;align-items:flex-start}
-  /* toolbar */
   .toolbar{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:8px;display:flex;
     flex-direction:column;gap:6px;position:sticky;top:14px;flex:0 0 auto;width:72px}
   .tool{width:56px;height:52px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--ink);
@@ -65,14 +61,13 @@
   .tool.active small{color:#4a3a12}
   .tsep{height:1px;background:var(--panel-line);margin:4px 6px}
 
-  /* card */
   .stage{flex:1;min-width:0}
   #card{background:var(--card);color:var(--card-ink);border-radius:18px;padding:44px 46px;min-height:280px}
-  .line{position:relative;font-family:var(--serif);padding:34px 4px 8px;}
+  .line{position:relative;font-family:var(--serif);padding:34px 4px 8px;scroll-margin:40vh}
   .line .en{font-size:34px;line-height:1;letter-spacing:.02em;white-space:normal;position:relative;z-index:1}
   .line .zh{font-family:var(--serif);font-size:17px;color:#6f665a;margin-top:12px;letter-spacing:.03em}
   .line.hidezh .zh{display:none}
-  .cell{display:inline-block;position:relative;cursor:pointer;padding:0 .5px;transition:color .12s}
+  .cell{display:inline-block;position:relative;cursor:pointer;padding:0 .5px;transition:color .12s,background .12s;border-radius:3px}
   .cell.space{width:.32em;cursor:default}
   .cell.letter:hover{color:var(--accent-soft)}
   .cell.pending{background:rgba(217,164,65,.35);border-radius:4px}
@@ -80,14 +75,16 @@
   .cell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);
     transform:rotate(-18deg);border-radius:2px}
   .cell.weak{color:var(--c-weak)}
+  /* karaoke */
+  .cell.ksung{background:rgba(217,164,65,.20)}
+  .cell.kcur{background:rgba(217,164,65,.55)}
+  .cell.ktarget{box-shadow:inset 0 -2.5px 0 var(--accent)}
   .ins{display:inline-block;color:var(--c-ins);font-size:.62em;vertical-align:.5em;font-style:italic;font-family:var(--serif);
     margin:0 .02em;cursor:pointer}
   svg.arclayer{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
   .arcpath{fill:none;stroke:var(--c-arc);stroke-width:2.2;stroke-linecap:round}
-
   .empty{color:#9c9384;font-family:var(--serif);font-size:18px;text-align:center;padding:60px 0}
 
-  /* legend */
   .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--ink-dim);
     background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:11px 16px}
   .legend b{font-weight:600;color:var(--ink)}
@@ -98,19 +95,27 @@
   .sw-weak{color:var(--c-weak)}
   .sw-arc{color:var(--c-arc)}
   .sw-ins{color:var(--c-ins);font-style:italic}
+  .sw-k{background:rgba(217,164,65,.55)}
 
-  /* audio bar */
-  .audiobar{display:flex;align-items:center;gap:12px;margin-top:14px;background:var(--panel);
-    border:1px solid var(--panel-line);border-radius:12px;padding:10px 14px}
-  .audiobar audio{height:34px}
-  .audiobar .nm{font-size:12px;color:var(--ink-dim);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* audio + sync bar */
+  .barwrap{margin-top:14px;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:12px 14px;
+    display:flex;flex-direction:column;gap:12px}
+  .rowflex{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .barwrap audio{height:34px}
+  .nm{font-size:12px;color:var(--ink-dim)}
+  .seg{display:inline-flex;border:1px solid var(--panel-line);border-radius:999px;overflow:hidden}
+  .seg button{border:none;border-radius:0;padding:7px 14px;background:transparent}
+  .seg button.on{background:var(--accent);color:#241a06;font-weight:600}
+  .synchint{font-size:12.5px;color:var(--ink-dim);line-height:1.5}
+  kbd{background:#0f0c08;border:1px solid var(--panel-line);border-radius:5px;padding:1px 7px;font-family:var(--serif);color:var(--ink)}
+  .tapbtn{background:var(--accent);color:#241a06;font-weight:700;font-size:15px;padding:11px 26px;border:none}
+  .divi{width:1px;height:22px;background:var(--panel-line)}
 
-  /* present mode */
   body.present .setup,body.present header,body.present .toolbar,body.present .legend{display:none}
   body.present{background:var(--card);padding:20px}
   body.present #card{padding:5vh 6vw}
   body.present .line .en{font-size:44px}
-  body.present .audiobar{background:transparent;border:none}
+  body.present .barwrap{background:transparent;border:none}
   .exitpresent{position:fixed;top:14px;right:16px;z-index:50;display:none}
   body.present .exitpresent{display:block}
 </style>
@@ -120,18 +125,18 @@
     <div class="cn">诺雅 · 歌曲发音标注</div>
     <div class="en">Noya Pronunciation Studio</div>
   </div>
-  <div class="hint">粘贴英文歌词（可加中文可演唱版），生成标注区后逐字点击标注四种连读。<br>标好可进入演示模式边讲边展示，或导出图片。</div>
+  <div class="hint">粘贴歌词 → 生成标注区 → 逐字标注四种连读。载入音频后可「打轴」录制卡拉OK逐字时间轴，再「跟唱播放」高亮当前字。</div>
 </header>
 
 <section class="setup" id="setup">
   <div class="grid">
     <div class="field">
       <label>英文歌词（每行一句）</label>
-      <textarea id="en" placeholder="When I was young&#10;I'd listen to the radio&#10;Waitin' for my favorite songs"></textarea>
+      <textarea id="en" placeholder="在此粘贴英文歌词，每行一句…"></textarea>
     </div>
     <div class="field">
       <label>中文可演唱版（每行一句，与英文按行对应，可留空）</label>
-      <textarea id="zh" placeholder="当我年少时&#10;我会听着收音机&#10;等着我最爱的歌"></textarea>
+      <textarea id="zh" placeholder="在此粘贴中文，每行与左边英文对应…"></textarea>
     </div>
   </div>
   <div class="rowbtns">
@@ -160,16 +165,39 @@
   <div class="stage">
     <div id="card"><div class="empty">在上方粘贴歌词，点「生成标注区」开始标注</div></div>
 
-    <div class="audiobar" id="audiobar" style="display:none">
-      <audio id="player" controls></audio>
-      <span class="nm" id="audioName"></span>
+    <div class="barwrap" id="barwrap" style="display:none">
+      <div class="rowflex">
+        <audio id="player" controls></audio>
+        <span class="nm" id="audioName"></span>
+      </div>
+      <div class="rowflex">
+        <span class="nm">卡拉OK时间轴</span>
+        <span class="seg" id="granSeg">
+          <button data-gran="word" class="on">逐词</button>
+          <button data-gran="line">逐行</button>
+        </span>
+        <div class="divi"></div>
+        <button id="syncToggle">开始打轴</button>
+        <button id="tapBtn" class="tapbtn" hidden>打点 ▮</button>
+        <button id="syncBack" hidden>退一步</button>
+        <div class="divi"></div>
+        <button id="playKtoggle">跟唱播放</button>
+        <button class="ghost" id="clearTimes">清时间轴</button>
+        <div class="spacer" style="flex:1"></div>
+        <button class="ghost" id="exportJson">导出工程</button>
+        <button class="ghost filebtn" id="importBtn">导入工程<input type="file" id="importFile" accept="application/json"></button>
+      </div>
+      <div class="synchint" id="synchint" hidden>
+        打轴中：按 <kbd>空格</kbd> 或点「打点」在<b id="granWord">每个词</b>被唱到的瞬间打一下点；<kbd>Backspace</kbd> 或「退一步」纠正。再点「开始打轴」结束。
+      </div>
     </div>
 
     <div class="legend">
       <span class="lg"><span class="swatch sw-arc">⌒</span><b>连读</b> 弧线相连</span>
-      <span class="lg"><span class="swatch sw-strike">t</span><b>划掉</b> 吞音/失爆（灰+斜线）</span>
+      <span class="lg"><span class="swatch sw-strike">t</span><b>划掉</b> 吞音/失爆</span>
       <span class="lg"><span class="swatch sw-weak">a</span><b>弱读</b> 变绿</span>
-      <span class="lg"><span class="swatch sw-ins">ʷ</span><b>增音</b> 两元音间加 w / y</span>
+      <span class="lg"><span class="swatch sw-ins">ʷ</span><b>增音</b> 加 w / y</span>
+      <span class="lg"><span class="swatch sw-k">词</span><b>卡拉OK</b> 高亮当前字</span>
     </div>
   </div>
 </div>
@@ -179,50 +207,66 @@
 <script>
 (function(){
   "use strict";
-  var card = document.getElementById('card');
-  var enBox = document.getElementById('en');
-  var zhBox = document.getElementById('zh');
+  var card=document.getElementById('card');
+  var enBox=document.getElementById('en');
+  var zhBox=document.getElementById('zh');
+  var player=document.getElementById('player');
 
-  // ---- state ----
-  // lines: [{cells:[{ch,isLetter}], strike:Set, weak:Set, arcs:[[a,b]], ins:[{after,g}]}]
-  var lines = [];
-  var tool = 'arc';
-  var pendingArc = null; // {line, cell}
-  var showZh = true;
-  var history = []; // snapshots of `lines`
+  // lines: [{cells, zh, strike:Set, weak:Set, arcs:[[a,b]], ins:[{after,g}], words:[{cells:[ci]}], wtimes:[t|null], lstart:t|null}]
+  var lines=[];
+  var tool='arc';
+  var pendingArc=null;
+  var showZh=true;
+  var history=[];
+  var timesMode='word';          // 'word' | 'line'
+  var syncMode=false, syncCursor=0;
+  var flatW=[], flatL=[];        // sync cursors
+  var lastActive=-1;
 
-  function snapshot(){
-    history.push(JSON.stringify(lines, replacer));
-    if(history.length>60) history.shift();
-  }
-  function replacer(k,v){ return v instanceof Set ? {__set:[].concat.apply([],[Array.from(v)])} : v; }
+  // ---------- snapshot / undo ----------
+  function replacer(k,v){ return v instanceof Set ? {__set:Array.from(v)} : v; }
   function reviver(k,v){ return (v && v.__set) ? new Set(v.__set) : v; }
+  function snapshot(){ history.push(JSON.stringify(lines,replacer)); if(history.length>60) history.shift(); }
   function undo(){
     if(!history.length) return;
-    lines = JSON.parse(history.pop(), reviver);
+    lines=JSON.parse(history.pop(),reviver);
     lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); });
-    pendingArc=null; render(); save();
+    pendingArc=null; buildFlat(); render(); save();
   }
 
-  // ---- build lines from text ----
-  function build(){
-    var en = enBox.value.replace(/\r/g,'').split('\n');
-    var zh = zhBox.value.replace(/\r/g,'').split('\n');
-    // drop trailing blank lines only
-    while(en.length>1 && en[en.length-1].trim()==='' ) en.pop();
-    lines = en.map(function(text,i){
-      var cells=[];
-      for(var j=0;j<text.length;j++){
-        var ch=text[j];
-        cells.push({ch:ch, isLetter: /[^\s]/.test(ch)});
-      }
-      return {cells:cells, zh:(zh[i]||'').trim(), strike:new Set(), weak:new Set(), arcs:[], ins:[]};
+  // ---------- build ----------
+  function computeWords(line){
+    var words=[],cur=null;
+    line.cells.forEach(function(cell,ci){
+      if(cell.isLetter){ if(!cur){cur={cells:[]};words.push(cur);} cur.cells.push(ci); }
+      else cur=null;
     });
-    history=[]; pendingArc=null;
-    render(); save();
+    return words;
+  }
+  function build(){
+    var en=enBox.value.replace(/\r/g,'').split('\n');
+    var zh=zhBox.value.replace(/\r/g,'').split('\n');
+    while(en.length>1 && en[en.length-1].trim()==='') en.pop();
+    lines=en.map(function(text,i){
+      var cells=[];
+      for(var j=0;j<text.length;j++) cells.push({ch:text[j],isLetter:/[^\s]/.test(text[j])});
+      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],lstart:null};
+      l.words=computeWords(l); l.wtimes=l.words.map(function(){return null;});
+      return l;
+    });
+    history=[]; pendingArc=null; buildFlat(); render(); save();
+  }
+  function buildFlat(){
+    flatW=[]; flatL=[];
+    lines.forEach(function(l,li){
+      if(l.words && l.words.length){
+        flatL.push(li);
+        l.words.forEach(function(w,wi){ flatW.push({li:li,wi:wi}); });
+      }
+    });
   }
 
-  // ---- render ----
+  // ---------- render ----------
   function render(){
     card.innerHTML='';
     if(!lines.length || (lines.length===1 && !lines[0].cells.length)){
@@ -232,10 +276,7 @@
     lines.forEach(function(line,li){
       var row=document.createElement('div');
       row.className='line'+(showZh?'':' hidezh');
-
-      var en=document.createElement('div');
-      en.className='en';
-
+      var en=document.createElement('div'); en.className='en';
       line.cells.forEach(function(cell,ci){
         var sp=document.createElement('span');
         if(!cell.isLetter){
@@ -248,196 +289,314 @@
           if(pendingArc && pendingArc.line===li && pendingArc.cell===ci) sp.className+=' pending';
           sp.textContent=cell.ch;
           sp.dataset.line=li; sp.dataset.cell=ci;
-          sp.addEventListener('click', onCellClick);
+          sp.addEventListener('click',onCellClick);
         }
         en.appendChild(sp);
-        // inserted glide after this cell
         line.ins.forEach(function(ins){
           if(ins.after===ci){
             var g=document.createElement('span');
-            g.className='ins'; g.textContent=ins.g;
-            g.title='点击删除增音';
-            g.addEventListener('click', function(e){
+            g.className='ins'; g.textContent=ins.g; g.title='点击删除增音';
+            g.addEventListener('click',function(e){
               e.stopPropagation(); snapshot();
-              line.ins=line.ins.filter(function(x){return !(x.after===ins.after && x.g===ins.g);});
+              line.ins=line.ins.filter(function(x){return !(x.after===ins.after&&x.g===ins.g);});
               render(); save();
             });
             en.appendChild(g);
           }
         });
       });
-
       var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('class','arclayer');
-      en.appendChild(svg);
+      svg.setAttribute('class','arclayer'); en.appendChild(svg);
       row.appendChild(en);
-
-      if(line.zh){
-        var zh=document.createElement('div'); zh.className='zh'; zh.textContent=line.zh;
-        row.appendChild(zh);
-      }
+      if(line.zh){ var zh=document.createElement('div'); zh.className='zh'; zh.textContent=line.zh; row.appendChild(zh); }
       card.appendChild(row);
-      // draw arcs after layout
-      row._svg=svg; row._en=en; row._line=line; row._li=li;
+      row._svg=svg; row._en=en;
     });
     requestAnimationFrame(drawArcs);
+    lastActive=-1;
+    if(syncMode) paintSync();
   }
-
   function drawArcs(){
     lines.forEach(function(line,li){
       var row=card.children[li]; if(!row||!row._svg) return;
-      var svg=row._svg, en=row._en;
-      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      var svg=row._svg,en=row._en; while(svg.firstChild) svg.removeChild(svg.firstChild);
       var base=en.getBoundingClientRect();
       line.arcs.forEach(function(arc){
-        var a=en.querySelector('.cell[data-cell="'+arc[0]+'"]');
-        var b=en.querySelector('.cell[data-cell="'+arc[1]+'"]');
+        var a=en.querySelector('.cell[data-cell="'+arc[0]+'"]'),b=en.querySelector('.cell[data-cell="'+arc[1]+'"]');
         if(!a||!b) return;
-        var ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
-        var x1=ra.left+ra.width/2-base.left;
-        var x2=rb.left+rb.width/2-base.left;
-        var yTop=Math.min(ra.top,rb.top)-base.top; // top of letters
-        var span=Math.abs(x2-x1);
-        var lift=Math.min(26, 12+span*0.10);      // arc height above letters
-        var y=yTop-4;
-        var cx=(x1+x2)/2, cy=y-lift;
+        var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+        var x1=ra.left+ra.width/2-base.left,x2=rb.left+rb.width/2-base.left;
+        var yTop=Math.min(ra.top,rb.top)-base.top,span=Math.abs(x2-x1);
+        var lift=Math.min(26,12+span*0.10),y=yTop-4,cx=(x1+x2)/2,cy=y-lift;
         var path=document.createElementNS('http://www.w3.org/2000/svg','path');
-        path.setAttribute('class','arcpath');
-        path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
-        // clickable-ish: allow removing by wider invisible hit path
+        path.setAttribute('class','arcpath'); path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
         svg.appendChild(path);
       });
     });
   }
 
-  // ---- interactions ----
+  // ---------- annotation interactions ----------
   function onCellClick(e){
     var li=+this.dataset.line, ci=+this.dataset.cell;
+    if(syncMode){ setCursorToCell(li,ci); return; }   // during sync, click retargets
     var line=lines[li];
-    if(tool==='strike'){
-      snapshot();
-      if(line.strike.has(ci)) line.strike.delete(ci); else { line.strike.add(ci); line.weak.delete(ci); }
+    if(tool==='strike'){ snapshot();
+      if(line.strike.has(ci)) line.strike.delete(ci); else{ line.strike.add(ci); line.weak.delete(ci); }
       render(); save();
-    }else if(tool==='weak'){
-      snapshot();
-      if(line.weak.has(ci)) line.weak.delete(ci); else { line.weak.add(ci); line.strike.delete(ci); }
+    }else if(tool==='weak'){ snapshot();
+      if(line.weak.has(ci)) line.weak.delete(ci); else{ line.weak.add(ci); line.strike.delete(ci); }
       render(); save();
-    }else if(tool==='ins-w'||tool==='ins-y'){
-      snapshot();
+    }else if(tool==='ins-w'||tool==='ins-y'){ snapshot();
       var g=(tool==='ins-w')?'w':'y';
-      var exists=line.ins.some(function(x){return x.after===ci && x.g===g;});
-      if(exists) line.ins=line.ins.filter(function(x){return !(x.after===ci && x.g===g);});
+      var ex=line.ins.some(function(x){return x.after===ci&&x.g===g;});
+      if(ex) line.ins=line.ins.filter(function(x){return !(x.after===ci&&x.g===g);});
       else line.ins.push({after:ci,g:g});
       render(); save();
     }else if(tool==='arc'){
-      if(!pendingArc){
-        pendingArc={line:li,cell:ci}; render();
-      }else if(pendingArc.line===li && pendingArc.cell===ci){
-        pendingArc=null; render(); // cancel
-      }else if(pendingArc.line===li){
-        snapshot();
-        var a=Math.min(pendingArc.cell,ci), b=Math.max(pendingArc.cell,ci);
+      if(!pendingArc){ pendingArc={line:li,cell:ci}; render(); }
+      else if(pendingArc.line===li && pendingArc.cell===ci){ pendingArc=null; render(); }
+      else if(pendingArc.line===li){ snapshot();
+        var a=Math.min(pendingArc.cell,ci),b=Math.max(pendingArc.cell,ci);
         var dup=line.arcs.findIndex(function(p){return p[0]===a&&p[1]===b;});
         if(dup>=0) line.arcs.splice(dup,1); else line.arcs.push([a,b]);
         pendingArc=null; render(); save();
-      }else{
-        // arcs only within a line; restart on new line
-        pendingArc={line:li,cell:ci}; render();
-      }
+      }else{ pendingArc={line:li,cell:ci}; render(); }
     }
   }
 
-  // ---- toolbar ----
+  // ---------- toolbar ----------
   document.querySelectorAll('.tool[data-tool]').forEach(function(btn){
-    btn.addEventListener('click', function(){
+    btn.addEventListener('click',function(){
       document.querySelectorAll('.tool[data-tool]').forEach(function(b){b.classList.remove('active');});
       btn.classList.add('active'); tool=btn.dataset.tool; pendingArc=null; render();
     });
   });
-  document.getElementById('undo').addEventListener('click', undo);
-  document.getElementById('clearAnno').addEventListener('click', function(){
-    if(!lines.length) return;
-    if(!confirm('清除当前所有标注？')) return;
-    snapshot();
-    lines.forEach(function(l){ l.strike=new Set(); l.weak=new Set(); l.arcs=[]; l.ins=[]; });
+  document.getElementById('undo').addEventListener('click',undo);
+  document.getElementById('clearAnno').addEventListener('click',function(){
+    if(!lines.length) return; if(!confirm('清除当前所有标注？（不含时间轴）')) return;
+    snapshot(); lines.forEach(function(l){ l.strike=new Set(); l.weak=new Set(); l.arcs=[]; l.ins=[]; });
     pendingArc=null; render(); save();
   });
+  document.getElementById('gen').addEventListener('click',build);
+  document.getElementById('clearText').addEventListener('click',function(){ enBox.value=''; zhBox.value=''; });
+  document.getElementById('toggleZh').addEventListener('click',function(){ showZh=!showZh; render(); });
 
-  document.getElementById('gen').addEventListener('click', build);
-  document.getElementById('clearText').addEventListener('click', function(){
-    enBox.value=''; zhBox.value='';
-  });
-  document.getElementById('toggleZh').addEventListener('click', function(){ showZh=!showZh; render(); });
-
-  // ---- audio ----
-  document.getElementById('audioFile').addEventListener('change', function(e){
+  // ---------- audio ----------
+  document.getElementById('audioFile').addEventListener('change',function(e){
     var f=e.target.files[0]; if(!f) return;
-    var url=URL.createObjectURL(f);
-    var p=document.getElementById('player'); p.src=url;
+    player.src=URL.createObjectURL(f);
     document.getElementById('audioName').textContent=f.name;
-    document.getElementById('audiobar').style.display='flex';
+    document.getElementById('barwrap').style.display='flex';
   });
 
-  // ---- present mode ----
-  document.getElementById('present').addEventListener('click', function(){ document.body.classList.add('present'); requestAnimationFrame(drawArcs); });
-  document.getElementById('exitPresent').addEventListener('click', function(){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); });
-  window.addEventListener('keydown', function(e){ if(e.key==='Escape') document.body.classList.remove('present'); if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();} });
-  window.addEventListener('resize', function(){ requestAnimationFrame(drawArcs); });
+  // ---------- karaoke: sync recording ----------
+  var granSeg=document.getElementById('granSeg');
+  granSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-gran]'); if(!b||syncMode) return;
+    timesMode=b.dataset.gran;
+    granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
+    save();
+  });
+  document.getElementById('granWord').textContent = '每个词';
 
-  // ---- export PNG (best effort, dependency-free via SVG foreignObject) ----
-  document.getElementById('exportPng').addEventListener('click', function(){
-    var node=card;
-    var rect=node.getBoundingClientRect();
-    var scale=2;
-    var clone=node.cloneNode(true);
-    // inline computed styles for reliable rendering
-    inlineStyles(node, clone);
-    var wrap=document.createElement('div');
-    wrap.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
-    wrap.appendChild(clone);
+  function wordCells(li,wi){
+    var w=lines[li].words[wi]; if(!w) return [];
+    return w.cells.map(function(ci){ return card.querySelector('.cell[data-line="'+li+'"][data-cell="'+ci+'"]'); }).filter(Boolean);
+  }
+  function lineCells(li){
+    return Array.prototype.slice.call(card.children[li].querySelectorAll('.cell.letter'));
+  }
+  function clearK(){ card.querySelectorAll('.ksung,.kcur,.ktarget').forEach(function(el){ el.classList.remove('ksung','kcur','ktarget'); }); }
+
+  function currentTargetLine(){
+    if(timesMode==='word'){ var t=flatW[syncCursor]; return t?t.li:-1; }
+    return syncCursor<flatL.length?flatL[syncCursor]:-1;
+  }
+  function paintSync(){
+    clearK();
+    // mark everything with a recorded time as "sung"
+    lines.forEach(function(l,li){
+      if(timesMode==='word'){ l.wtimes.forEach(function(t,wi){ if(t!=null) wordCells(li,wi).forEach(function(el){el.classList.add('ksung');}); }); }
+      else if(l.lstart!=null) lineCells(li).forEach(function(el){el.classList.add('ksung');});
+    });
+    // target
+    if(timesMode==='word'){ var t=flatW[syncCursor]; if(t) wordCells(t.li,t.wi).forEach(function(el){el.classList.add('ktarget');}); }
+    else { var li=flatL[syncCursor]; if(li!=null) lineCells(li).forEach(function(el){el.classList.add('ktarget');}); }
+    var tl=currentTargetLine();
+    if(tl>=0 && card.children[tl]) card.children[tl].scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  function setCursorToCell(li,ci){
+    if(timesMode==='word'){
+      var idx=flatW.findIndex(function(t){ return t.li===li && lines[li].words[t.wi].cells.indexOf(ci)>=0; });
+      if(idx>=0){ syncCursor=idx; paintSync(); }
+    }else{
+      var k=flatL.indexOf(li); if(k>=0){ syncCursor=k; paintSync(); }
+    }
+  }
+  function tap(){
+    if(!syncMode) return;
+    var now=player.currentTime;
+    if(timesMode==='word'){ if(syncCursor>=flatW.length){ finishSync(); return; }
+      var w=flatW[syncCursor]; lines[w.li].wtimes[w.wi]=now; syncCursor++;
+    }else{ if(syncCursor>=flatL.length){ finishSync(); return; }
+      lines[flatL[syncCursor]].lstart=now; syncCursor++;
+    }
+    save();
+    if((timesMode==='word'&&syncCursor>=flatW.length)||(timesMode==='line'&&syncCursor>=flatL.length)){ paintSync(); finishSync(); }
+    else paintSync();
+  }
+  function syncBack(){
+    if(syncCursor<=0) return; syncCursor--;
+    if(timesMode==='word'){ var w=flatW[syncCursor]; lines[w.li].wtimes[w.wi]=null; }
+    else lines[flatL[syncCursor]].lstart=null;
+    save(); paintSync();
+  }
+  function startSync(){
+    if(!player.src){ alert('请先载入音频，再开始打轴。'); return; }
+    if(!flatW.length){ alert('请先生成标注区（粘贴歌词后点「生成标注区」）。'); return; }
+    stopPlayK();
+    syncMode=true; syncCursor=0;
+    document.getElementById('syncToggle').textContent='结束打轴';
+    document.getElementById('tapBtn').hidden=false;
+    document.getElementById('syncBack').hidden=false;
+    document.getElementById('synchint').hidden=false;
+    document.getElementById('granWord').textContent = timesMode==='word'?'每个词':'每一行';
+    player.currentTime=0; player.play();
+    paintSync();
+  }
+  function finishSync(){
+    syncMode=false;
+    document.getElementById('syncToggle').textContent='开始打轴';
+    document.getElementById('tapBtn').hidden=true;
+    document.getElementById('syncBack').hidden=true;
+    document.getElementById('synchint').hidden=true;
+    player.pause(); clearK();
+  }
+  document.getElementById('syncToggle').addEventListener('click',function(){ syncMode?finishSync():startSync(); });
+  document.getElementById('tapBtn').addEventListener('click',tap);
+  document.getElementById('syncBack').addEventListener('click',syncBack);
+  document.getElementById('clearTimes').addEventListener('click',function(){
+    if(!confirm('清除所有卡拉OK时间轴？')) return;
+    lines.forEach(function(l){ l.wtimes=l.words.map(function(){return null;}); l.lstart=null; });
+    save(); if(syncMode){ syncCursor=0; paintSync(); }
+  });
+
+  // ---------- karaoke: playback highlight ----------
+  var playK=false, playEvents=[];
+  function buildEvents(){
+    playEvents=[];
+    if(timesMode==='word'){
+      lines.forEach(function(l,li){ l.wtimes.forEach(function(t,wi){ if(t!=null) playEvents.push({t:t,li:li,wi:wi}); }); });
+    }else{
+      lines.forEach(function(l,li){ if(l.lstart!=null) playEvents.push({t:l.lstart,li:li}); });
+    }
+    playEvents.sort(function(a,b){return a.t-b.t;});
+  }
+  function startPlayK(){
+    if(!player.src){ alert('请先载入音频。'); return; }
+    if(syncMode) finishSync();
+    buildEvents();
+    if(!playEvents.length){ alert('还没有时间轴，请先「开始打轴」录制。'); return; }
+    playK=true; document.getElementById('playKtoggle').textContent='停止跟唱';
+    lastActive=-1; player.play();
+  }
+  function stopPlayK(){ playK=false; document.getElementById('playKtoggle').textContent='跟唱播放'; clearK(); }
+  function stopPlayKvisual(){ stopPlayK(); }
+  document.getElementById('playKtoggle').addEventListener('click',function(){ playK?stopPlayK():startPlayK(); });
+
+  player.addEventListener('timeupdate',function(){
+    if(syncMode||!playK||!playEvents.length) return;
+    var cur=player.currentTime, idx=-1;
+    for(var i=0;i<playEvents.length;i++){ if(playEvents[i].t<=cur) idx=i; else break; }
+    if(idx===lastActive) return;
+    lastActive=idx; clearK();
+    for(var j=0;j<=idx;j++){
+      var e=playEvents[j], cls=(j===idx)?'kcur':'ksung';
+      var cells=(timesMode==='word')?wordCells(e.li,e.wi):lineCells(e.li);
+      cells.forEach(function(el){ el.classList.add(cls); });
+    }
+    if(idx>=0){ var li=playEvents[idx].li; if(card.children[li]) card.children[li].scrollIntoView({behavior:'smooth',block:'center'}); }
+  });
+  player.addEventListener('ended',function(){ if(playK) stopPlayK(); if(syncMode) finishSync(); });
+
+  // ---------- keyboard ----------
+  window.addEventListener('keydown',function(e){
+    var typing=/^(TEXTAREA|INPUT)$/.test((e.target.tagName||''));
+    if(e.key==='Escape'){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); }
+    if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); undo(); return; }
+    if(syncMode && !typing){
+      if(e.code==='Space'){ e.preventDefault(); tap(); }
+      else if(e.key==='Backspace'){ e.preventDefault(); syncBack(); }
+    }
+  });
+
+  // ---------- present / export ----------
+  document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(drawArcs); });
+  document.getElementById('exitPresent').addEventListener('click',function(){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); });
+  window.addEventListener('resize',function(){ requestAnimationFrame(drawArcs); });
+
+  document.getElementById('exportPng').addEventListener('click',function(){
+    var node=card, rect=node.getBoundingClientRect(), scale=2, clone=node.cloneNode(true);
+    inlineStyles(node,clone);
+    var wrap=document.createElement('div'); wrap.setAttribute('xmlns','http://www.w3.org/1999/xhtml'); wrap.appendChild(clone);
     var html=new XMLSerializer().serializeToString(wrap);
-    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+rect.width+'" height="'+rect.height+'">'+
-      '<foreignObject width="100%" height="100%">'+html+'</foreignObject></svg>';
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+rect.width+'" height="'+rect.height+'"><foreignObject width="100%" height="100%">'+html+'</foreignObject></svg>';
     var img=new Image();
-    img.onload=function(){
-      var c=document.createElement('canvas'); c.width=rect.width*scale; c.height=rect.height*scale;
+    img.onload=function(){ var c=document.createElement('canvas'); c.width=rect.width*scale; c.height=rect.height*scale;
       var ctx=c.getContext('2d'); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
-      try{
-        var a=document.createElement('a'); a.download='noya-lyrics.png'; a.href=c.toDataURL('image/png'); a.click();
-      }catch(err){ alert('自动导出失败，请直接截图使用。'); }
-    };
-    img.onerror=function(){ alert('自动导出失败，请直接截图使用（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
+      try{ var a=document.createElement('a'); a.download='noya-lyrics.png'; a.href=c.toDataURL('image/png'); a.click(); }
+      catch(err){ alert('自动导出失败，请直接截图使用。'); } };
+    img.onerror=function(){ alert('自动导出失败，请直接截图（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   });
-  function inlineStyles(src, dst){
+  function inlineStyles(src,dst){
     var cs=getComputedStyle(src);
-    var props=['color','background-color','font-family','font-size','font-style','font-weight','line-height',
-      'letter-spacing','padding','padding-top','padding-bottom','padding-left','padding-right','margin','border-radius',
-      'text-decoration','display','vertical-align','position','left','top','width','height'];
-    var s='';
-    props.forEach(function(p){ s+=p+':'+cs.getPropertyValue(p)+';'; });
-    dst.setAttribute('style', s);
-    for(var i=0;i<src.children.length;i++){ if(dst.children[i]) inlineStyles(src.children[i], dst.children[i]); }
+    var props=['color','background-color','font-family','font-size','font-style','font-weight','line-height','letter-spacing',
+      'padding','padding-top','padding-bottom','padding-left','padding-right','margin','border-radius','text-decoration',
+      'display','vertical-align','position','left','top','width','height','box-shadow'];
+    var s=''; props.forEach(function(p){ s+=p+':'+cs.getPropertyValue(p)+';'; }); dst.setAttribute('style',s);
+    for(var i=0;i<src.children.length;i++){ if(dst.children[i]) inlineStyles(src.children[i],dst.children[i]); }
   }
 
-  // ---- persistence ----
-  function save(){
-    try{
-      localStorage.setItem('noya-en', enBox.value);
-      localStorage.setItem('noya-zh', zhBox.value);
-      localStorage.setItem('noya-lines', JSON.stringify(lines, replacer));
-    }catch(e){}
-  }
-  function load(){
-    try{
-      var e=localStorage.getItem('noya-en'), z=localStorage.getItem('noya-zh'), l=localStorage.getItem('noya-lines');
-      if(e!=null) enBox.value=e;
-      if(z!=null) zhBox.value=z;
-      if(l){ lines=JSON.parse(l, reviver); lines.forEach(function(x){x.strike=new Set(x.strike);x.weak=new Set(x.weak);}); render(); }
-    }catch(e){}
-  }
-  enBox.addEventListener('input', save);
-  zhBox.addEventListener('input', save);
+  // ---------- project export / import ----------
+  document.getElementById('exportJson').addEventListener('click',function(){
+    var data={v:2,en:enBox.value,zh:zhBox.value,timesMode:timesMode,lines:lines};
+    var blob=new Blob([JSON.stringify(data,replacer)],{type:'application/json'});
+    var a=document.createElement('a'); a.download='noya-project.json'; a.href=URL.createObjectURL(blob); a.click();
+  });
+  document.getElementById('importFile').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){ try{
+      var d=JSON.parse(r.result,reviver);
+      enBox.value=d.en||''; zhBox.value=d.zh||''; timesMode=d.timesMode||'word';
+      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak);
+        if(!l.words) l.words=computeWords(l); if(!l.wtimes) l.wtimes=l.words.map(function(){return null;});
+        if(l.lstart===undefined) l.lstart=null; return l; });
+      granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
+      buildFlat(); render(); save();
+    }catch(err){ alert('导入失败：文件格式不正确。'); } };
+    r.readAsText(f);
+  });
+
+  // ---------- persistence ----------
+  function save(){ try{
+    localStorage.setItem('noya2-en',enBox.value);
+    localStorage.setItem('noya2-zh',zhBox.value);
+    localStorage.setItem('noya2-mode',timesMode);
+    localStorage.setItem('noya2-lines',JSON.stringify(lines,replacer));
+  }catch(e){} }
+  function load(){ try{
+    var e=localStorage.getItem('noya2-en'),z=localStorage.getItem('noya2-zh'),
+        m=localStorage.getItem('noya2-mode'),l=localStorage.getItem('noya2-lines');
+    if(e!=null) enBox.value=e; if(z!=null) zhBox.value=z;
+    if(m){ timesMode=m; granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===m);}); }
+    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak);
+      if(!x.words) x.words=computeWords(x); if(!x.wtimes) x.wtimes=x.words.map(function(){return null;});
+      if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); }
+  }catch(e){} }
+  enBox.addEventListener('input',save);
+  zhBox.addEventListener('input',save);
 
   load();
 })();
