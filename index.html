@@ -1,0 +1,444 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>诺雅 · 歌曲发音标注 Noya</title>
+<style>
+  :root{
+    --bg:#17130d;
+    --bg2:#1e1810;
+    --panel:#221c14;
+    --panel-line:#3a3024;
+    --ink:#e9e0cf;
+    --ink-dim:#a99f8c;
+    --accent:#d9a441;
+    --accent-soft:#b98a34;
+    /* annotation card */
+    --card:#efe9dc;
+    --card-ink:#2a2320;
+    --c-strike:#b1a897;   /* 吞音/划掉 灰 */
+    --c-weak:#3f8f43;     /* 弱读 绿 */
+    --c-arc:#c8563d;      /* 连读弧线 暖红 */
+    --c-ins:#3f78c9;      /* w/y 增音 蓝 */
+    --serif:"Georgia","Times New Roman","Songti SC","STSong","Noto Serif CJK SC","SimSun",serif;
+    --sans:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+  body{padding:22px 26px 60px;min-height:100vh}
+
+  /* ---------- header ---------- */
+  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:20px}
+  .brand .cn{font-size:15px;letter-spacing:.28em;color:var(--ink-dim)}
+  .brand .en{font-family:var(--serif);font-style:italic;font-size:22px;margin-top:2px}
+  .hint{font-size:13px;color:var(--ink-dim);max-width:360px;text-align:right;line-height:1.6}
+
+  /* ---------- input panel ---------- */
+  .setup{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:16px 16px 14px;margin-bottom:16px}
+  .setup .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:820px){.setup .grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 6px 2px;letter-spacing:.06em}
+  textarea{width:100%;min-height:120px;resize:vertical;background:#0f0c08;border:1px solid var(--panel-line);
+    border-radius:10px;color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.7;padding:12px 14px}
+  textarea:focus{outline:none;border-color:var(--accent-soft)}
+  .rowbtns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .rowbtns .spacer{flex:1}
+  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;padding:9px 18px;font-size:13px;
+    background:#2c251a;color:var(--ink);border:1px solid var(--panel-line);transition:.15s}
+  button:hover{border-color:var(--accent-soft)}
+  button.primary{background:var(--accent);color:#241a06;font-weight:600;border-color:transparent}
+  button.primary:hover{background:#e6b556}
+  button.ghost{background:transparent}
+  .filebtn{position:relative;overflow:hidden}
+  .filebtn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  /* ---------- workspace ---------- */
+  .work{display:flex;gap:16px;align-items:flex-start}
+  /* toolbar */
+  .toolbar{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:8px;display:flex;
+    flex-direction:column;gap:6px;position:sticky;top:14px;flex:0 0 auto;width:72px}
+  .tool{width:56px;height:52px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:0}
+  .tool small{font-size:10px;color:var(--ink-dim);letter-spacing:.02em}
+  .tool .ic{font-family:var(--serif);font-size:19px;line-height:1}
+  .tool:hover{background:#2a231a}
+  .tool.active{background:var(--accent);border-color:transparent}
+  .tool.active small,.tool.active .ic{color:#241a06}
+  .tool.active small{color:#4a3a12}
+  .tsep{height:1px;background:var(--panel-line);margin:4px 6px}
+
+  /* card */
+  .stage{flex:1;min-width:0}
+  #card{background:var(--card);color:var(--card-ink);border-radius:18px;padding:44px 46px;min-height:280px}
+  .line{position:relative;font-family:var(--serif);padding:34px 4px 8px;}
+  .line .en{font-size:34px;line-height:1;letter-spacing:.02em;white-space:normal;position:relative;z-index:1}
+  .line .zh{font-family:var(--serif);font-size:17px;color:#6f665a;margin-top:12px;letter-spacing:.03em}
+  .line.hidezh .zh{display:none}
+  .cell{display:inline-block;position:relative;cursor:pointer;padding:0 .5px;transition:color .12s}
+  .cell.space{width:.32em;cursor:default}
+  .cell.letter:hover{color:var(--accent-soft)}
+  .cell.pending{background:rgba(217,164,65,.35);border-radius:4px}
+  .cell.strike{color:var(--c-strike)}
+  .cell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);
+    transform:rotate(-18deg);border-radius:2px}
+  .cell.weak{color:var(--c-weak)}
+  .ins{display:inline-block;color:var(--c-ins);font-size:.62em;vertical-align:.5em;font-style:italic;font-family:var(--serif);
+    margin:0 .02em;cursor:pointer}
+  svg.arclayer{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+  .arcpath{fill:none;stroke:var(--c-arc);stroke-width:2.2;stroke-linecap:round}
+
+  .empty{color:#9c9384;font-family:var(--serif);font-size:18px;text-align:center;padding:60px 0}
+
+  /* legend */
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--ink-dim);
+    background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;padding:11px 16px}
+  .legend b{font-weight:600;color:var(--ink)}
+  .lg{display:flex;align-items:center;gap:7px}
+  .swatch{width:22px;height:16px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:13px;background:var(--card)}
+  .sw-strike{color:var(--c-strike);text-decoration:line-through}
+  .sw-weak{color:var(--c-weak)}
+  .sw-arc{color:var(--c-arc)}
+  .sw-ins{color:var(--c-ins);font-style:italic}
+
+  /* audio bar */
+  .audiobar{display:flex;align-items:center;gap:12px;margin-top:14px;background:var(--panel);
+    border:1px solid var(--panel-line);border-radius:12px;padding:10px 14px}
+  .audiobar audio{height:34px}
+  .audiobar .nm{font-size:12px;color:var(--ink-dim);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* present mode */
+  body.present .setup,body.present header,body.present .toolbar,body.present .legend{display:none}
+  body.present{background:var(--card);padding:20px}
+  body.present #card{padding:5vh 6vw}
+  body.present .line .en{font-size:44px}
+  body.present .audiobar{background:transparent;border:none}
+  .exitpresent{position:fixed;top:14px;right:16px;z-index:50;display:none}
+  body.present .exitpresent{display:block}
+</style>
+
+<header>
+  <div class="brand">
+    <div class="cn">诺雅 · 歌曲发音标注</div>
+    <div class="en">Noya Pronunciation Studio</div>
+  </div>
+  <div class="hint">粘贴英文歌词（可加中文可演唱版），生成标注区后逐字点击标注四种连读。<br>标好可进入演示模式边讲边展示，或导出图片。</div>
+</header>
+
+<section class="setup" id="setup">
+  <div class="grid">
+    <div class="field">
+      <label>英文歌词（每行一句）</label>
+      <textarea id="en" placeholder="When I was young&#10;I'd listen to the radio&#10;Waitin' for my favorite songs"></textarea>
+    </div>
+    <div class="field">
+      <label>中文可演唱版（每行一句，与英文按行对应，可留空）</label>
+      <textarea id="zh" placeholder="当我年少时&#10;我会听着收音机&#10;等着我最爱的歌"></textarea>
+    </div>
+  </div>
+  <div class="rowbtns">
+    <button class="primary" id="gen">生成标注区</button>
+    <button class="ghost" id="clearText">清空文本</button>
+    <button class="filebtn" id="audioBtn">载入音频<input type="file" id="audioFile" accept="audio/*"></button>
+    <div class="spacer"></div>
+    <button class="ghost" id="toggleZh">显示/隐藏中文</button>
+    <button class="ghost" id="present">演示模式</button>
+    <button class="ghost" id="exportPng">导出 PNG</button>
+  </div>
+</section>
+
+<div class="work">
+  <div class="toolbar" id="toolbar">
+    <button class="tool active" data-tool="arc"    title="连读弧线：先点起点字母，再点终点字母"><span class="ic">⌒</span><small>连读</small></button>
+    <button class="tool"        data-tool="strike" title="划掉/吞音：字母变灰并加斜线"><span class="ic">a̸</span><small>划掉</small></button>
+    <button class="tool"        data-tool="weak"   title="弱读：字母变绿"><span class="ic" style="color:var(--c-weak)">ə</span><small>弱读</small></button>
+    <button class="tool"        data-tool="ins-w"  title="增音 w：在两元音间插入 w"><span class="ic" style="color:var(--c-ins)">ʷ</span><small>加 w</small></button>
+    <button class="tool"        data-tool="ins-y"  title="增音 y：在两元音间插入 y"><span class="ic" style="color:var(--c-ins)">ʲ</span><small>加 y</small></button>
+    <div class="tsep"></div>
+    <button class="tool" id="undo"  title="撤销上一步"><span class="ic">↶</span><small>撤销</small></button>
+    <button class="tool" id="clearAnno" title="清除本页所有标注"><span class="ic">🗑</span><small>清标注</small></button>
+  </div>
+
+  <div class="stage">
+    <div id="card"><div class="empty">在上方粘贴歌词，点「生成标注区」开始标注</div></div>
+
+    <div class="audiobar" id="audiobar" style="display:none">
+      <audio id="player" controls></audio>
+      <span class="nm" id="audioName"></span>
+    </div>
+
+    <div class="legend">
+      <span class="lg"><span class="swatch sw-arc">⌒</span><b>连读</b> 弧线相连</span>
+      <span class="lg"><span class="swatch sw-strike">t</span><b>划掉</b> 吞音/失爆（灰+斜线）</span>
+      <span class="lg"><span class="swatch sw-weak">a</span><b>弱读</b> 变绿</span>
+      <span class="lg"><span class="swatch sw-ins">ʷ</span><b>增音</b> 两元音间加 w / y</span>
+    </div>
+  </div>
+</div>
+
+<button class="primary exitpresent" id="exitPresent">退出演示</button>
+
+<script>
+(function(){
+  "use strict";
+  var card = document.getElementById('card');
+  var enBox = document.getElementById('en');
+  var zhBox = document.getElementById('zh');
+
+  // ---- state ----
+  // lines: [{cells:[{ch,isLetter}], strike:Set, weak:Set, arcs:[[a,b]], ins:[{after,g}]}]
+  var lines = [];
+  var tool = 'arc';
+  var pendingArc = null; // {line, cell}
+  var showZh = true;
+  var history = []; // snapshots of `lines`
+
+  function snapshot(){
+    history.push(JSON.stringify(lines, replacer));
+    if(history.length>60) history.shift();
+  }
+  function replacer(k,v){ return v instanceof Set ? {__set:[].concat.apply([],[Array.from(v)])} : v; }
+  function reviver(k,v){ return (v && v.__set) ? new Set(v.__set) : v; }
+  function undo(){
+    if(!history.length) return;
+    lines = JSON.parse(history.pop(), reviver);
+    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); });
+    pendingArc=null; render(); save();
+  }
+
+  // ---- build lines from text ----
+  function build(){
+    var en = enBox.value.replace(/\r/g,'').split('\n');
+    var zh = zhBox.value.replace(/\r/g,'').split('\n');
+    // drop trailing blank lines only
+    while(en.length>1 && en[en.length-1].trim()==='' ) en.pop();
+    lines = en.map(function(text,i){
+      var cells=[];
+      for(var j=0;j<text.length;j++){
+        var ch=text[j];
+        cells.push({ch:ch, isLetter: /[^\s]/.test(ch)});
+      }
+      return {cells:cells, zh:(zh[i]||'').trim(), strike:new Set(), weak:new Set(), arcs:[], ins:[]};
+    });
+    history=[]; pendingArc=null;
+    render(); save();
+  }
+
+  // ---- render ----
+  function render(){
+    card.innerHTML='';
+    if(!lines.length || (lines.length===1 && !lines[0].cells.length)){
+      card.innerHTML='<div class="empty">在上方粘贴歌词，点「生成标注区」开始标注</div>';
+      return;
+    }
+    lines.forEach(function(line,li){
+      var row=document.createElement('div');
+      row.className='line'+(showZh?'':' hidezh');
+
+      var en=document.createElement('div');
+      en.className='en';
+
+      line.cells.forEach(function(cell,ci){
+        var sp=document.createElement('span');
+        if(!cell.isLetter){
+          sp.className='cell space';
+          sp.innerHTML = cell.ch===' ' ? '&nbsp;' : cell.ch;
+        }else{
+          sp.className='cell letter';
+          if(line.strike.has(ci)) sp.className+=' strike';
+          if(line.weak.has(ci)) sp.className+=' weak';
+          if(pendingArc && pendingArc.line===li && pendingArc.cell===ci) sp.className+=' pending';
+          sp.textContent=cell.ch;
+          sp.dataset.line=li; sp.dataset.cell=ci;
+          sp.addEventListener('click', onCellClick);
+        }
+        en.appendChild(sp);
+        // inserted glide after this cell
+        line.ins.forEach(function(ins){
+          if(ins.after===ci){
+            var g=document.createElement('span');
+            g.className='ins'; g.textContent=ins.g;
+            g.title='点击删除增音';
+            g.addEventListener('click', function(e){
+              e.stopPropagation(); snapshot();
+              line.ins=line.ins.filter(function(x){return !(x.after===ins.after && x.g===ins.g);});
+              render(); save();
+            });
+            en.appendChild(g);
+          }
+        });
+      });
+
+      var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('class','arclayer');
+      en.appendChild(svg);
+      row.appendChild(en);
+
+      if(line.zh){
+        var zh=document.createElement('div'); zh.className='zh'; zh.textContent=line.zh;
+        row.appendChild(zh);
+      }
+      card.appendChild(row);
+      // draw arcs after layout
+      row._svg=svg; row._en=en; row._line=line; row._li=li;
+    });
+    requestAnimationFrame(drawArcs);
+  }
+
+  function drawArcs(){
+    lines.forEach(function(line,li){
+      var row=card.children[li]; if(!row||!row._svg) return;
+      var svg=row._svg, en=row._en;
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      var base=en.getBoundingClientRect();
+      line.arcs.forEach(function(arc){
+        var a=en.querySelector('.cell[data-cell="'+arc[0]+'"]');
+        var b=en.querySelector('.cell[data-cell="'+arc[1]+'"]');
+        if(!a||!b) return;
+        var ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+        var x1=ra.left+ra.width/2-base.left;
+        var x2=rb.left+rb.width/2-base.left;
+        var yTop=Math.min(ra.top,rb.top)-base.top; // top of letters
+        var span=Math.abs(x2-x1);
+        var lift=Math.min(26, 12+span*0.10);      // arc height above letters
+        var y=yTop-4;
+        var cx=(x1+x2)/2, cy=y-lift;
+        var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('class','arcpath');
+        path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
+        // clickable-ish: allow removing by wider invisible hit path
+        svg.appendChild(path);
+      });
+    });
+  }
+
+  // ---- interactions ----
+  function onCellClick(e){
+    var li=+this.dataset.line, ci=+this.dataset.cell;
+    var line=lines[li];
+    if(tool==='strike'){
+      snapshot();
+      if(line.strike.has(ci)) line.strike.delete(ci); else { line.strike.add(ci); line.weak.delete(ci); }
+      render(); save();
+    }else if(tool==='weak'){
+      snapshot();
+      if(line.weak.has(ci)) line.weak.delete(ci); else { line.weak.add(ci); line.strike.delete(ci); }
+      render(); save();
+    }else if(tool==='ins-w'||tool==='ins-y'){
+      snapshot();
+      var g=(tool==='ins-w')?'w':'y';
+      var exists=line.ins.some(function(x){return x.after===ci && x.g===g;});
+      if(exists) line.ins=line.ins.filter(function(x){return !(x.after===ci && x.g===g);});
+      else line.ins.push({after:ci,g:g});
+      render(); save();
+    }else if(tool==='arc'){
+      if(!pendingArc){
+        pendingArc={line:li,cell:ci}; render();
+      }else if(pendingArc.line===li && pendingArc.cell===ci){
+        pendingArc=null; render(); // cancel
+      }else if(pendingArc.line===li){
+        snapshot();
+        var a=Math.min(pendingArc.cell,ci), b=Math.max(pendingArc.cell,ci);
+        var dup=line.arcs.findIndex(function(p){return p[0]===a&&p[1]===b;});
+        if(dup>=0) line.arcs.splice(dup,1); else line.arcs.push([a,b]);
+        pendingArc=null; render(); save();
+      }else{
+        // arcs only within a line; restart on new line
+        pendingArc={line:li,cell:ci}; render();
+      }
+    }
+  }
+
+  // ---- toolbar ----
+  document.querySelectorAll('.tool[data-tool]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tool[data-tool]').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); tool=btn.dataset.tool; pendingArc=null; render();
+    });
+  });
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('clearAnno').addEventListener('click', function(){
+    if(!lines.length) return;
+    if(!confirm('清除当前所有标注？')) return;
+    snapshot();
+    lines.forEach(function(l){ l.strike=new Set(); l.weak=new Set(); l.arcs=[]; l.ins=[]; });
+    pendingArc=null; render(); save();
+  });
+
+  document.getElementById('gen').addEventListener('click', build);
+  document.getElementById('clearText').addEventListener('click', function(){
+    enBox.value=''; zhBox.value='';
+  });
+  document.getElementById('toggleZh').addEventListener('click', function(){ showZh=!showZh; render(); });
+
+  // ---- audio ----
+  document.getElementById('audioFile').addEventListener('change', function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var url=URL.createObjectURL(f);
+    var p=document.getElementById('player'); p.src=url;
+    document.getElementById('audioName').textContent=f.name;
+    document.getElementById('audiobar').style.display='flex';
+  });
+
+  // ---- present mode ----
+  document.getElementById('present').addEventListener('click', function(){ document.body.classList.add('present'); requestAnimationFrame(drawArcs); });
+  document.getElementById('exitPresent').addEventListener('click', function(){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); });
+  window.addEventListener('keydown', function(e){ if(e.key==='Escape') document.body.classList.remove('present'); if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();} });
+  window.addEventListener('resize', function(){ requestAnimationFrame(drawArcs); });
+
+  // ---- export PNG (best effort, dependency-free via SVG foreignObject) ----
+  document.getElementById('exportPng').addEventListener('click', function(){
+    var node=card;
+    var rect=node.getBoundingClientRect();
+    var scale=2;
+    var clone=node.cloneNode(true);
+    // inline computed styles for reliable rendering
+    inlineStyles(node, clone);
+    var wrap=document.createElement('div');
+    wrap.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
+    wrap.appendChild(clone);
+    var html=new XMLSerializer().serializeToString(wrap);
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+rect.width+'" height="'+rect.height+'">'+
+      '<foreignObject width="100%" height="100%">'+html+'</foreignObject></svg>';
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas'); c.width=rect.width*scale; c.height=rect.height*scale;
+      var ctx=c.getContext('2d'); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+      try{
+        var a=document.createElement('a'); a.download='noya-lyrics.png'; a.href=c.toDataURL('image/png'); a.click();
+      }catch(err){ alert('自动导出失败，请直接截图使用。'); }
+    };
+    img.onerror=function(){ alert('自动导出失败，请直接截图使用（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  });
+  function inlineStyles(src, dst){
+    var cs=getComputedStyle(src);
+    var props=['color','background-color','font-family','font-size','font-style','font-weight','line-height',
+      'letter-spacing','padding','padding-top','padding-bottom','padding-left','padding-right','margin','border-radius',
+      'text-decoration','display','vertical-align','position','left','top','width','height'];
+    var s='';
+    props.forEach(function(p){ s+=p+':'+cs.getPropertyValue(p)+';'; });
+    dst.setAttribute('style', s);
+    for(var i=0;i<src.children.length;i++){ if(dst.children[i]) inlineStyles(src.children[i], dst.children[i]); }
+  }
+
+  // ---- persistence ----
+  function save(){
+    try{
+      localStorage.setItem('noya-en', enBox.value);
+      localStorage.setItem('noya-zh', zhBox.value);
+      localStorage.setItem('noya-lines', JSON.stringify(lines, replacer));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      var e=localStorage.getItem('noya-en'), z=localStorage.getItem('noya-zh'), l=localStorage.getItem('noya-lines');
+      if(e!=null) enBox.value=e;
+      if(z!=null) zhBox.value=z;
+      if(l){ lines=JSON.parse(l, reviver); lines.forEach(function(x){x.strike=new Set(x.strike);x.weak=new Set(x.weak);}); render(); }
+    }catch(e){}
+  }
+  enBox.addEventListener('input', save);
+  zhBox.addEventListener('input', save);
+
+  load();
+})();
+</script>
