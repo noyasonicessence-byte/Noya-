@@ -118,6 +118,42 @@
   body.present .barwrap{background:transparent;border:none}
   .exitpresent{position:fixed;top:14px;right:16px;z-index:50;display:none}
   body.present .exitpresent{display:block}
+
+  /* ---------- practice (sentence-by-sentence) view ---------- */
+  body.practice .toolbar,body.practice .legend{display:none}
+  #cardPractice{display:none}
+  body.practice #card{display:none}
+  body.practice #cardPractice{display:block}
+  .pcard{background:var(--card);color:var(--card-ink);border-radius:14px;padding:16px 18px;display:flex;gap:16px;
+    align-items:flex-start;margin-bottom:12px}
+  .pcard.pactive{box-shadow:0 0 0 2px var(--accent)}
+  .pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid #cabfa8;color:#8a7f6a;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--sans);margin-top:4px;font-variant-numeric:tabular-nums}
+  .pbody{flex:1;min-width:0}
+  .pen{font-family:var(--serif);font-size:23px;line-height:1.45}
+  .pword{cursor:default;border-radius:4px;padding:0 1px}
+  body.kwmode .pword{cursor:pointer}
+  body.kwmode .pword:hover{background:rgba(217,164,65,.18)}
+  .pword.kw{background:rgba(217,164,65,.40)}
+  .pzh{font-family:var(--serif);font-size:15.5px;color:#6f665a;margin-top:7px;letter-spacing:.02em}
+  .pctrl{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:150px}
+  .prow{display:flex;align-items:center;gap:6px}
+  .pplay{width:34px;height:34px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
+    background:var(--card-ink);color:var(--card);border:none;font-size:13px}
+  .pplay:hover{background:#000}
+  .ploop{width:30px;height:30px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;
+    background:transparent;color:#8a7f6a;border:1px solid #cabfa8;font-size:13px}
+  .ploop.on{background:var(--accent);color:#241a06;border-color:transparent}
+  .ptime{font-family:var(--sans);font-variant-numeric:tabular-nums;font-size:12.5px;color:#8a7f6a;min-width:52px;text-align:right}
+  .padj{display:flex;gap:4px}
+  .padj button{padding:4px 8px;font-size:11px;background:#e2dccb;color:#4a4234;border:1px solid #cfc7b3;border-radius:7px}
+  .padj button:hover{border-color:var(--accent-soft)}
+  .padj button.here{background:#c8563d;color:#fff;border-color:transparent;font-weight:600}
+  .padj button.here:hover{background:#b44a33}
+  body.present .pctrl,body.present .pnum{display:none}
+  body.present .pcard{background:var(--card);box-shadow:none;margin-bottom:20px}
+  body.present .pen{font-size:34px}
+  body.present .pcard.pactive .pen{color:#000}
 </style>
 
 <header>
@@ -143,7 +179,12 @@
     <button class="primary" id="gen">生成标注区</button>
     <button class="ghost" id="clearText">清空文本</button>
     <button class="filebtn" id="audioBtn">载入音频<input type="file" id="audioFile" accept="audio/*"></button>
+    <span class="seg" id="viewSeg" style="margin-left:6px">
+      <button data-view="anno" class="on">标注</button>
+      <button data-view="practice">练习页</button>
+    </span>
     <div class="spacer"></div>
+    <button class="ghost" id="kwBtn" style="display:none">标关键词</button>
     <button class="ghost" id="toggleZh">显示/隐藏中文</button>
     <button class="ghost" id="present">演示模式</button>
     <button class="ghost" id="exportPng">导出 PNG</button>
@@ -164,6 +205,7 @@
 
   <div class="stage">
     <div id="card"><div class="empty">在上方粘贴歌词，点「生成标注区」开始标注</div></div>
+    <div id="cardPractice"></div>
 
     <div class="barwrap" id="barwrap" style="display:none">
       <div class="rowflex">
@@ -230,8 +272,8 @@
   function undo(){
     if(!history.length) return;
     lines=JSON.parse(history.pop(),reviver);
-    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); });
-    pendingArc=null; buildFlat(); render(); save();
+    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); });
+    pendingArc=null; buildFlat(); render(); renderPractice(); save();
   }
 
   // ---------- build ----------
@@ -250,11 +292,11 @@
     lines=en.map(function(text,i){
       var cells=[];
       for(var j=0;j<text.length;j++) cells.push({ch:text[j],isLetter:/[^\s]/.test(text[j])});
-      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],lstart:null};
+      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],kw:new Set(),lstart:null};
       l.words=computeWords(l); l.wtimes=l.words.map(function(){return null;});
       return l;
     });
-    history=[]; pendingArc=null; buildFlat(); render(); save();
+    history=[]; pendingArc=null; loopSet=new Set(); buildFlat(); render(); renderPractice(); save();
   }
   function buildFlat(){
     flatW=[]; flatL=[];
@@ -519,6 +561,104 @@
   });
   player.addEventListener('ended',function(){ if(playK) stopPlayK(); if(syncMode) finishSync(); });
 
+  // ---------- practice (sentence-by-sentence) view ----------
+  var mode='anno', kwMode=false, practiceState=null, loopSet=new Set();
+  var pHost=document.getElementById('cardPractice');
+
+  function fmt(t){ if(t==null) return '—:––'; var m=Math.floor(t/60),s=t-m*60; return m+':'+(s<10?'0':'')+s.toFixed(1); }
+  function wordText(line,w){ return w.cells.map(function(ci){return line.cells[ci].ch;}).join(''); }
+
+  function renderPractice(){
+    pHost.innerHTML='';
+    var vis=[]; lines.forEach(function(l,li){ if(l.words&&l.words.length) vis.push({l:l,li:li}); });
+    if(!vis.length){ pHost.innerHTML='<div class="empty">粘贴歌词并「生成标注区」后，这里会逐句列出，可单句播放、逐句校时与标关键词。</div>'; return; }
+    vis.forEach(function(x,n){
+      var li=x.li, line=x.l;
+      var pc=document.createElement('div'); pc.className='pcard'+((practiceState&&practiceState.li===li)?' pactive':'');
+      var num=document.createElement('div'); num.className='pnum'; num.textContent=(n+1); pc.appendChild(num);
+
+      var body=document.createElement('div'); body.className='pbody';
+      var en=document.createElement('div'); en.className='pen';
+      line.words.forEach(function(w,wi){
+        var sp=document.createElement('span'); sp.className='pword'+((line.kw&&line.kw.has(wi))?' kw':'');
+        sp.textContent=wordText(line,w);
+        sp.addEventListener('click',function(){
+          if(!kwMode) return; if(!line.kw) line.kw=new Set();
+          if(line.kw.has(wi)) line.kw.delete(wi); else line.kw.add(wi);
+          save(); renderPractice();
+        });
+        en.appendChild(sp);
+        if(wi<line.words.length-1) en.appendChild(document.createTextNode(' '));
+      });
+      body.appendChild(en);
+      if(line.zh){ var zh=document.createElement('div'); zh.className='pzh'; zh.textContent=line.zh; body.appendChild(zh); }
+      pc.appendChild(body);
+
+      var ctrl=document.createElement('div'); ctrl.className='pctrl';
+      var r1=document.createElement('div'); r1.className='prow';
+      var playing=practiceState&&practiceState.li===li&&!player.paused;
+      var play=document.createElement('button'); play.className='pplay'; play.textContent=playing?'⏸':'▶'; play.title='播放这一句';
+      play.addEventListener('click',function(){ toggleLine(li); });
+      var loop=document.createElement('button'); loop.className='ploop'+(loopSet.has(li)?' on':''); loop.textContent='↻'; loop.title='循环这一句';
+      loop.addEventListener('click',function(){
+        if(loopSet.has(li)) loopSet.delete(li); else loopSet.add(li);
+        if(practiceState&&practiceState.li===li) practiceState.loop=loopSet.has(li);
+        renderPractice();
+      });
+      var time=document.createElement('span'); time.className='ptime'; time.textContent=fmt(line.lstart);
+      r1.appendChild(play); r1.appendChild(loop); r1.appendChild(time); ctrl.appendChild(r1);
+
+      var r2=document.createElement('div'); r2.className='padj';
+      function adj(label,d){ var b=document.createElement('button'); b.textContent=label;
+        b.addEventListener('click',function(){ line.lstart=Math.max(0,(line.lstart||player.currentTime||0)+d); save(); renderPractice(); }); r2.appendChild(b); }
+      adj('−.5',-0.5); adj('−.1',-0.1);
+      var here=document.createElement('button'); here.className='here'; here.textContent='此处'; here.title='把当前音频位置设为这句的开始时间';
+      here.addEventListener('click',function(){ line.lstart=player.currentTime; save(); renderPractice(); }); r2.appendChild(here);
+      adj('+.1',0.1); adj('+.5',0.5);
+      ctrl.appendChild(r2); pc.appendChild(ctrl);
+      pHost.appendChild(pc);
+    });
+  }
+  function toggleLine(li){
+    if(practiceState&&practiceState.li===li&&!player.paused){ player.pause(); renderPractice(); return; }
+    playLine(li);
+  }
+  function playLine(li){
+    if(!player.src){ alert('请先载入音频。'); return; }
+    var line=lines[li];
+    if(line.lstart==null){ alert('这一句还没设开始时间：把音频播到这句开头，点「此处」。'); return; }
+    if(syncMode) finishSync(); if(playK) stopPlayK();
+    var end=null;
+    for(var j=li+1;j<lines.length;j++){ if(lines[j].lstart!=null && lines[j].lstart>line.lstart){ end=lines[j].lstart; break; } }
+    if(end==null) end=(player.duration&&isFinite(player.duration))?player.duration:line.lstart+6;
+    practiceState={li:li,end:end,loop:loopSet.has(li)};
+    player.currentTime=line.lstart; player.play(); renderPractice();
+  }
+  player.addEventListener('timeupdate',function(){
+    if(!practiceState) return;
+    if(player.currentTime>=practiceState.end-0.03){
+      if(practiceState.loop){ player.currentTime=lines[practiceState.li].lstart; }
+      else { player.pause(); practiceState=null; renderPractice(); }
+    }
+  });
+  player.addEventListener('play',function(){ if(mode==='practice') renderPractice(); });
+  player.addEventListener('pause',function(){ if(mode==='practice') renderPractice(); });
+
+  document.getElementById('viewSeg').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-view]'); if(!b) return;
+    mode=b.dataset.view;
+    this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.view===mode);});
+    document.body.classList.toggle('practice',mode==='practice');
+    document.getElementById('kwBtn').style.display=(mode==='practice')?'':'none';
+    if(practiceState){ player.pause(); practiceState=null; }
+    save();
+    if(mode==='practice') renderPractice(); else render();
+  });
+  document.getElementById('kwBtn').addEventListener('click',function(){
+    kwMode=!kwMode; this.classList.toggle('primary',kwMode); document.body.classList.toggle('kwmode',kwMode);
+    this.textContent=kwMode?'完成标词':'标关键词';
+  });
+
   // ---------- keyboard ----------
   window.addEventListener('keydown',function(e){
     var typing=/^(TEXTAREA|INPUT)$/.test((e.target.tagName||''));
@@ -570,11 +710,11 @@
     r.onload=function(){ try{
       var d=JSON.parse(r.result,reviver);
       enBox.value=d.en||''; zhBox.value=d.zh||''; timesMode=d.timesMode||'word';
-      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak);
+      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw);
         if(!l.words) l.words=computeWords(l); if(!l.wtimes) l.wtimes=l.words.map(function(){return null;});
         if(l.lstart===undefined) l.lstart=null; return l; });
       granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
-      buildFlat(); render(); save();
+      loopSet=new Set(); buildFlat(); render(); renderPractice(); save();
     }catch(err){ alert('导入失败：文件格式不正确。'); } };
     r.readAsText(f);
   });
@@ -584,16 +724,22 @@
     localStorage.setItem('noya2-en',enBox.value);
     localStorage.setItem('noya2-zh',zhBox.value);
     localStorage.setItem('noya2-mode',timesMode);
+    localStorage.setItem('noya2-view',mode);
     localStorage.setItem('noya2-lines',JSON.stringify(lines,replacer));
   }catch(e){} }
   function load(){ try{
     var e=localStorage.getItem('noya2-en'),z=localStorage.getItem('noya2-zh'),
-        m=localStorage.getItem('noya2-mode'),l=localStorage.getItem('noya2-lines');
+        m=localStorage.getItem('noya2-mode'),v=localStorage.getItem('noya2-view'),l=localStorage.getItem('noya2-lines');
     if(e!=null) enBox.value=e; if(z!=null) zhBox.value=z;
     if(m){ timesMode=m; granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===m);}); }
-    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak);
+    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.kw=new Set(x.kw);
       if(!x.words) x.words=computeWords(x); if(!x.wtimes) x.wtimes=x.words.map(function(){return null;});
-      if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); }
+      if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); renderPractice(); }
+    if(v==='practice'){
+      mode='practice'; document.body.classList.add('practice');
+      document.getElementById('viewSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='practice');});
+      document.getElementById('kwBtn').style.display=''; renderPractice();
+    }
   }catch(e){} }
   enBox.addEventListener('input',save);
   zhBox.addEventListener('input',save);
