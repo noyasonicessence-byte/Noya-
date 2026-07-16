@@ -1,7 +1,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>诺雅 · 歌曲发音标注 Noya</title>
-<style>
+<style id="mainstyle">
   :root{
     --bg:#17130d;
     --bg2:#1e1810;
@@ -130,11 +130,23 @@
   .pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid #cabfa8;color:#8a7f6a;
     display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--sans);margin-top:4px;font-variant-numeric:tabular-nums}
   .pbody{flex:1;min-width:0}
-  .pen{font-family:var(--serif);font-size:23px;line-height:1.45}
-  .pword{cursor:default;border-radius:4px;padding:0 1px}
+  .pen{font-family:var(--serif);font-size:23px;line-height:1.5;position:relative;padding-top:20px}
+  .pword{display:inline-block;border-radius:4px;padding:0 1px}
   body.kwmode .pword{cursor:pointer}
   body.kwmode .pword:hover{background:rgba(217,164,65,.18)}
   .pword.kw{background:rgba(217,164,65,.40)}
+  .pen .pcell{display:inline-block;position:relative}
+  .pen .pcell.strike{color:var(--c-strike)}
+  .pen .pcell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);
+    transform:rotate(-18deg);border-radius:2px}
+  .pen .pcell.weak{color:var(--c-weak)}
+  .pspace{display:inline-block}
+  /* practice control bar */
+  #pbar{display:none;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;background:var(--panel);
+    border:1px solid var(--panel-line);border-radius:12px;padding:10px 14px}
+  body.practice #pbar{display:flex}
+  body.present #pbar{display:none}
+  .pcard.ptarget{box-shadow:0 0 0 2px var(--c-arc)}
   .pzh{font-family:var(--serif);font-size:15.5px;color:#6f665a;margin-top:7px;letter-spacing:.02em}
   .pctrl{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:150px}
   .prow{display:flex;align-items:center;gap:6px}
@@ -205,6 +217,19 @@
 
   <div class="stage">
     <div id="card"><div class="empty">在上方粘贴歌词，点「生成标注区」开始标注</div></div>
+
+    <div id="pbar">
+      <button id="pTapBtn" class="primary">▶ 逐句打点</button>
+      <button id="pTapBack" hidden>退一步</button>
+      <span class="divi"></span>
+      <span class="nm">速度</span>
+      <span class="seg" id="rateSeg">
+        <button data-rate="0.5">0.5×</button>
+        <button data-rate="0.75">0.75×</button>
+        <button data-rate="1" class="on">1×</button>
+      </span>
+      <span class="synchint" id="pTapHint" hidden>播放后，在<b>每句开头</b>按 <kbd>空格</kbd>（或点该句卡片）打一下点，自动跳下一句；<kbd>Backspace</kbd> 纠正。</span>
+    </div>
     <div id="cardPractice"></div>
 
     <div class="barwrap" id="barwrap" style="display:none">
@@ -429,6 +454,7 @@
     player.src=URL.createObjectURL(f);
     document.getElementById('audioName').textContent=f.name;
     document.getElementById('barwrap').style.display='flex';
+    player.addEventListener('loadedmetadata',function(){ player.playbackRate=playRate; },{once:true});
   });
 
   // ---------- karaoke: sync recording ----------
@@ -563,34 +589,74 @@
 
   // ---------- practice (sentence-by-sentence) view ----------
   var mode='anno', kwMode=false, practiceState=null, loopSet=new Set();
+  var pTap=false, pCursor=0, playRate=1;
   var pHost=document.getElementById('cardPractice');
 
   function fmt(t){ if(t==null) return '—:––'; var m=Math.floor(t/60),s=t-m*60; return m+':'+(s<10?'0':'')+s.toFixed(1); }
   function wordText(line,w){ return w.cells.map(function(ci){return line.cells[ci].ch;}).join(''); }
 
+  var pPenRefs=[];
+  function buildPen(line,li){
+    var en=document.createElement('div'); en.className='pen';
+    var c2w={}; line.words.forEach(function(w,wi){ w.cells.forEach(function(ci){ c2w[ci]=wi; }); });
+    var curSpan=null,curWi=-1;
+    line.cells.forEach(function(cell,ci){
+      if(cell.isLetter){
+        var wi=c2w[ci];
+        if(wi!==curWi){
+          curSpan=document.createElement('span'); curSpan.className='pword'+((line.kw&&line.kw.has(wi))?' kw':'');
+          (function(wi){ curSpan.addEventListener('click',function(){
+            if(!kwMode) return; if(!line.kw) line.kw=new Set();
+            if(line.kw.has(wi)) line.kw.delete(wi); else line.kw.add(wi);
+            save(); renderPractice();
+          }); })(wi);
+          en.appendChild(curSpan); curWi=wi;
+        }
+        var ls=document.createElement('span'); ls.className='pcell';
+        if(line.strike.has(ci)) ls.className+=' strike';
+        if(line.weak.has(ci)) ls.className+=' weak';
+        ls.textContent=cell.ch; ls.dataset.cell=ci; curSpan.appendChild(ls);
+        line.ins.forEach(function(ins){ if(ins.after===ci){ var g=document.createElement('span'); g.className='ins'; g.textContent=ins.g; curSpan.appendChild(g); } });
+      }else{
+        curWi=-1; curSpan=null;
+        var spc=document.createElement('span'); spc.className='pspace'; spc.innerHTML = cell.ch===' ' ? '&nbsp;' : cell.ch; en.appendChild(spc);
+      }
+    });
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','arclayer'); en.appendChild(svg);
+    pPenRefs.push({en:en,svg:svg,li:li});
+    return en;
+  }
+  function drawArcsPractice(){
+    pPenRefs.forEach(function(ref){
+      var en=ref.en,svg=ref.svg,line=lines[ref.li]; if(!line) return;
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      var base=en.getBoundingClientRect();
+      line.arcs.forEach(function(arc){
+        var a=en.querySelector('.pcell[data-cell="'+arc[0]+'"]'),b=en.querySelector('.pcell[data-cell="'+arc[1]+'"]');
+        if(!a||!b) return;
+        var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+        var x1=ra.left+ra.width/2-base.left,x2=rb.left+rb.width/2-base.left;
+        var yTop=Math.min(ra.top,rb.top)-base.top,span=Math.abs(x2-x1);
+        var lift=Math.min(22,10+span*0.10),y=yTop-3,cx=(x1+x2)/2,cy=y-lift;
+        var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('class','arcpath'); path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
+        svg.appendChild(path);
+      });
+    });
+  }
   function renderPractice(){
-    pHost.innerHTML='';
+    pHost.innerHTML=''; pPenRefs=[];
     var vis=[]; lines.forEach(function(l,li){ if(l.words&&l.words.length) vis.push({l:l,li:li}); });
-    if(!vis.length){ pHost.innerHTML='<div class="empty">粘贴歌词并「生成标注区」后，这里会逐句列出，可单句播放、逐句校时与标关键词。</div>'; return; }
+    if(!vis.length){ pHost.innerHTML='<div class="empty">粘贴歌词并「生成标注区」后，这里会逐句列出，可单句播放、逐句校时与标关键词。标注视图里做的连读/颜色会一起显示在这里。</div>'; return; }
     vis.forEach(function(x,n){
       var li=x.li, line=x.l;
-      var pc=document.createElement('div'); pc.className='pcard'+((practiceState&&practiceState.li===li)?' pactive':'');
+      var active=(practiceState&&practiceState.li===li)||(pTap&&flatL[pCursor]===li);
+      var pc=document.createElement('div'); pc.className='pcard'+((practiceState&&practiceState.li===li)?' pactive':'')+((pTap&&flatL[pCursor]===li)?' ptarget':'');
+      pc.addEventListener('click',function(e){ if(pTap && !e.target.closest('.pctrl')) pTapStamp(); });
       var num=document.createElement('div'); num.className='pnum'; num.textContent=(n+1); pc.appendChild(num);
 
       var body=document.createElement('div'); body.className='pbody';
-      var en=document.createElement('div'); en.className='pen';
-      line.words.forEach(function(w,wi){
-        var sp=document.createElement('span'); sp.className='pword'+((line.kw&&line.kw.has(wi))?' kw':'');
-        sp.textContent=wordText(line,w);
-        sp.addEventListener('click',function(){
-          if(!kwMode) return; if(!line.kw) line.kw=new Set();
-          if(line.kw.has(wi)) line.kw.delete(wi); else line.kw.add(wi);
-          save(); renderPractice();
-        });
-        en.appendChild(sp);
-        if(wi<line.words.length-1) en.appendChild(document.createTextNode(' '));
-      });
-      body.appendChild(en);
+      body.appendChild(buildPen(line,li));
       if(line.zh){ var zh=document.createElement('div'); zh.className='pzh'; zh.textContent=line.zh; body.appendChild(zh); }
       pc.appendChild(body);
 
@@ -618,6 +684,11 @@
       ctrl.appendChild(r2); pc.appendChild(ctrl);
       pHost.appendChild(pc);
     });
+    requestAnimationFrame(drawArcsPractice);
+    if(pTap && flatL[pCursor]!=null && pHost.children.length){
+      var idx=-1; for(var k=0;k<lines.length && k<=flatL[pCursor];k++){ if(lines[k].words&&lines[k].words.length) idx++; }
+      if(pHost.children[idx]) pHost.children[idx].scrollIntoView({behavior:'smooth',block:'center'});
+    }
   }
   function toggleLine(li){
     if(practiceState&&practiceState.li===li&&!player.paused){ player.pause(); renderPractice(); return; }
@@ -644,6 +715,39 @@
   player.addEventListener('play',function(){ if(mode==='practice') renderPractice(); });
   player.addEventListener('pause',function(){ if(mode==='practice') renderPractice(); });
 
+  // tap-along: one pass to set every line's start time
+  function pTapStart(){
+    if(!player.src){ alert('请先载入音频。'); return; }
+    if(!flatL.length){ alert('请先粘贴歌词并「生成标注区」。'); return; }
+    if(syncMode) finishSync(); if(playK) stopPlayK(); if(practiceState){ player.pause(); practiceState=null; }
+    pTap=true; pCursor=0;
+    document.getElementById('pTapBtn').textContent='■ 结束打点';
+    document.getElementById('pTapBack').hidden=false;
+    document.getElementById('pTapHint').hidden=false;
+    player.currentTime=0; player.play(); renderPractice();
+  }
+  function pTapEnd(){
+    pTap=false;
+    document.getElementById('pTapBtn').textContent='▶ 逐句打点';
+    document.getElementById('pTapBack').hidden=true;
+    document.getElementById('pTapHint').hidden=true;
+    player.pause(); renderPractice();
+  }
+  function pTapStamp(){
+    if(!pTap) return;
+    if(pCursor>=flatL.length){ pTapEnd(); return; }
+    lines[flatL[pCursor]].lstart=player.currentTime; pCursor++; save();
+    if(pCursor>=flatL.length){ renderPractice(); pTapEnd(); } else renderPractice();
+  }
+  function pTapBackStep(){ if(!pTap||pCursor<=0) return; pCursor--; lines[flatL[pCursor]].lstart=null; save(); renderPractice(); }
+  document.getElementById('pTapBtn').addEventListener('click',function(){ pTap?pTapEnd():pTapStart(); });
+  document.getElementById('pTapBack').addEventListener('click',pTapBackStep);
+  document.getElementById('rateSeg').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-rate]'); if(!b) return;
+    playRate=parseFloat(b.dataset.rate); player.playbackRate=playRate;
+    this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.rate===b.dataset.rate);});
+  });
+
   document.getElementById('viewSeg').addEventListener('click',function(e){
     var b=e.target.closest('button[data-view]'); if(!b) return;
     mode=b.dataset.view;
@@ -668,34 +772,50 @@
       if(e.code==='Space'){ e.preventDefault(); tap(); }
       else if(e.key==='Backspace'){ e.preventDefault(); syncBack(); }
     }
+    if(pTap && !typing){
+      if(e.code==='Space'){ e.preventDefault(); pTapStamp(); }
+      else if(e.key==='Backspace'){ e.preventDefault(); pTapBackStep(); }
+    }
   });
 
   // ---------- present / export ----------
-  document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(drawArcs); });
-  document.getElementById('exitPresent').addEventListener('click',function(){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); });
-  window.addEventListener('resize',function(){ requestAnimationFrame(drawArcs); });
+  document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
+  document.getElementById('exitPresent').addEventListener('click',function(){ document.body.classList.remove('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
+  window.addEventListener('resize',function(){ requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
 
-  document.getElementById('exportPng').addEventListener('click',function(){
-    var node=card, rect=node.getBoundingClientRect(), scale=2, clone=node.cloneNode(true);
-    inlineStyles(node,clone);
-    var wrap=document.createElement('div'); wrap.setAttribute('xmlns','http://www.w3.org/1999/xhtml'); wrap.appendChild(clone);
-    var html=new XMLSerializer().serializeToString(wrap);
-    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+rect.width+'" height="'+rect.height+'"><foreignObject width="100%" height="100%">'+html+'</foreignObject></svg>';
+  // Context-aware raster export: whole practice list as a long image, or the annotation card.
+  document.getElementById('exportPng').addEventListener('click',function(){ exportImage(false); });
+  window.__exportImage=function(cb){ exportImage(true); var t=setInterval(function(){ if(window.__lastExport){ clearInterval(t); cb&&cb(window.__lastExport); } },60); };
+  function exportImage(returnUrl){
+    var practice=(mode==='practice');
+    var node=practice?pHost:card;
+    var rect=node.getBoundingClientRect();
+    var w=Math.ceil(node.scrollWidth||rect.width), h=Math.ceil(node.scrollHeight||rect.height);
+    if(!w||!h){ alert('没有可导出的内容。'); return; }
+    var scale=2;
+    var clone=node.cloneNode(true);
+    clone.querySelectorAll('.pctrl,.pnum').forEach(function(el){ el.remove(); });   // clean cards for sharing
+    clone.setAttribute('id', practice?'cardPractice':'card');
+    clone.style.display='block'; clone.style.margin='0';
+    var css=document.getElementById('mainstyle').textContent;
+    var ground=practice?'#ffffff':getComputedStyle(card).backgroundColor;
+    // Inline :root custom properties — :root does not match inside foreignObject.
+    var vnames=['--bg','--bg2','--panel','--panel-line','--ink','--ink-dim','--accent','--accent-soft','--card','--card-ink','--c-strike','--c-weak','--c-arc','--c-ins','--serif','--sans'];
+    var rcs=getComputedStyle(document.documentElement);
+    var vars=vnames.map(function(v){ return v+':'+rcs.getPropertyValue(v).trim(); }).join(';');
+    var body="<div xmlns='http://www.w3.org/1999/xhtml' style='width:"+w+"px;background:"+ground+";"+vars+"'>"
+      +'<style>'+css+'</style>'+new XMLSerializer().serializeToString(clone)+'</div>';
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+body+'</foreignObject></svg>';
     var img=new Image();
-    img.onload=function(){ var c=document.createElement('canvas'); c.width=rect.width*scale; c.height=rect.height*scale;
-      var ctx=c.getContext('2d'); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
-      try{ var a=document.createElement('a'); a.download='noya-lyrics.png'; a.href=c.toDataURL('image/png'); a.click(); }
-      catch(err){ alert('自动导出失败，请直接截图使用。'); } };
+    img.onload=function(){
+      var c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale;
+      var ctx=c.getContext('2d'); ctx.fillStyle=ground; ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+      var url; try{ url=c.toDataURL('image/png'); }catch(err){ alert('自动导出失败，请直接截图使用。'); return; }
+      if(returnUrl){ window.__lastExport=url; return; }
+      var a=document.createElement('a'); a.download=practice?'noya-practice.png':'noya-lyrics.png'; a.href=url; a.click();
+    };
     img.onerror=function(){ alert('自动导出失败，请直接截图（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-  });
-  function inlineStyles(src,dst){
-    var cs=getComputedStyle(src);
-    var props=['color','background-color','font-family','font-size','font-style','font-weight','line-height','letter-spacing',
-      'padding','padding-top','padding-bottom','padding-left','padding-right','margin','border-radius','text-decoration',
-      'display','vertical-align','position','left','top','width','height','box-shadow'];
-    var s=''; props.forEach(function(p){ s+=p+':'+cs.getPropertyValue(p)+';'; }); dst.setAttribute('style',s);
-    for(var i=0;i<src.children.length;i++){ if(dst.children[i]) inlineStyles(src.children[i],dst.children[i]); }
   }
 
   // ---------- project export / import ----------
