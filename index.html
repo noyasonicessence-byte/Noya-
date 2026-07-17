@@ -70,7 +70,7 @@
   .stage{flex:1;min-width:0}
   #card{background:var(--card);color:var(--card-ink);border-radius:18px;padding:44px 46px;min-height:280px}
   /* 意境背景 (themed background image) */
-  #card.scene{background-image:var(--bgimg);background-size:cover;background-position:center;position:relative;overflow:hidden}
+  #card.scene{background-size:cover;background-position:center;position:relative;overflow:hidden}
   #card.scene::before{content:"";position:absolute;inset:0;background:var(--scrim);pointer-events:none}
   #card.scene>*{position:relative;z-index:1}
   #card.scene.lighttext{color:#f4ecdf}
@@ -316,6 +316,12 @@
     <span class="seg" id="txtSeg" hidden>
       <button data-tx="dark" class="on">深字</button>
       <button data-tx="light">浅字</button>
+    </span>
+    <button class="ghost" id="blurBtn" hidden>虚化</button>
+    <span class="seg" id="scrimSeg" hidden>
+      <button data-sc="weak">蒙版弱</button>
+      <button data-sc="mid" class="on">中</button>
+      <button data-sc="strong">强</button>
     </span>
     <span class="divi"></span>
     <span class="nm">成片比例</span>
@@ -1034,37 +1040,74 @@
   window.addEventListener('mousemove',function(e){ if(laserOn){ laserdot.style.left=e.clientX+'px'; laserdot.style.top=e.clientY+'px'; } });
 
   // ---------- 意境背景 (themed background) ----------
-  var bgData=null, cardTheme='paper', sceneText='dark', posterRatio='9x16';
+  var bgData=null;        // original uploaded image (dataURL)
+  var bgUse=null;         // the image actually applied (blurred or not)
+  var bgBlur=false, scrimLevel='mid', cardTheme='paper', sceneText='dark', posterRatio='9x16';
+  var SCRIM={weak:0.30, mid:0.5, strong:0.72};
+  // Pre-blur the image (so screen + export match; backdrop-filter does not survive rasterization).
+  function makeBlurred(src, cb){
+    var im=new Image();
+    im.onload=function(){
+      var w=im.width, h=im.height, s=Math.min(1, 1400/Math.max(w,h));
+      var c=document.createElement('canvas'); c.width=Math.round(w*s); c.height=Math.round(h*s);
+      var x=c.getContext('2d'); x.filter='blur('+Math.max(10,Math.round(Math.max(c.width,c.height)/32))+'px)';
+      x.drawImage(im,0,0,c.width,c.height);
+      try{ cb(c.toDataURL('image/jpeg',0.82)); }catch(e){ cb(src); }
+    };
+    im.onerror=function(){ cb(src); };
+    im.src=src;
+  }
+  function refreshBgUse(cb){
+    if(!bgData){ bgUse=null; cb&&cb(); return; }
+    if(bgBlur){ makeBlurred(bgData, function(u){ bgUse=u; cb&&cb(); }); }
+    else { bgUse=bgData; cb&&cb(); }
+  }
+  function scrimColor(){ var a=SCRIM[scrimLevel]||0.5; return sceneText==='light'?'rgba(18,14,10,'+a+')':'rgba(248,243,233,'+a+')'; }
   function applyScene(){
-    var scene=(cardTheme==='scene' && !!bgData);
-    if(scene){ document.documentElement.style.setProperty('--bgimg','url("'+bgData+'")'); }
+    var scene=(cardTheme==='scene' && !!bgUse);
+    card.style.backgroundImage = scene? "url('"+bgUse+"')" : '';   // set directly (robust across browsers)
     card.classList.toggle('scene',scene);
     card.classList.toggle('lighttext',scene && sceneText==='light');
-    card.style.setProperty('--scrim', sceneText==='light'?'rgba(18,14,10,.5)':'rgba(248,243,233,.5)');
+    card.style.setProperty('--scrim', scrimColor());
     document.body.classList.toggle('scene',scene);
-    document.getElementById('txtSeg').hidden = !(cardTheme==='scene');
+    var isScene=(cardTheme==='scene');
+    document.getElementById('txtSeg').hidden = !isScene;
+    document.getElementById('blurBtn').hidden = !isScene;
+    document.getElementById('scrimSeg').hidden = !isScene;
     document.getElementById('bgClear').hidden = !bgData;
     requestAnimationFrame(function(){drawArcs();});
   }
   document.getElementById('bgFile').addEventListener('change',function(e){
     var f=e.target.files[0]; if(!f) return;
     var r=new FileReader();
-    r.onload=function(){ bgData=r.result; if(cardTheme==='paper'){ cardTheme='scene'; document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th==='scene');}); }
-      applyScene(); save(); toast('背景已应用 · 已切到「意境」主题'); };
+    r.onload=function(){ bgData=r.result;
+      if(cardTheme==='paper'){ cardTheme='scene'; document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th==='scene');}); }
+      refreshBgUse(function(){ applyScene(); save(); toast('背景已应用 · 忙乱的图可开「虚化」'); });
+    };
     r.readAsDataURL(f);
   });
-  document.getElementById('bgClear').addEventListener('click',function(){ bgData=null; cardTheme='paper';
+  document.getElementById('bgClear').addEventListener('click',function(){ bgData=null; bgUse=null; cardTheme='paper';
     document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th==='paper');});
     applyScene(); save(); toast('已清除背景'); });
   document.getElementById('themeSeg').addEventListener('click',function(e){
     var b=e.target.closest('button[data-th]'); if(!b) return;
     cardTheme=b.dataset.th; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th===cardTheme);});
-    if(cardTheme==='scene' && !bgData){ alert('请先上传一张背景图。'); }
+    if(cardTheme==='scene' && !bgData){ toast('请先上传一张背景图'); }
     applyScene(); save();
   });
   document.getElementById('txtSeg').addEventListener('click',function(e){
     var b=e.target.closest('button[data-tx]'); if(!b) return;
     sceneText=b.dataset.tx; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.tx===sceneText);});
+    applyScene(); save();
+  });
+  document.getElementById('blurBtn').addEventListener('click',function(){
+    bgBlur=!bgBlur; this.classList.toggle('primary',bgBlur);
+    toast(bgBlur?'虚化中…':'已取消虚化');
+    refreshBgUse(function(){ applyScene(); save(); if(bgBlur) toast('已虚化'); });
+  });
+  document.getElementById('scrimSeg').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-sc]'); if(!b) return;
+    scrimLevel=b.dataset.sc; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.sc===scrimLevel);});
     applyScene(); save();
   });
   document.getElementById('ratioSeg').addEventListener('click',function(e){
@@ -1105,14 +1148,13 @@
     var node=practice?pHost:card;
     var w=Math.ceil(node.scrollWidth||node.getBoundingClientRect().width), h=Math.ceil(node.scrollHeight||node.getBoundingClientRect().height);
     if(!w||!h){ alert('没有可导出的内容。'); return; }
-    var scene=(cardTheme==='scene' && bgData && !practice);
-    var clone=node.cloneNode(true);
+    var scene=(cardTheme==='scene' && bgUse && !practice);
+    var clone=node.cloneNode(true);          // inline background-image + --scrim are copied from #card
     clone.querySelectorAll('.pctrl,.pnum').forEach(function(el){ el.remove(); });
     clone.setAttribute('id', practice?'cardPractice':'card');
     clone.style.display='block'; clone.style.margin='0';
     var ground=practice?'#ffffff':(scene?'#e9e0cf':getComputedStyle(card).backgroundColor);
-    var wrap='background:'+(scene?'transparent':ground)+(scene?';--bgimg:url("'+bgData+'")':'');
-    rasterize(new XMLSerializer().serializeToString(clone), w, h, wrap, ground,
+    rasterize(new XMLSerializer().serializeToString(clone), w, h, 'background:'+(scene?'transparent':ground), ground,
       practice?'noya-practice.png':'noya-lyrics.png', returnUrl);
   }
 
@@ -1126,7 +1168,7 @@
     if(!cw||!ch){ alert('没有可导出的内容。'); return; }
     var dims={ '9x16':[1080,1920], '1x1':[1350,1350], '16x9':[1920,1080] }[posterRatio]||[1080,1920];
     var W=dims[0], H=dims[1], pad=Math.round(W*0.06);
-    var scene=(cardTheme==='scene' && bgData && !practice);
+    var scene=(cardTheme==='scene' && bgUse && !practice);
     var title=(document.getElementById('songTitle').value||'').trim();
     var titleH=title?Math.round(H*0.09):Math.round(H*0.04), footerH=Math.round(H*0.075);
     var availW=W-2*pad, availH=H-titleH-footerH-2*pad;
@@ -1138,7 +1180,7 @@
     clone.style.display='block'; clone.style.margin='0';
     var legendClone=document.querySelector('.legend').cloneNode(true);
     legendClone.style.margin='0'; legendClone.style.background='transparent'; legendClone.style.border='none';
-    var frameBg = scene ? 'linear-gradient(rgba(0,0,0,.30),rgba(0,0,0,.44)), var(--bgimg) center/cover' : 'linear-gradient(160deg,#1c1710 0%,#241d13 55%,#191410 100%)';
+    var frameBg = scene ? "linear-gradient(rgba(0,0,0,.30),rgba(0,0,0,.44)), url("+bgUse+") center/cover" : 'linear-gradient(160deg,#1c1710 0%,#241d13 55%,#191410 100%)';
     var titleClr = scene ? '#f6efe1' : 'var(--card)';
     var titleSize=Math.round(W*0.052);
     var titleHtml = title? "<div style='font-family:var(--serif);font-size:"+titleSize+"px;color:"+titleClr+";text-align:center;padding:"+pad+"px "+pad+"px 0;text-wrap:balance;text-shadow:0 2px 12px rgba(0,0,0,.4)'>"+esc(title)+"</div>" : "";
@@ -1157,8 +1199,7 @@
       +   "<div style='font-family:var(--serif);font-style:italic;font-size:"+Math.round(W*0.024)+"px;color:var(--accent);white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.5)'>诺雅 · Noya</div>"
       + "</div>"
       + "</div>";
-    var wrap=scene? '--bgimg:url("'+bgData+'")' : '';
-    rasterize(inner, W, H, wrap, '#1c1710', 'noya-poster-'+posterRatio+'.png', returnUrl);
+    rasterize(inner, W, H, '', '#1c1710', 'noya-poster-'+posterRatio+'.png', returnUrl);
   }
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -1255,6 +1296,8 @@
     localStorage.setItem('noya2-theme',cardTheme);
     localStorage.setItem('noya2-scenetext',sceneText);
     localStorage.setItem('noya2-ratio',posterRatio);
+    localStorage.setItem('noya2-blur',bgBlur?'1':'0');
+    localStorage.setItem('noya2-scrim',scrimLevel);
     localStorage.setItem('noya2-lines',JSON.stringify(lines,replacer));
     try{ if(bgData) localStorage.setItem('noya2-bg',bgData); else localStorage.removeItem('noya2-bg'); }catch(e){ /* image too big for quota; session-only */ }
   }catch(e){} }
@@ -1272,13 +1315,16 @@
       document.getElementById('viewSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='practice');});
       document.getElementById('kwBtn').style.display=''; renderPractice();
     }
-    var th=localStorage.getItem('noya2-theme'), st=localStorage.getItem('noya2-scenetext'), ra=localStorage.getItem('noya2-ratio'), bg=localStorage.getItem('noya2-bg');
+    var th=localStorage.getItem('noya2-theme'), st=localStorage.getItem('noya2-scenetext'), ra=localStorage.getItem('noya2-ratio'), bg=localStorage.getItem('noya2-bg'),
+        bl=localStorage.getItem('noya2-blur'), sc=localStorage.getItem('noya2-scrim');
     if(bg) bgData=bg;
-    if(th) cardTheme=th; if(st) sceneText=st; if(ra) posterRatio=ra;
+    if(th) cardTheme=th; if(st) sceneText=st; if(ra) posterRatio=ra; if(bl==='1') bgBlur=true; if(sc) scrimLevel=sc;
     document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th===cardTheme);});
     document.getElementById('txtSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.tx===sceneText);});
     document.getElementById('ratioSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.r===posterRatio);});
-    applyScene();
+    document.getElementById('scrimSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.sc===scrimLevel);});
+    document.getElementById('blurBtn').classList.toggle('primary',bgBlur);
+    refreshBgUse(applyScene);
   }catch(e){} }
   enBox.addEventListener('input',save);
   zhBox.addEventListener('input',save);
