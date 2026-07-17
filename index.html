@@ -17,6 +17,7 @@
     --c-weak:#3f8f43;
     --c-arc:#c8563d;
     --c-ins:#3f78c9;
+    --c-flap:#d2452f;
     --serif:"Georgia","Times New Roman","Songti SC","STSong","Noto Serif CJK SC","SimSun",serif;
     --sans:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
   }
@@ -36,6 +37,9 @@
   textarea{width:100%;min-height:120px;resize:vertical;background:#0f0c08;border:1px solid var(--panel-line);
     border-radius:10px;color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.7;padding:12px 14px}
   textarea:focus{outline:none;border-color:var(--accent-soft)}
+  .setup input[type=text]{width:100%;background:#0f0c08;border:1px solid var(--panel-line);border-radius:10px;
+    color:var(--ink);font-family:var(--serif);font-size:15px;padding:10px 14px}
+  .setup input[type=text]:focus{outline:none;border-color:var(--accent-soft)}
   .rowbtns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
   .rowbtns .spacer{flex:1}
   button{font-family:var(--sans);cursor:pointer;border-radius:999px;padding:9px 18px;font-size:13px;
@@ -75,6 +79,8 @@
   .cell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);
     transform:rotate(-18deg);border-radius:2px}
   .cell.weak{color:var(--c-weak)}
+  .cell.flap,.pen .word .pcell.flap{color:var(--c-flap)}
+  .flapd{display:inline-block;color:var(--c-flap);font-size:.42em;vertical-align:.42em;font-family:var(--serif);margin-left:.02em}
   /* karaoke */
   .cell.ksung{background:rgba(217,164,65,.20)}
   .cell.kcur{background:rgba(217,164,65,.55)}
@@ -184,6 +190,10 @@
   body.kwmode .word{cursor:pointer}
   body.kwmode .word:hover{background:rgba(217,164,65,.18)}
   .word.kw{background:rgba(217,164,65,.40);border-radius:4px}
+  /* 单词聚焦放大 (present) */
+  body.present.focusing .word{opacity:.28;transition:opacity .22s,transform .22s}
+  body.present .word.wfocus{opacity:1;transform:scale(1.22);font-weight:600;position:relative;z-index:6}
+  body.present:not(.laser) #card,body.present:not(.laser) #cardPractice{cursor:zoom-in}
   /* pcell strike/weak (letters inside .pen .word) */
   .pen .word .pcell{display:inline-block;position:relative}
   .pen .word .pcell.strike{color:var(--c-strike)}
@@ -211,6 +221,21 @@
   body.laser #card,body.laser #cardPractice{cursor:none}
   .sw-beat{background:var(--card)}
   .sw-beat i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+
+  /* mouth / articulation panel */
+  #mouthPanel{position:fixed;right:16px;bottom:16px;z-index:170;width:300px;background:var(--panel);
+    border:1px solid var(--panel-line);border-radius:16px;padding:14px;box-shadow:0 16px 50px rgba(0,0,0,.55)}
+  #mouthPanel[hidden]{display:none}
+  .mp-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink);letter-spacing:.04em;margin-bottom:10px}
+  .mp-head button{background:transparent;border:none;color:var(--ink-dim);font-size:20px;line-height:1;padding:0 4px;cursor:pointer}
+  .mp-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .mp-tabs button{padding:5px 11px;font-size:14px;font-family:var(--serif);background:#2c251a;color:var(--ink);
+    border:1px solid var(--panel-line);border-radius:8px;cursor:pointer}
+  .mp-tabs button.on{background:var(--accent);color:#241a06;border-color:transparent;font-weight:600}
+  .mp-stage{background:var(--card);border-radius:12px;padding:6px;display:flex;justify-content:center}
+  .mp-stage svg{width:100%;height:auto;display:block}
+  .mp-label{text-align:center;font-family:var(--serif);font-size:26px;color:var(--ink);margin-top:8px}
+  .mp-cn{text-align:center;font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.5}
 </style>
 
 <header>
@@ -222,6 +247,10 @@
 </header>
 
 <section class="setup" id="setup">
+  <div class="field" style="margin-bottom:12px">
+    <label>歌曲标题（可选，用于竖屏成片顶部）</label>
+    <input id="songTitle" type="text" placeholder="如：Yesterday Once More">
+  </div>
   <div class="grid">
     <div class="field">
       <label>英文歌词（每行一句）</label>
@@ -247,6 +276,8 @@
     <button class="ghost" id="laserBtn">激光笔</button>
     <button class="ghost" id="present">演示模式</button>
     <button class="ghost" id="exportPng">导出 PNG</button>
+    <button class="ghost" id="exportPoster">竖屏成片</button>
+    <button class="ghost" id="mouthBtn">口型图</button>
   </div>
 </section>
 
@@ -257,6 +288,7 @@
     <button class="tool"        data-tool="weak"   title="弱读：字母变绿"><span class="ic" style="color:var(--c-weak)">ə</span><small>弱读</small></button>
     <button class="tool"        data-tool="ins-w"  title="增音 w：在两元音间插入 w"><span class="ic" style="color:var(--c-ins)">ʷ</span><small>加 w</small></button>
     <button class="tool"        data-tool="ins-y"  title="增音 y：在两元音间插入 y"><span class="ic" style="color:var(--c-ins)">ʲ</span><small>加 y</small></button>
+    <button class="tool"        data-tool="flap"   title="弹舌 t / Flap t：字母变红并标 [d]（water/better 那种）"><span class="ic" style="color:var(--c-flap)">t</span><small>弹舌t</small></button>
     <div class="tsep"></div>
     <button class="tool"        data-tool="note"   title="词注：给单词加 词上中文 / 词下音标"><span class="ic">A文</span><small>词注</small></button>
     <button class="tool"        data-tool="beat"   title="重音/节奏：在单词上方打拍点"><span class="ic" style="color:var(--accent)">•</span><small>重音</small></button>
@@ -312,6 +344,7 @@
     <div class="legend">
       <span class="lg"><span class="swatch sw-arc">⌒</span><b>连读</b> 弧线相连</span>
       <span class="lg"><span class="swatch sw-strike">t</span><b>划掉</b> 吞音/失爆</span>
+      <span class="lg"><span class="swatch" style="color:var(--c-flap)">t</span><b>弹舌t</b> Flap t</span>
       <span class="lg"><span class="swatch sw-weak">a</span><b>弱读</b> 变绿</span>
       <span class="lg"><span class="swatch sw-ins">ʷ</span><b>增音</b> 加 w / y</span>
       <span class="lg"><span class="swatch sw-beat"><i></i></span><b>重音</b> 拍点</span>
@@ -327,6 +360,14 @@
   <button class="primary" id="exitPresent">退出</button>
 </div>
 <div class="laserdot" id="laserdot"></div>
+
+<div id="mouthPanel" hidden>
+  <div class="mp-head"><span>发音口型 · 舌位</span><button id="mpClose" title="关闭">×</button></div>
+  <div class="mp-tabs" id="mpTabs"></div>
+  <div class="mp-stage" id="mpStage"></div>
+  <div class="mp-label" id="mpLabel"></div>
+  <div class="mp-cn" id="mpCn"></div>
+</div>
 
 <div id="noteEditor" hidden>
   <div class="ne-row"><label>词上 · 中文（如：抱在怀里）</label><input id="neCn" type="text"></div>
@@ -360,7 +401,7 @@
   function undo(){
     if(!history.length) return;
     lines=JSON.parse(history.pop(),reviver);
-    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; });
+    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; });
     pendingArc=null; buildFlat(); render(); renderPractice(); save();
   }
 
@@ -380,7 +421,7 @@
     lines=en.map(function(text,i){
       var cells=[];
       for(var j=0;j<text.length;j++) cells.push({ch:text[j],isLetter:/[^\s]/.test(text[j])});
-      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],kw:new Set(),notes:{},beats:new Set(),lstart:null};
+      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),flap:new Set(),arcs:[],ins:[],kw:new Set(),notes:{},beats:new Set(),lstart:null};
       l.words=computeWords(l); l.wtimes=l.words.map(function(){return null;});
       return l;
     });
@@ -446,10 +487,12 @@
         var ls=document.createElement('span'); ls.className=editable?'cell letter':'pcell';
         if(line.strike.has(ci)) ls.className+=' strike';
         if(line.weak.has(ci)) ls.className+=' weak';
+        if(line.flap && line.flap.has(ci)) ls.className+=' flap';
         if(editable && pendingArc && pendingArc.line===li && pendingArc.cell===ci) ls.className+=' pending';
         ls.textContent=cell.ch; ls.dataset.line=li; ls.dataset.cell=ci; ls.dataset.word=wi;
         if(editable) ls.addEventListener('click',onCellClick);
         curWord.appendChild(ls);
+        if(line.flap && line.flap.has(ci)){ var fd=document.createElement('span'); fd.className='flapd'; fd.textContent='[d]'; curWord.appendChild(fd); }
         line.ins.forEach(function(ins){ if(ins.after===ci){
           var g=document.createElement('span'); g.className='ins'; g.textContent=ins.g;
           if(editable){ g.title='点击删除增音';
@@ -492,6 +535,7 @@
   // ---------- annotation interactions ----------
   function onCellClick(e){
     var li=+this.dataset.line, ci=+this.dataset.cell, wi=+this.dataset.word;
+    if(document.body.classList.contains('present')){ return; }  // present = focus mode (handled by delegated listener)
     if(syncMode){ setCursorToCell(li,ci); return; }   // during sync, click retargets
     var line=lines[li];
     if(tool==='note'){ openNoteEditor(li,wi,this); return; }
@@ -500,8 +544,13 @@
       if(line.beats.has(wi)) line.beats.delete(wi); else line.beats.add(wi);
       render(); renderPractice(); save(); return;
     }
+    if(tool==='flap'){ snapshot();
+      if(!line.flap) line.flap=new Set();
+      if(line.flap.has(ci)) line.flap.delete(ci); else{ line.flap.add(ci); line.strike.delete(ci); line.weak.delete(ci); }
+      render(); renderPractice(); save(); return;
+    }
     if(tool==='strike'){ snapshot();
-      if(line.strike.has(ci)) line.strike.delete(ci); else{ line.strike.add(ci); line.weak.delete(ci); }
+      if(line.strike.has(ci)) line.strike.delete(ci); else{ line.strike.add(ci); line.weak.delete(ci); line.flap&&line.flap.delete(ci); }
       render(); renderPractice(); save();
     }else if(tool==='weak'){ snapshot();
       if(line.weak.has(ci)) line.weak.delete(ci); else{ line.weak.add(ci); line.strike.delete(ci); }
@@ -879,10 +928,22 @@
 
   // ---------- present / export ----------
   document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();applyReveal();}); });
+  // 单词聚焦放大：演示模式下点词放大聚光，再点取消
+  function clearFocus(){ document.querySelectorAll('.word.wfocus').forEach(function(w){w.classList.remove('wfocus');}); document.body.classList.remove('focusing'); }
+  function toggleFocus(w){
+    if(!w) return;
+    if(w.classList.contains('wfocus')){ w.classList.remove('wfocus'); }
+    else { clearFocus(); w.classList.add('wfocus'); }
+    document.body.classList.toggle('focusing', !!document.querySelector('.word.wfocus'));
+  }
+  [card,pHost].forEach(function(host){ host.addEventListener('click',function(e){
+    if(!document.body.classList.contains('present')) return;
+    var w=e.target.closest('.word'); if(w) toggleFocus(w); else clearFocus();
+  }); });
   function exitPresent(){
     document.body.classList.remove('present');
     if(revealMode){ revealMode=false; document.getElementById('reveal').classList.remove('primary'); applyReveal(); }
-    setLaser(false);
+    setLaser(false); clearFocus();
     requestAnimationFrame(function(){drawArcs();drawArcsPractice();});
   }
   document.getElementById('exitPresent').addEventListener('click',exitPresent);
@@ -916,40 +977,134 @@
   document.getElementById('pbLaser').addEventListener('click',function(){ setLaser(!laserOn); });
   window.addEventListener('mousemove',function(e){ if(laserOn){ laserdot.style.left=e.clientX+'px'; laserdot.style.top=e.clientY+'px'; } });
 
+  // ---------- raster export helpers ----------
+  function cssVars(){
+    var vnames=['--bg','--bg2','--panel','--panel-line','--ink','--ink-dim','--accent','--accent-soft','--card','--card-ink','--c-strike','--c-weak','--c-arc','--c-ins','--c-flap','--serif','--sans'];
+    var rcs=getComputedStyle(document.documentElement);
+    return vnames.map(function(v){ return v+':'+rcs.getPropertyValue(v).trim(); }).join(';');
+  }
+  // Rasterize an HTML fragment (with the app stylesheet + inlined :root vars) to a PNG.
+  function rasterize(innerHtml, w, h, wrapStyle, canvasGround, filename, returnUrl){
+    var css=document.getElementById('mainstyle').textContent, scale=2;
+    var body="<div xmlns='http://www.w3.org/1999/xhtml' style='width:"+w+"px;height:"+h+"px;"+cssVars()+";"+(wrapStyle||'')+"'>"
+      +'<style>'+css+'</style>'+innerHtml+'</div>';
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+body+'</foreignObject></svg>';
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale;
+      var ctx=c.getContext('2d'); ctx.fillStyle=canvasGround; ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+      var url; try{ url=c.toDataURL('image/png'); }catch(err){ alert('自动导出失败，请直接截图使用。'); return; }
+      if(returnUrl){ window.__lastExport=url; return; }
+      var a=document.createElement('a'); a.download=filename; a.href=url; a.click();
+    };
+    img.onerror=function(){ alert('自动导出失败，请直接截图（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  }
+
   // Context-aware raster export: whole practice list as a long image, or the annotation card.
   document.getElementById('exportPng').addEventListener('click',function(){ exportImage(false); });
   window.__exportImage=function(cb){ exportImage(true); var t=setInterval(function(){ if(window.__lastExport){ clearInterval(t); cb&&cb(window.__lastExport); } },60); };
   function exportImage(returnUrl){
     var practice=(mode==='practice');
     var node=practice?pHost:card;
-    var rect=node.getBoundingClientRect();
-    var w=Math.ceil(node.scrollWidth||rect.width), h=Math.ceil(node.scrollHeight||rect.height);
+    var w=Math.ceil(node.scrollWidth||node.getBoundingClientRect().width), h=Math.ceil(node.scrollHeight||node.getBoundingClientRect().height);
     if(!w||!h){ alert('没有可导出的内容。'); return; }
-    var scale=2;
     var clone=node.cloneNode(true);
-    clone.querySelectorAll('.pctrl,.pnum').forEach(function(el){ el.remove(); });   // clean cards for sharing
+    clone.querySelectorAll('.pctrl,.pnum').forEach(function(el){ el.remove(); });
     clone.setAttribute('id', practice?'cardPractice':'card');
     clone.style.display='block'; clone.style.margin='0';
-    var css=document.getElementById('mainstyle').textContent;
     var ground=practice?'#ffffff':getComputedStyle(card).backgroundColor;
-    // Inline :root custom properties — :root does not match inside foreignObject.
-    var vnames=['--bg','--bg2','--panel','--panel-line','--ink','--ink-dim','--accent','--accent-soft','--card','--card-ink','--c-strike','--c-weak','--c-arc','--c-ins','--serif','--sans'];
-    var rcs=getComputedStyle(document.documentElement);
-    var vars=vnames.map(function(v){ return v+':'+rcs.getPropertyValue(v).trim(); }).join(';');
-    var body="<div xmlns='http://www.w3.org/1999/xhtml' style='width:"+w+"px;background:"+ground+";"+vars+"'>"
-      +'<style>'+css+'</style>'+new XMLSerializer().serializeToString(clone)+'</div>';
-    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+body+'</foreignObject></svg>';
-    var img=new Image();
-    img.onload=function(){
-      var c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale;
-      var ctx=c.getContext('2d'); ctx.fillStyle=ground; ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
-      var url; try{ url=c.toDataURL('image/png'); }catch(err){ alert('自动导出失败，请直接截图使用。'); return; }
-      if(returnUrl){ window.__lastExport=url; return; }
-      var a=document.createElement('a'); a.download=practice?'noya-practice.png':'noya-lyrics.png'; a.href=url; a.click();
-    };
-    img.onerror=function(){ alert('自动导出失败，请直接截图（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
-    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+    rasterize(new XMLSerializer().serializeToString(clone), w, h, 'background:'+ground, ground,
+      practice?'noya-practice.png':'noya-lyrics.png', returnUrl);
   }
+
+  // 9:16 vertical poster for social (title + content + legend + watermark).
+  document.getElementById('exportPoster').addEventListener('click',function(){ exportPoster(false); });
+  window.__exportPoster=function(cb){ exportPoster(true); var t=setInterval(function(){ if(window.__lastExport){ clearInterval(t); cb&&cb(window.__lastExport); } },60); };
+  function exportPoster(returnUrl){
+    var practice=(mode==='practice');
+    var node=practice?pHost:card;
+    var cw=Math.ceil(node.scrollWidth), ch=Math.ceil(node.scrollHeight);
+    if(!cw||!ch){ alert('没有可导出的内容。'); return; }
+    var W=1080, H=1920, pad=70;
+    var title=(document.getElementById('songTitle').value||'').trim();
+    var titleH=title?150:70, footerH=120;
+    var availW=W-2*pad, availH=H-titleH-footerH-2*pad;
+    var scale=Math.min(availW/cw, availH/ch, 2.4);
+    var boxW=cw*scale, boxH=ch*scale;
+    var clone=node.cloneNode(true);
+    clone.querySelectorAll('.pctrl,.pnum').forEach(function(el){ el.remove(); });
+    clone.setAttribute('id', practice?'cardPractice':'card');
+    clone.style.display='block'; clone.style.margin='0';
+    var legendClone=document.querySelector('.legend').cloneNode(true);
+    legendClone.style.margin='0'; legendClone.style.background='transparent'; legendClone.style.border='none';
+    var ground="linear-gradient(160deg,#1c1710 0%,#241d13 55%,#191410 100%)";
+    var titleHtml = title? "<div style='font-family:var(--serif);font-size:56px;color:var(--card);text-align:center;padding:"+pad+"px "+pad+"px 0;text-wrap:balance'>"+esc(title)+"</div>" : "";
+    var inner=
+      "<div style='width:"+W+"px;height:"+H+"px;background:"+ground+";display:flex;flex-direction:column;box-sizing:border-box'>"
+      + titleHtml
+      + "<div style='flex:1;display:flex;align-items:center;justify-content:center;padding:0 "+pad+"px'>"
+      +   "<div style='width:"+boxW+"px;height:"+boxH+"px;position:relative'>"
+      +     "<div style='position:absolute;left:0;top:0;width:"+cw+"px;transform:scale("+scale+");transform-origin:top left'>"
+      +       new XMLSerializer().serializeToString(clone)
+      +     "</div>"
+      +   "</div>"
+      + "</div>"
+      + "<div style='display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 "+pad+"px "+pad+"px'>"
+      +   "<div style='transform:scale(1.15);transform-origin:left center'>"+new XMLSerializer().serializeToString(legendClone)+"</div>"
+      +   "<div style='font-family:var(--serif);font-style:italic;font-size:26px;color:var(--accent);white-space:nowrap'>诺雅 · Noya</div>"
+      + "</div>"
+      + "</div>";
+    rasterize(inner, W, H, '', '#1c1710', 'noya-poster-9x16.png', returnUrl);
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ---------- 发音口型 / 舌位图库 (starter set) ----------
+  // Stylized mid-sagittal cross-section, front (lips) on the left. Tongue path + red contact vary per sound.
+  var MOUTH_BASE_PRE=
+    '<svg viewBox="0 0 260 190" xmlns="http://www.w3.org/2000/svg">'
+    +'<path d="M42,64 Q140,38 226,68 L226,142 Q140,166 42,140 Z" fill="#f6efe1" stroke="#b7ab92" stroke-width="2"/>'
+    +'<path d="M64,70 Q140,50 220,74" fill="none" stroke="#cdbfa6" stroke-width="2" stroke-linecap="round"/>'          // hard palate
+    +'<path d="M60,74 q6,6 13,5" fill="none" stroke="#c26f68" stroke-width="3" stroke-linecap="round"/>'                 // alveolar ridge
+    +'<rect x="45" y="70" width="7" height="16" rx="2.5" fill="#fff" stroke="#c9bfa8" stroke-width="1.4"/>'              // upper teeth
+    +'<rect x="53" y="71" width="7" height="15" rx="2.5" fill="#fff" stroke="#c9bfa8" stroke-width="1.4"/>'
+    +'<rect x="45" y="124" width="7" height="16" rx="2.5" fill="#fff" stroke="#c9bfa8" stroke-width="1.4"/>'            // lower teeth
+    +'<rect x="53" y="125" width="7" height="15" rx="2.5" fill="#fff" stroke="#c9bfa8" stroke-width="1.4"/>';
+  var MOUTH_BASE_POST='</svg>';
+  function mouthSVG(m){
+    var extra=m.extra||'';
+    var dot=m.dot?('<circle cx="'+m.dot[0]+'" cy="'+m.dot[1]+'" r="8" fill="rgba(210,69,47,.28)"/><circle cx="'+m.dot[0]+'" cy="'+m.dot[1]+'" r="3.4" fill="#d2452f"/>'):'';
+    var tongue='<path d="'+m.tongue+'" fill="#e6a09a" stroke="#c26f68" stroke-width="2" stroke-linejoin="round"/>';
+    return MOUTH_BASE_PRE+tongue+extra+dot+MOUTH_BASE_POST;
+  }
+  var MOUTH={
+    'θ ð':{ipa:'/θ/  /ð/', cn:'舌尖轻触上齿背/伸出齿间，气流从缝隙出（th）',
+      tongue:'M78,140 Q150,150 208,134 Q168,120 118,116 Q78,113 40,111 Q33,116 40,123 Q60,133 78,140 Z', dot:[46,104]},
+    't d':{ipa:'/t/  /d/', cn:'舌尖顶住上齿龈（齿后凸起），憋气后弹开',
+      tongue:'M82,140 Q150,148 208,134 Q166,118 112,110 Q88,104 68,90 Q60,92 62,110 Q68,128 82,140 Z', dot:[62,80]},
+    'n':{ipa:'/n/', cn:'舌尖顶住上齿龈，气流从鼻腔出（鼻音）',
+      tongue:'M82,140 Q150,148 208,134 Q166,118 112,110 Q88,104 68,90 Q60,92 62,110 Q68,128 82,140 Z', dot:[62,80],
+      extra:'<path d="M96,58 q0,-16 16,-18" fill="none" stroke="#3f8f43" stroke-width="2.4" stroke-dasharray="3 3" marker-end="url(#ar)"/>'
+        +'<defs><marker id="ar" markerWidth="7" markerHeight="7" refX="4" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3f8f43"/></marker></defs>'},
+    'l':{ipa:'/l/', cn:'舌尖顶上齿龈，两侧留缝，气流从舌两边出',
+      tongue:'M82,140 Q150,148 208,134 Q166,118 112,110 Q88,104 68,90 Q60,92 62,110 Q68,128 82,140 Z', dot:[62,80]},
+    'r':{ipa:'/r/', cn:'舌尖上卷但不碰到上颚，舌身后缩隆起（卷舌）',
+      tongue:'M84,140 Q150,148 206,132 Q182,112 150,106 Q120,101 108,114 Q101,124 116,120 Q126,110 120,100 Q112,132 84,140 Z', dot:null}
+  };
+  var mouthKeys=Object.keys(MOUTH), mouthCur=mouthKeys[0];
+  function renderMouth(){
+    var tabs=document.getElementById('mpTabs'); tabs.innerHTML='';
+    mouthKeys.forEach(function(k){ var b=document.createElement('button'); b.textContent=k; b.className=(k===mouthCur?'on':'');
+      b.addEventListener('click',function(){ mouthCur=k; renderMouth(); }); tabs.appendChild(b); });
+    var m=MOUTH[mouthCur];
+    document.getElementById('mpStage').innerHTML=mouthSVG(m);
+    document.getElementById('mpLabel').textContent=m.ipa;
+    document.getElementById('mpCn').textContent=m.cn;
+  }
+  document.getElementById('mouthBtn').addEventListener('click',function(){
+    var mp=document.getElementById('mouthPanel'); mp.hidden=!mp.hidden; if(!mp.hidden) renderMouth();
+  });
+  document.getElementById('mpClose').addEventListener('click',function(){ document.getElementById('mouthPanel').hidden=true; });
 
   // ---------- project export / import ----------
   document.getElementById('exportJson').addEventListener('click',function(){
@@ -963,7 +1118,7 @@
     r.onload=function(){ try{
       var d=JSON.parse(r.result,reviver);
       enBox.value=d.en||''; zhBox.value=d.zh||''; timesMode=d.timesMode||'word';
-      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={};
+      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={};
         if(!l.words) l.words=computeWords(l); if(!l.wtimes) l.wtimes=l.words.map(function(){return null;});
         if(l.lstart===undefined) l.lstart=null; return l; });
       granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
@@ -978,14 +1133,16 @@
     localStorage.setItem('noya2-zh',zhBox.value);
     localStorage.setItem('noya2-mode',timesMode);
     localStorage.setItem('noya2-view',mode);
+    localStorage.setItem('noya2-title',document.getElementById('songTitle').value);
     localStorage.setItem('noya2-lines',JSON.stringify(lines,replacer));
   }catch(e){} }
   function load(){ try{
     var e=localStorage.getItem('noya2-en'),z=localStorage.getItem('noya2-zh'),
         m=localStorage.getItem('noya2-mode'),v=localStorage.getItem('noya2-view'),l=localStorage.getItem('noya2-lines');
     if(e!=null) enBox.value=e; if(z!=null) zhBox.value=z;
+    var ti=localStorage.getItem('noya2-title'); if(ti!=null) document.getElementById('songTitle').value=ti;
     if(m){ timesMode=m; granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===m);}); }
-    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.kw=new Set(x.kw); x.beats=new Set(x.beats); if(!x.notes) x.notes={};
+    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.flap=new Set(x.flap); x.kw=new Set(x.kw); x.beats=new Set(x.beats); if(!x.notes) x.notes={};
       if(!x.words) x.words=computeWords(x); if(!x.wtimes) x.wtimes=x.words.map(function(){return null;});
       if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); renderPractice(); }
     if(v==='practice'){
@@ -996,6 +1153,7 @@
   }catch(e){} }
   enBox.addEventListener('input',save);
   zhBox.addEventListener('input',save);
+  document.getElementById('songTitle').addEventListener('input',save);
 
   load();
 })();
