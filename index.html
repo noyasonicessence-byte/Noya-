@@ -63,7 +63,7 @@
 
   .stage{flex:1;min-width:0}
   #card{background:var(--card);color:var(--card-ink);border-radius:18px;padding:44px 46px;min-height:280px}
-  .line{position:relative;font-family:var(--serif);padding:34px 4px 8px;scroll-margin:40vh}
+  .line{position:relative;font-family:var(--serif);padding:52px 4px 30px;scroll-margin:40vh}
   .line .en{font-size:34px;line-height:1;letter-spacing:.02em;white-space:normal;position:relative;z-index:1}
   .line .zh{font-family:var(--serif);font-size:17px;color:#6f665a;margin-top:12px;letter-spacing:.03em}
   .line.hidezh .zh{display:none}
@@ -116,8 +116,11 @@
   body.present #card{padding:5vh 6vw}
   body.present .line .en{font-size:44px}
   body.present .barwrap{background:transparent;border:none}
-  .exitpresent{position:fixed;top:14px;right:16px;z-index:50;display:none}
-  body.present .exitpresent{display:block}
+  .presentbar{position:fixed;top:14px;right:16px;z-index:150;display:none;gap:8px;align-items:center}
+  body.present .presentbar{display:flex}
+  .presentbar button{background:rgba(34,28,20,.86);color:var(--ink);border:1px solid var(--panel-line);backdrop-filter:blur(4px)}
+  .presentbar #pbPrev,.presentbar #pbNext{width:38px;padding:9px 0;font-size:16px}
+  .presentbar #pbLaser.on{background:#c8563d;color:#fff;border-color:transparent}
 
   /* ---------- practice (sentence-by-sentence) view ---------- */
   body.practice .toolbar,body.practice .legend{display:none}
@@ -130,7 +133,7 @@
   .pnum{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1px solid #cabfa8;color:#8a7f6a;
     display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--sans);margin-top:4px;font-variant-numeric:tabular-nums}
   .pbody{flex:1;min-width:0}
-  .pen{font-family:var(--serif);font-size:23px;line-height:1.5;position:relative;padding-top:20px}
+  .pen{font-family:var(--serif);font-size:23px;line-height:1.5;position:relative;padding:30px 0 18px}
   .pword{display:inline-block;border-radius:4px;padding:0 1px}
   body.kwmode .pword{cursor:pointer}
   body.kwmode .pword:hover{background:rgba(217,164,65,.18)}
@@ -166,6 +169,48 @@
   body.present .pcard{background:var(--card);box-shadow:none;margin-bottom:20px}
   body.present .pen{font-size:34px}
   body.present .pcard.pactive .pen{color:#000}
+
+  /* ---------- word notes (中文浮注/词下音标) + 重音拍点 ---------- */
+  .word{position:relative;display:inline-block}
+  .wnote-cn{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:1.2em;
+    font-family:var(--serif);font-size:.4em;color:#6f665a;line-height:1;white-space:nowrap;pointer-events:none}
+  .wnote-ipa{position:absolute;left:50%;transform:translateX(-50%);top:100%;margin-top:.12em;
+    font-family:var(--serif);font-size:.42em;color:#7c7566;line-height:1;white-space:nowrap;pointer-events:none}
+  .beat{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:.3em;
+    width:.24em;height:.24em;border-radius:50%;background:var(--accent);pointer-events:none}
+  .beat.pulse{animation:beatpulse .4s ease}
+  @keyframes beatpulse{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.9)}100%{transform:translateX(-50%) scale(1)}}
+  /* keyword highlight now lives on .word */
+  body.kwmode .word{cursor:pointer}
+  body.kwmode .word:hover{background:rgba(217,164,65,.18)}
+  .word.kw{background:rgba(217,164,65,.40);border-radius:4px}
+  /* pcell strike/weak (letters inside .pen .word) */
+  .pen .word .pcell{display:inline-block;position:relative}
+  .pen .word .pcell.strike{color:var(--c-strike)}
+  .pen .word .pcell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);transform:rotate(-18deg);border-radius:2px}
+  .pen .word .pcell.weak{color:var(--c-weak)}
+
+  /* note editor popover */
+  #noteEditor{position:absolute;z-index:120;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px;
+    padding:12px;width:240px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  #noteEditor[hidden]{display:none}
+  .ne-row{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+  .ne-row label{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
+  .ne-row input{background:#0f0c08;border:1px solid var(--panel-line);border-radius:8px;color:var(--ink);
+    font-family:var(--serif);font-size:15px;padding:7px 9px}
+  .ne-row input:focus{outline:none;border-color:var(--accent-soft)}
+  .ne-btns{display:flex;gap:7px}
+  .ne-btns button{padding:6px 12px;font-size:12px}
+
+  /* progressive reveal + laser (recording aids) */
+  .rhide{opacity:0!important;transition:opacity .25s}
+  .laserdot{position:fixed;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;
+    z-index:200;display:none;background:radial-gradient(circle,#ff5f4d 0%,rgba(255,95,77,.35) 55%,rgba(255,95,77,0) 72%);
+    box-shadow:0 0 14px 5px rgba(255,95,77,.5)}
+  body.laser .laserdot{display:block}
+  body.laser #card,body.laser #cardPractice{cursor:none}
+  .sw-beat{background:var(--card)}
+  .sw-beat i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
 </style>
 
 <header>
@@ -198,6 +243,8 @@
     <div class="spacer"></div>
     <button class="ghost" id="kwBtn" style="display:none">标关键词</button>
     <button class="ghost" id="toggleZh">显示/隐藏中文</button>
+    <button class="ghost" id="reveal">逐步显现</button>
+    <button class="ghost" id="laserBtn">激光笔</button>
     <button class="ghost" id="present">演示模式</button>
     <button class="ghost" id="exportPng">导出 PNG</button>
   </div>
@@ -210,6 +257,9 @@
     <button class="tool"        data-tool="weak"   title="弱读：字母变绿"><span class="ic" style="color:var(--c-weak)">ə</span><small>弱读</small></button>
     <button class="tool"        data-tool="ins-w"  title="增音 w：在两元音间插入 w"><span class="ic" style="color:var(--c-ins)">ʷ</span><small>加 w</small></button>
     <button class="tool"        data-tool="ins-y"  title="增音 y：在两元音间插入 y"><span class="ic" style="color:var(--c-ins)">ʲ</span><small>加 y</small></button>
+    <div class="tsep"></div>
+    <button class="tool"        data-tool="note"   title="词注：给单词加 词上中文 / 词下音标"><span class="ic">A文</span><small>词注</small></button>
+    <button class="tool"        data-tool="beat"   title="重音/节奏：在单词上方打拍点"><span class="ic" style="color:var(--accent)">•</span><small>重音</small></button>
     <div class="tsep"></div>
     <button class="tool" id="undo"  title="撤销上一步"><span class="ic">↶</span><small>撤销</small></button>
     <button class="tool" id="clearAnno" title="清除本页所有标注"><span class="ic">🗑</span><small>清标注</small></button>
@@ -264,12 +314,25 @@
       <span class="lg"><span class="swatch sw-strike">t</span><b>划掉</b> 吞音/失爆</span>
       <span class="lg"><span class="swatch sw-weak">a</span><b>弱读</b> 变绿</span>
       <span class="lg"><span class="swatch sw-ins">ʷ</span><b>增音</b> 加 w / y</span>
+      <span class="lg"><span class="swatch sw-beat"><i></i></span><b>重音</b> 拍点</span>
       <span class="lg"><span class="swatch sw-k">词</span><b>卡拉OK</b> 高亮当前字</span>
     </div>
   </div>
 </div>
 
-<button class="primary exitpresent" id="exitPresent">退出演示</button>
+<div class="presentbar" id="presentbar">
+  <button id="pbPrev" title="上一句（←）">‹</button>
+  <button id="pbNext" title="下一句（→ / 空格）">›</button>
+  <button id="pbLaser" title="激光笔（L）">激光笔</button>
+  <button class="primary" id="exitPresent">退出</button>
+</div>
+<div class="laserdot" id="laserdot"></div>
+
+<div id="noteEditor" hidden>
+  <div class="ne-row"><label>词上 · 中文（如：抱在怀里）</label><input id="neCn" type="text"></div>
+  <div class="ne-row"><label>词下 · 音标（如：/tə/）</label><input id="neIpa" type="text"></div>
+  <div class="ne-btns"><button class="primary" id="neSave">保存</button><button id="neClear">清除</button><button class="ghost" id="neCancel">取消</button></div>
+</div>
 
 <script>
 (function(){
@@ -297,7 +360,7 @@
   function undo(){
     if(!history.length) return;
     lines=JSON.parse(history.pop(),reviver);
-    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); });
+    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; });
     pendingArc=null; buildFlat(); render(); renderPractice(); save();
   }
 
@@ -317,7 +380,7 @@
     lines=en.map(function(text,i){
       var cells=[];
       for(var j=0;j<text.length;j++) cells.push({ch:text[j],isLetter:/[^\s]/.test(text[j])});
-      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],kw:new Set(),lstart:null};
+      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),arcs:[],ins:[],kw:new Set(),notes:{},beats:new Set(),lstart:null};
       l.words=computeWords(l); l.wtimes=l.words.map(function(){return null;});
       return l;
     });
@@ -343,82 +406,112 @@
     lines.forEach(function(line,li){
       var row=document.createElement('div');
       row.className='line'+(showZh?'':' hidezh');
-      var en=document.createElement('div'); en.className='en';
-      line.cells.forEach(function(cell,ci){
-        var sp=document.createElement('span');
-        if(!cell.isLetter){
-          sp.className='cell space';
-          sp.innerHTML = cell.ch===' ' ? '&nbsp;' : cell.ch;
-        }else{
-          sp.className='cell letter';
-          if(line.strike.has(ci)) sp.className+=' strike';
-          if(line.weak.has(ci)) sp.className+=' weak';
-          if(pendingArc && pendingArc.line===li && pendingArc.cell===ci) sp.className+=' pending';
-          sp.textContent=cell.ch;
-          sp.dataset.line=li; sp.dataset.cell=ci;
-          sp.addEventListener('click',onCellClick);
-        }
-        en.appendChild(sp);
-        line.ins.forEach(function(ins){
-          if(ins.after===ci){
-            var g=document.createElement('span');
-            g.className='ins'; g.textContent=ins.g; g.title='点击删除增音';
-            g.addEventListener('click',function(e){
-              e.stopPropagation(); snapshot();
-              line.ins=line.ins.filter(function(x){return !(x.after===ins.after&&x.g===ins.g);});
-              render(); save();
-            });
-            en.appendChild(g);
-          }
-        });
-      });
-      var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('class','arclayer'); en.appendChild(svg);
-      row.appendChild(en);
+      var built=buildEnglish(line,li,true);
+      row.appendChild(built.el);
       if(line.zh){ var zh=document.createElement('div'); zh.className='zh'; zh.textContent=line.zh; row.appendChild(zh); }
       card.appendChild(row);
-      row._svg=svg; row._en=en;
+      row._svg=built.svg; row._en=built.el;
     });
     requestAnimationFrame(drawArcs);
     lastActive=-1;
     if(syncMode) paintSync();
+    if(revealMode) applyReveal();
+  }
+  // Shared line builder: words grouped in .word spans so notes/beats can anchor to them.
+  function addWordExtras(wordSpan,line,wi){
+    if(line.beats && line.beats.has(wi)){ var d=document.createElement('span'); d.className='beat'; wordSpan.appendChild(d); }
+    var nt=line.notes&&line.notes[wi];
+    if(nt){
+      if(nt.cn){ var cn=document.createElement('span'); cn.className='wnote-cn'; cn.textContent=nt.cn; wordSpan.appendChild(cn); }
+      if(nt.ipa){ var ip=document.createElement('span'); ip.className='wnote-ipa'; ip.textContent=nt.ipa; wordSpan.appendChild(ip); }
+    }
+  }
+  function buildEnglish(line,li,editable){
+    var el=document.createElement('div'); el.className=editable?'en':'pen';
+    var c2w={}; line.words.forEach(function(w,wi){ w.cells.forEach(function(ci){ c2w[ci]=wi; }); });
+    var curWord=null,curWi=-1;
+    line.cells.forEach(function(cell,ci){
+      if(cell.isLetter){
+        var wi=c2w[ci];
+        if(wi!==curWi){
+          curWord=document.createElement('span'); curWord.className='word'+((line.kw&&line.kw.has(wi))?' kw':'');
+          curWord.dataset.w=wi;
+          if(!editable){ (function(wi){ curWord.addEventListener('click',function(){
+            if(!kwMode) return; if(!line.kw) line.kw=new Set();
+            if(line.kw.has(wi)) line.kw.delete(wi); else line.kw.add(wi); save(); renderPractice();
+          }); })(wi); }
+          el.appendChild(curWord); curWi=wi;
+          addWordExtras(curWord,line,wi);
+        }
+        var ls=document.createElement('span'); ls.className=editable?'cell letter':'pcell';
+        if(line.strike.has(ci)) ls.className+=' strike';
+        if(line.weak.has(ci)) ls.className+=' weak';
+        if(editable && pendingArc && pendingArc.line===li && pendingArc.cell===ci) ls.className+=' pending';
+        ls.textContent=cell.ch; ls.dataset.line=li; ls.dataset.cell=ci; ls.dataset.word=wi;
+        if(editable) ls.addEventListener('click',onCellClick);
+        curWord.appendChild(ls);
+        line.ins.forEach(function(ins){ if(ins.after===ci){
+          var g=document.createElement('span'); g.className='ins'; g.textContent=ins.g;
+          if(editable){ g.title='点击删除增音';
+            (function(after,gg){ g.addEventListener('click',function(e){ e.stopPropagation(); snapshot();
+              line.ins=line.ins.filter(function(x){return !(x.after===after&&x.g===gg);}); render(); renderPractice(); save(); }); })(ins.after,ins.g);
+          }
+          curWord.appendChild(g);
+        } });
+      }else{
+        curWi=-1; curWord=null;
+        var spc=document.createElement('span'); spc.className=editable?'cell space':'pspace';
+        spc.innerHTML = cell.ch===' ' ? '&nbsp;' : cell.ch; el.appendChild(spc);
+      }
+    });
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','arclayer'); el.appendChild(svg);
+    return {el:el,svg:svg};
+  }
+  function drawArcsOn(en,svg,line,letterSel){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var base=en.getBoundingClientRect();
+    line.arcs.forEach(function(arc){
+      var a=en.querySelector(letterSel+'[data-cell="'+arc[0]+'"]'),b=en.querySelector(letterSel+'[data-cell="'+arc[1]+'"]');
+      if(!a||!b) return;
+      var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+      var x1=ra.left+ra.width/2-base.left,x2=rb.left+rb.width/2-base.left;
+      var yTop=Math.min(ra.top,rb.top)-base.top,span=Math.abs(x2-x1);
+      var lift=Math.min(24,11+span*0.10),y=yTop-3,cx=(x1+x2)/2,cy=y-lift;
+      var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('class','arcpath'); path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
+      svg.appendChild(path);
+    });
   }
   function drawArcs(){
     lines.forEach(function(line,li){
       var row=card.children[li]; if(!row||!row._svg) return;
-      var svg=row._svg,en=row._en; while(svg.firstChild) svg.removeChild(svg.firstChild);
-      var base=en.getBoundingClientRect();
-      line.arcs.forEach(function(arc){
-        var a=en.querySelector('.cell[data-cell="'+arc[0]+'"]'),b=en.querySelector('.cell[data-cell="'+arc[1]+'"]');
-        if(!a||!b) return;
-        var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
-        var x1=ra.left+ra.width/2-base.left,x2=rb.left+rb.width/2-base.left;
-        var yTop=Math.min(ra.top,rb.top)-base.top,span=Math.abs(x2-x1);
-        var lift=Math.min(26,12+span*0.10),y=yTop-4,cx=(x1+x2)/2,cy=y-lift;
-        var path=document.createElementNS('http://www.w3.org/2000/svg','path');
-        path.setAttribute('class','arcpath'); path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
-        svg.appendChild(path);
-      });
+      drawArcsOn(row._en,row._svg,line,'.cell');
     });
   }
 
   // ---------- annotation interactions ----------
   function onCellClick(e){
-    var li=+this.dataset.line, ci=+this.dataset.cell;
+    var li=+this.dataset.line, ci=+this.dataset.cell, wi=+this.dataset.word;
     if(syncMode){ setCursorToCell(li,ci); return; }   // during sync, click retargets
     var line=lines[li];
+    if(tool==='note'){ openNoteEditor(li,wi,this); return; }
+    if(tool==='beat'){ snapshot();
+      if(!line.beats) line.beats=new Set();
+      if(line.beats.has(wi)) line.beats.delete(wi); else line.beats.add(wi);
+      render(); renderPractice(); save(); return;
+    }
     if(tool==='strike'){ snapshot();
       if(line.strike.has(ci)) line.strike.delete(ci); else{ line.strike.add(ci); line.weak.delete(ci); }
-      render(); save();
+      render(); renderPractice(); save();
     }else if(tool==='weak'){ snapshot();
       if(line.weak.has(ci)) line.weak.delete(ci); else{ line.weak.add(ci); line.strike.delete(ci); }
-      render(); save();
+      render(); renderPractice(); save();
     }else if(tool==='ins-w'||tool==='ins-y'){ snapshot();
       var g=(tool==='ins-w')?'w':'y';
       var ex=line.ins.some(function(x){return x.after===ci&&x.g===g;});
       if(ex) line.ins=line.ins.filter(function(x){return !(x.after===ci&&x.g===g);});
       else line.ins.push({after:ci,g:g});
-      render(); save();
+      render(); renderPractice(); save();
     }else if(tool==='arc'){
       if(!pendingArc){ pendingArc={line:li,cell:ci}; render(); }
       else if(pendingArc.line===li && pendingArc.cell===ci){ pendingArc=null; render(); }
@@ -426,10 +519,41 @@
         var a=Math.min(pendingArc.cell,ci),b=Math.max(pendingArc.cell,ci);
         var dup=line.arcs.findIndex(function(p){return p[0]===a&&p[1]===b;});
         if(dup>=0) line.arcs.splice(dup,1); else line.arcs.push([a,b]);
-        pendingArc=null; render(); save();
+        pendingArc=null; render(); renderPractice(); save();
       }else{ pendingArc={line:li,cell:ci}; render(); }
     }
   }
+
+  // ---------- note editor ----------
+  var noteTarget=null;
+  function openNoteEditor(li,wi,anchor){
+    noteTarget={li:li,wi:wi};
+    var nt=(lines[li].notes&&lines[li].notes[wi])||{};
+    document.getElementById('neCn').value=nt.cn||'';
+    document.getElementById('neIpa').value=nt.ipa||'';
+    var ed=document.getElementById('noteEditor'); ed.hidden=false;
+    var r=anchor.getBoundingClientRect(), ew=250;
+    ed.style.left=Math.max(8,Math.min(window.scrollX+r.left, window.scrollX+window.innerWidth-ew-8))+'px';
+    ed.style.top=(window.scrollY+r.bottom+10)+'px';
+    document.getElementById('neCn').focus();
+  }
+  function closeNote(){ document.getElementById('noteEditor').hidden=true; noteTarget=null; }
+  function saveNote(){
+    if(!noteTarget) return; snapshot();
+    var line=lines[noteTarget.li]; if(!line.notes) line.notes={};
+    var cn=document.getElementById('neCn').value.trim(), ipa=document.getElementById('neIpa').value.trim();
+    if(cn||ipa) line.notes[noteTarget.wi]={cn:cn,ipa:ipa}; else delete line.notes[noteTarget.wi];
+    render(); renderPractice(); save(); closeNote();
+  }
+  document.getElementById('neSave').addEventListener('click',saveNote);
+  document.getElementById('neClear').addEventListener('click',function(){
+    if(!noteTarget) return; snapshot(); var line=lines[noteTarget.li];
+    if(line.notes) delete line.notes[noteTarget.wi]; render(); renderPractice(); save(); closeNote();
+  });
+  document.getElementById('neCancel').addEventListener('click',closeNote);
+  ['neCn','neIpa'].forEach(function(id){ document.getElementById(id).addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); saveNote(); } else if(e.key==='Escape'){ e.preventDefault(); closeNote(); }
+  }); });
 
   // ---------- toolbar ----------
   document.querySelectorAll('.tool[data-tool]').forEach(function(btn){
@@ -584,12 +708,19 @@
       cells.forEach(function(el){ el.classList.add(cls); });
     }
     if(idx>=0){ var li=playEvents[idx].li; if(card.children[li]) card.children[li].scrollIntoView({behavior:'smooth',block:'center'}); }
+    if(timesMode==='word' && idx>=0){
+      var ev=playEvents[idx], w0=lines[ev.li].words[ev.wi];
+      var fc=w0 && card.querySelector('.cell[data-line="'+ev.li+'"][data-cell="'+w0.cells[0]+'"]');
+      var wd=fc && fc.closest('.word'), beat=wd && wd.querySelector('.beat');
+      if(beat){ beat.classList.remove('pulse'); void beat.offsetWidth; beat.classList.add('pulse'); }
+    }
   });
   player.addEventListener('ended',function(){ if(playK) stopPlayK(); if(syncMode) finishSync(); });
 
   // ---------- practice (sentence-by-sentence) view ----------
   var mode='anno', kwMode=false, practiceState=null, loopSet=new Set();
   var pTap=false, pCursor=0, playRate=1;
+  var revealMode=false, revealCount=0;
   var pHost=document.getElementById('cardPractice');
 
   function fmt(t){ if(t==null) return '—:––'; var m=Math.floor(t/60),s=t-m*60; return m+':'+(s<10?'0':'')+s.toFixed(1); }
@@ -597,51 +728,14 @@
 
   var pPenRefs=[];
   function buildPen(line,li){
-    var en=document.createElement('div'); en.className='pen';
-    var c2w={}; line.words.forEach(function(w,wi){ w.cells.forEach(function(ci){ c2w[ci]=wi; }); });
-    var curSpan=null,curWi=-1;
-    line.cells.forEach(function(cell,ci){
-      if(cell.isLetter){
-        var wi=c2w[ci];
-        if(wi!==curWi){
-          curSpan=document.createElement('span'); curSpan.className='pword'+((line.kw&&line.kw.has(wi))?' kw':'');
-          (function(wi){ curSpan.addEventListener('click',function(){
-            if(!kwMode) return; if(!line.kw) line.kw=new Set();
-            if(line.kw.has(wi)) line.kw.delete(wi); else line.kw.add(wi);
-            save(); renderPractice();
-          }); })(wi);
-          en.appendChild(curSpan); curWi=wi;
-        }
-        var ls=document.createElement('span'); ls.className='pcell';
-        if(line.strike.has(ci)) ls.className+=' strike';
-        if(line.weak.has(ci)) ls.className+=' weak';
-        ls.textContent=cell.ch; ls.dataset.cell=ci; curSpan.appendChild(ls);
-        line.ins.forEach(function(ins){ if(ins.after===ci){ var g=document.createElement('span'); g.className='ins'; g.textContent=ins.g; curSpan.appendChild(g); } });
-      }else{
-        curWi=-1; curSpan=null;
-        var spc=document.createElement('span'); spc.className='pspace'; spc.innerHTML = cell.ch===' ' ? '&nbsp;' : cell.ch; en.appendChild(spc);
-      }
-    });
-    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('class','arclayer'); en.appendChild(svg);
-    pPenRefs.push({en:en,svg:svg,li:li});
-    return en;
+    var built=buildEnglish(line,li,false);
+    pPenRefs.push({en:built.el,svg:built.svg,li:li});
+    return built.el;
   }
   function drawArcsPractice(){
     pPenRefs.forEach(function(ref){
-      var en=ref.en,svg=ref.svg,line=lines[ref.li]; if(!line) return;
-      while(svg.firstChild) svg.removeChild(svg.firstChild);
-      var base=en.getBoundingClientRect();
-      line.arcs.forEach(function(arc){
-        var a=en.querySelector('.pcell[data-cell="'+arc[0]+'"]'),b=en.querySelector('.pcell[data-cell="'+arc[1]+'"]');
-        if(!a||!b) return;
-        var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
-        var x1=ra.left+ra.width/2-base.left,x2=rb.left+rb.width/2-base.left;
-        var yTop=Math.min(ra.top,rb.top)-base.top,span=Math.abs(x2-x1);
-        var lift=Math.min(22,10+span*0.10),y=yTop-3,cx=(x1+x2)/2,cy=y-lift;
-        var path=document.createElementNS('http://www.w3.org/2000/svg','path');
-        path.setAttribute('class','arcpath'); path.setAttribute('d','M '+x1+' '+y+' Q '+cx+' '+cy+' '+x2+' '+y);
-        svg.appendChild(path);
-      });
+      var line=lines[ref.li]; if(!line) return;
+      drawArcsOn(ref.en,ref.svg,line,'.pcell');
     });
   }
   function renderPractice(){
@@ -766,22 +860,61 @@
   // ---------- keyboard ----------
   window.addEventListener('keydown',function(e){
     var typing=/^(TEXTAREA|INPUT)$/.test((e.target.tagName||''));
-    if(e.key==='Escape'){ document.body.classList.remove('present'); requestAnimationFrame(drawArcs); }
+    if(e.key==='Escape'){ if(noteTarget){ closeNote(); return; } if(document.body.classList.contains('present')){ exitPresent(); return; } }
     if((e.ctrlKey||e.metaKey)&&e.key==='z'){ e.preventDefault(); undo(); return; }
+    if(!typing && (e.key==='l'||e.key==='L') && document.body.classList.contains('present')){ e.preventDefault(); setLaser(!laserOn); return; }
     if(syncMode && !typing){
-      if(e.code==='Space'){ e.preventDefault(); tap(); }
-      else if(e.key==='Backspace'){ e.preventDefault(); syncBack(); }
+      if(e.code==='Space'){ e.preventDefault(); tap(); return; }
+      else if(e.key==='Backspace'){ e.preventDefault(); syncBack(); return; }
     }
     if(pTap && !typing){
-      if(e.code==='Space'){ e.preventDefault(); pTapStamp(); }
-      else if(e.key==='Backspace'){ e.preventDefault(); pTapBackStep(); }
+      if(e.code==='Space'){ e.preventDefault(); pTapStamp(); return; }
+      else if(e.key==='Backspace'){ e.preventDefault(); pTapBackStep(); return; }
+    }
+    if(revealMode && !typing){
+      if(e.key==='ArrowRight'||(e.code==='Space')){ e.preventDefault(); revealNext(); }
+      else if(e.key==='ArrowLeft'){ e.preventDefault(); revealPrev(); }
     }
   });
 
   // ---------- present / export ----------
-  document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
-  document.getElementById('exitPresent').addEventListener('click',function(){ document.body.classList.remove('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
+  document.getElementById('present').addEventListener('click',function(){ document.body.classList.add('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();applyReveal();}); });
+  function exitPresent(){
+    document.body.classList.remove('present');
+    if(revealMode){ revealMode=false; document.getElementById('reveal').classList.remove('primary'); applyReveal(); }
+    setLaser(false);
+    requestAnimationFrame(function(){drawArcs();drawArcsPractice();});
+  }
+  document.getElementById('exitPresent').addEventListener('click',exitPresent);
   window.addEventListener('resize',function(){ requestAnimationFrame(function(){drawArcs();drawArcsPractice();}); });
+
+  // ---------- progressive reveal (recording aid) ----------
+  function revealHost(){ return (mode==='practice')?pHost:card; }
+  function applyReveal(){
+    var host=revealHost(), kids=host.children;
+    for(var i=0;i<kids.length;i++){ kids[i].classList.toggle('rhide', revealMode && i>=revealCount); }
+  }
+  function enterPresent(){ if(!document.body.classList.contains('present')){ document.body.classList.add('present'); requestAnimationFrame(function(){drawArcs();drawArcsPractice();applyReveal();}); } }
+  function revealNext(){ if(!revealMode){ setReveal(true); return; } if(revealCount<revealHost().children.length){ revealCount++; applyReveal(); } }
+  function revealPrev(){ if(!revealMode) return; if(revealCount>0){ revealCount--; applyReveal(); } }
+  function setReveal(on){
+    revealMode=on; document.getElementById('reveal').classList.toggle('primary',on);
+    revealCount=on?1:0; applyReveal(); if(on) enterPresent();
+  }
+  document.getElementById('reveal').addEventListener('click',function(){ setReveal(!revealMode); });
+  document.getElementById('pbPrev').addEventListener('click',revealPrev);
+  document.getElementById('pbNext').addEventListener('click',revealNext);
+
+  // ---------- laser pointer (recording aid) ----------
+  var laserOn=false, laserdot=document.getElementById('laserdot');
+  function setLaser(on){ laserOn=on;
+    document.getElementById('laserBtn').classList.toggle('primary',on);
+    document.getElementById('pbLaser').classList.toggle('on',on);
+    document.body.classList.toggle('laser',on);
+  }
+  document.getElementById('laserBtn').addEventListener('click',function(){ setLaser(!laserOn); });
+  document.getElementById('pbLaser').addEventListener('click',function(){ setLaser(!laserOn); });
+  window.addEventListener('mousemove',function(e){ if(laserOn){ laserdot.style.left=e.clientX+'px'; laserdot.style.top=e.clientY+'px'; } });
 
   // Context-aware raster export: whole practice list as a long image, or the annotation card.
   document.getElementById('exportPng').addEventListener('click',function(){ exportImage(false); });
@@ -830,7 +963,7 @@
     r.onload=function(){ try{
       var d=JSON.parse(r.result,reviver);
       enBox.value=d.en||''; zhBox.value=d.zh||''; timesMode=d.timesMode||'word';
-      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw);
+      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={};
         if(!l.words) l.words=computeWords(l); if(!l.wtimes) l.wtimes=l.words.map(function(){return null;});
         if(l.lstart===undefined) l.lstart=null; return l; });
       granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
@@ -852,7 +985,7 @@
         m=localStorage.getItem('noya2-mode'),v=localStorage.getItem('noya2-view'),l=localStorage.getItem('noya2-lines');
     if(e!=null) enBox.value=e; if(z!=null) zhBox.value=z;
     if(m){ timesMode=m; granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===m);}); }
-    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.kw=new Set(x.kw);
+    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.kw=new Set(x.kw); x.beats=new Set(x.beats); if(!x.notes) x.notes={};
       if(!x.words) x.words=computeWords(x); if(!x.wtimes) x.wtimes=x.words.map(function(){return null;});
       if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); renderPractice(); }
     if(v==='practice'){
