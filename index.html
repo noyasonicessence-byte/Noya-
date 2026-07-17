@@ -247,6 +247,21 @@
   .mp-stage svg{width:100%;height:auto;display:block}
   .mp-label{text-align:center;font-family:var(--serif);font-size:26px;color:var(--ink);margin-top:8px}
   .mp-cn{text-align:center;font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.5}
+
+  /* export preview modal (so exports are visible even if the sandbox blocks downloads) */
+  #previewModal{position:fixed;inset:0;z-index:300;background:rgba(10,8,6,.85);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:16px;padding:24px}
+  #previewModal[hidden]{display:none}
+  #previewModal img{max-width:92vw;max-height:76vh;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.6);background:#fff}
+  .pv-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .pv-bar a.dl{background:var(--accent);color:#241a06;font-weight:600;border:none;border-radius:999px;padding:10px 22px;
+    font-size:14px;text-decoration:none;cursor:pointer;font-family:var(--sans)}
+  .pv-hint{color:#c9bfa8;font-size:13px}
+  /* toast */
+  #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);z-index:320;background:rgba(34,28,20,.95);
+    color:var(--ink);border:1px solid var(--panel-line);border-radius:999px;padding:10px 20px;font-size:13.5px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .25s;pointer-events:none}
+  #toast.show{opacity:1}
 </style>
 
 <header>
@@ -391,6 +406,16 @@
   <button class="primary" id="exitPresent">退出</button>
 </div>
 <div class="laserdot" id="laserdot"></div>
+
+<div id="previewModal" hidden>
+  <img id="pvImg" alt="导出预览">
+  <div class="pv-bar">
+    <a class="dl" id="pvDownload" download>下载图片</a>
+    <button class="ghost" id="pvClose">关闭</button>
+    <span class="pv-hint">若浏览器没自动下载：右键 / 长按上面的图片即可保存</span>
+  </div>
+</div>
+<div id="toast"></div>
 
 <div id="mouthPanel" hidden>
   <div class="mp-head"><span>发音口型 · 舌位</span><button id="mpClose" title="关闭">×</button></div>
@@ -1025,10 +1050,12 @@
     var f=e.target.files[0]; if(!f) return;
     var r=new FileReader();
     r.onload=function(){ bgData=r.result; if(cardTheme==='paper'){ cardTheme='scene'; document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th==='scene');}); }
-      applyScene(); save(); };
+      applyScene(); save(); toast('背景已应用 · 已切到「意境」主题'); };
     r.readAsDataURL(f);
   });
-  document.getElementById('bgClear').addEventListener('click',function(){ bgData=null; applyScene(); save(); });
+  document.getElementById('bgClear').addEventListener('click',function(){ bgData=null; cardTheme='paper';
+    document.getElementById('themeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th==='paper');});
+    applyScene(); save(); toast('已清除背景'); });
   document.getElementById('themeSeg').addEventListener('click',function(e){
     var b=e.target.closest('button[data-th]'); if(!b) return;
     cardTheme=b.dataset.th; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.th===cardTheme);});
@@ -1063,14 +1090,15 @@
       var ctx=c.getContext('2d'); ctx.fillStyle=canvasGround; ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
       var url; try{ url=c.toDataURL('image/png'); }catch(err){ alert('自动导出失败，请直接截图使用。'); return; }
       if(returnUrl){ window.__lastExport=url; return; }
-      var a=document.createElement('a'); a.download=filename; a.href=url; a.click();
+      showPreview(url, filename);                                  // always show in-page (sandbox may block downloads)
+      try{ var a=document.createElement('a'); a.download=filename; a.href=url; a.click(); }catch(e){}
     };
     img.onerror=function(){ alert('自动导出失败，请直接截图（Win: Win+Shift+S / Mac: Cmd+Shift+4）。'); };
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
 
   // Context-aware raster export: whole practice list as a long image, or the annotation card.
-  document.getElementById('exportPng').addEventListener('click',function(){ exportImage(false); });
+  document.getElementById('exportPng').addEventListener('click',function(){ toast('正在生成图片…'); exportImage(false); });
   window.__exportImage=function(cb){ exportImage(true); var t=setInterval(function(){ if(window.__lastExport){ clearInterval(t); cb&&cb(window.__lastExport); } },60); };
   function exportImage(returnUrl){
     var practice=(mode==='practice');
@@ -1089,7 +1117,7 @@
   }
 
   // 9:16 vertical poster for social (title + content + legend + watermark).
-  document.getElementById('exportPoster').addEventListener('click',function(){ exportPoster(false); });
+  document.getElementById('exportPoster').addEventListener('click',function(){ toast('正在生成成片…'); exportPoster(false); });
   window.__exportPoster=function(cb){ exportPoster(true); var t=setInterval(function(){ if(window.__lastExport){ clearInterval(t); cb&&cb(window.__lastExport); } },60); };
   function exportPoster(returnUrl){
     var practice=(mode==='practice');
@@ -1133,6 +1161,21 @@
     rasterize(inner, W, H, wrap, '#1c1710', 'noya-poster-'+posterRatio+'.png', returnUrl);
   }
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ---------- export preview + toast (feedback) ----------
+  function showPreview(url, filename){
+    var m=document.getElementById('previewModal');
+    document.getElementById('pvImg').src=url;
+    var dl=document.getElementById('pvDownload'); dl.href=url; dl.download=filename||'noya.png';
+    m.hidden=false;
+  }
+  document.getElementById('pvClose').addEventListener('click',function(){ document.getElementById('previewModal').hidden=true; });
+  document.getElementById('previewModal').addEventListener('click',function(e){ if(e.target===this) this.hidden=true; });
+  var toastT=null;
+  function toast(msg){
+    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    if(toastT) clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); },1900);
+  }
 
   // ---------- 发音口型 / 舌位图库 (starter set) ----------
   // Stylized mid-sagittal cross-section, front (lips) on the left. Tongue path + red contact vary per sound.
