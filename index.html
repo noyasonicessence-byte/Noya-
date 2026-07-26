@@ -1,6 +1,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>诺雅 · 歌曲发音标注 Noya</title>
+<title>诺雅 · 发音与表达标注 Noya</title>
 <style id="mainstyle">
   :root{
     --bg:#17130d;
@@ -262,28 +262,104 @@
     color:var(--ink);border:1px solid var(--panel-line);border-radius:999px;padding:10px 20px;font-size:13.5px;
     box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .25s;pointer-events:none}
   #toast.show{opacity:1}
+
+  /* ---------- 表达延伸讲解 (expansion / teaching card) ---------- */
+  .xmark{display:inline-block;font-family:var(--sans);font-size:10px;line-height:1;color:#241a06;background:var(--accent);
+    border-radius:5px;padding:2px 5px;margin-left:6px;vertical-align:middle;cursor:pointer;letter-spacing:.02em}
+  body:not(.present) .line .xmark{cursor:pointer}
+  .xcard{margin-top:12px;border-left:3px solid var(--accent);background:rgba(217,164,65,.09);
+    border-radius:0 10px 10px 0;padding:10px 14px 11px;font-family:var(--serif)}
+  .xcard .xtitle{font-family:var(--sans);font-size:11px;letter-spacing:.14em;color:var(--accent-soft);margin-bottom:6px}
+  .xrow{display:flex;gap:9px;margin:6px 0;font-size:14.5px;line-height:1.62;color:#4a4234}
+  .xrow .xk{flex:0 0 auto;font-family:var(--sans);font-size:11px;color:#6b5a24;background:rgba(217,164,65,.18);
+    border-radius:6px;padding:2px 8px;height:fit-content;margin-top:2px;letter-spacing:.05em;white-space:nowrap}
+  .xrow .xv{flex:1;min-width:0}
+  .xrow .xv .exl{display:block;color:#5a5346}
+  .xrow .xv .exl+.exl{margin-top:3px}
+  .xrow .xv .exl::before{content:"›\00a0";color:var(--accent-soft)}
+  body.hidex .xcard{display:none}
+  #card.scene.lighttext .xcard{background:rgba(0,0,0,.28);border-left-color:var(--accent)}
+  #card.scene.lighttext .xrow{color:#efe6d5}
+  #card.scene.lighttext .xrow .xv .exl{color:#d8ccb5}
+  body.present .xcard{margin-top:16px}
+  body.present .xrow{font-size:20px}
+
+  /* ---------- 配音任务 (dubbing) ---------- */
+  .dubbrief{margin-top:14px;background:linear-gradient(150deg,#241d13,#1c1710);border:1px solid var(--panel-line);
+    border-radius:14px;padding:14px 16px}
+  body.practice #dubBrief{display:block}
+  body.present #dubBrief{display:none}
+  #dubBrief{display:none}
+  .db-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .db-head .db-t{font-family:var(--serif);font-size:16px;color:var(--accent);letter-spacing:.02em}
+  .db-head .db-t small{font-family:var(--sans);font-size:11px;color:var(--ink-dim);letter-spacing:.1em;margin-left:8px}
+  .db-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+  @media(max-width:820px){.db-grid{grid-template-columns:1fr}}
+  .db-item{display:flex;gap:8px;font-size:13.5px;line-height:1.55}
+  .db-item .db-k{flex:0 0 auto;color:var(--ink-dim);font-size:12px;background:#2c251a;border:1px solid var(--panel-line);
+    border-radius:6px;padding:2px 8px;height:fit-content;margin-top:1px;letter-spacing:.04em}
+  .db-item .db-v{flex:1;min-width:0;color:var(--ink);white-space:pre-wrap}
+  .db-item .db-v.empty{color:#6f6656;font-style:italic}
+  /* dubbing count-in overlay */
+  #countIn{position:fixed;inset:0;z-index:260;display:none;align-items:center;justify-content:center;
+    background:rgba(10,8,6,.55);pointer-events:none}
+  #countIn.show{display:flex}
+  #countIn span{font-family:var(--serif);font-size:26vh;color:var(--accent);text-shadow:0 6px 40px rgba(0,0,0,.6);
+    animation:cipop .6s ease}
+  @keyframes cipop{0%{transform:scale(.4);opacity:0}35%{transform:scale(1);opacity:1}100%{transform:scale(1.35);opacity:0}}
+  .dubbadge{position:fixed;left:16px;bottom:16px;z-index:180;background:rgba(200,86,61,.92);color:#fff;
+    border-radius:999px;padding:8px 16px;font-size:13px;font-family:var(--sans);display:none;align-items:center;gap:8px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  body.dubbing .dubbadge{display:inline-flex}
+  .dubbadge i{width:9px;height:9px;border-radius:50%;background:#fff;animation:dubblink 1s infinite}
+  @keyframes dubblink{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* editor popovers shared sizing (expand + dub) */
+  #expandEditor,#dubEditor{position:absolute;z-index:120;background:var(--panel);border:1px solid var(--panel-line);
+    border-radius:12px;padding:13px;width:310px;box-shadow:0 16px 50px rgba(0,0,0,.55)}
+  #dubEditor{position:fixed;top:80px;left:50%;transform:translateX(-50%);width:360px}
+  #expandEditor[hidden],#dubEditor[hidden]{display:none}
+  .xe-row{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+  .xe-row label{font-size:11px;color:var(--ink-dim);letter-spacing:.05em}
+  .xe-row input,.xe-row textarea{background:#0f0c08;border:1px solid var(--panel-line);border-radius:8px;color:var(--ink);
+    font-family:var(--serif);font-size:14px;padding:7px 9px;line-height:1.5;resize:vertical}
+  .xe-row textarea{min-height:44px}
+  .xe-row input:focus,.xe-row textarea:focus{outline:none;border-color:var(--accent-soft)}
+  .xe-btns{display:flex;gap:7px;margin-top:2px}
+  .xe-btns button{padding:6px 12px;font-size:12px}
+  .xe-title{font-family:var(--serif);font-size:15px;color:var(--accent);margin-bottom:10px}
 </style>
 
 <header>
   <div class="brand">
-    <div class="cn">诺雅 · 歌曲发音标注</div>
-    <div class="en">Noya Pronunciation Studio</div>
+    <div class="cn">诺雅 · 发音与表达标注</div>
+    <div class="en">Noya Pronunciation &amp; Expression Studio</div>
   </div>
-  <div class="hint">粘贴歌词 → 生成标注区 → 逐字标注四种连读。载入音频后可「打轴」录制卡拉OK逐字时间轴，再「跟唱播放」高亮当前字。</div>
+  <div class="hint">原声电影 / 纪录片 / TED / 访谈 及歌曲皆可。粘贴台词 → 逐字标连读发音 → 用「讲解」给原文加地道释义 / 延伸用法 / 例句 → 载入音频「打轴」→ 布置「配音任务」让学生对着画面配音（静音跟读 + 倒数提示）。课程交付、教师端使用。</div>
 </header>
 
 <section class="setup" id="setup">
-  <div class="field" style="margin-bottom:12px">
-    <label>歌曲标题（可选，用于竖屏成片顶部）</label>
-    <input id="songTitle" type="text" placeholder="如：Yesterday Once More">
+  <div class="rowbtns" style="margin-bottom:12px;margin-top:0">
+    <span class="nm">内容类型</span>
+    <span class="seg" id="typeSeg">
+      <button data-ty="电影" class="on">电影</button>
+      <button data-ty="纪录片">纪录片</button>
+      <button data-ty="TED">TED</button>
+      <button data-ty="访谈">访谈</button>
+      <button data-ty="歌曲">歌曲</button>
+    </span>
+    <div class="field" style="flex:1;min-width:220px">
+      <label style="margin-bottom:4px">标题（片名 / 演讲主题 / 歌名，可选，用于成片与任务卡）</label>
+      <input id="songTitle" type="text" placeholder="如：Dead Poets Society · seize the day">
+    </div>
   </div>
   <div class="grid">
     <div class="field">
-      <label>英文歌词（每行一句）</label>
-      <textarea id="en" placeholder="在此粘贴英文歌词，每行一句…"></textarea>
+      <label>英文原文（每行一句）</label>
+      <textarea id="en" placeholder="在此粘贴英文台词 / 演讲稿 / 歌词，每行一句…"></textarea>
     </div>
     <div class="field">
-      <label>中文可演唱版（每行一句，与英文按行对应，可留空）</label>
+      <label>中文对照（每行一句，与英文按行对应，可留空）</label>
       <textarea id="zh" placeholder="在此粘贴中文，每行与左边英文对应…"></textarea>
     </div>
   </div>
@@ -297,12 +373,15 @@
     </span>
     <div class="spacer"></div>
     <button class="ghost" id="kwBtn" style="display:none">标关键词</button>
+    <button class="ghost" id="expandToggle">讲解显隐</button>
+    <button class="ghost" id="dubBtn">配音任务</button>
     <button class="ghost" id="toggleZh">显示/隐藏中文</button>
     <button class="ghost" id="reveal">逐步显现</button>
     <button class="ghost" id="laserBtn">激光笔</button>
     <button class="ghost" id="present">演示模式</button>
     <button class="ghost" id="exportPng">导出 PNG</button>
     <button class="ghost" id="exportPoster">成片导出</button>
+    <button class="ghost" id="exportDub">导出配音卡</button>
     <button class="ghost" id="mouthBtn">口型图</button>
   </div>
   <div class="rowbtns" style="border-top:1px solid var(--panel-line);margin-top:12px;padding-top:12px">
@@ -344,6 +423,7 @@
     <div class="tsep"></div>
     <button class="tool"        data-tool="note"   title="词注：给单词加 词上中文 / 词下音标"><span class="ic">A文</span><small>词注</small></button>
     <button class="tool"        data-tool="beat"   title="重音/节奏：在单词上方打拍点"><span class="ic" style="color:var(--accent)">•</span><small>重音</small></button>
+    <button class="tool"        data-tool="expand" title="表达延伸：点这一句里的任意词，给整句加 地道释义 / 延伸用法 / 例句"><span class="ic" style="color:var(--accent)">延</span><small>讲解</small></button>
     <div class="tsep"></div>
     <button class="tool" id="undo"  title="撤销上一步"><span class="ic">↶</span><small>撤销</small></button>
     <button class="tool" id="clearAnno" title="清除本页所有标注"><span class="ic">🗑</span><small>清标注</small></button>
@@ -362,8 +442,28 @@
         <button data-rate="0.75">0.75×</button>
         <button data-rate="1" class="on">1×</button>
       </span>
+      <span class="divi"></span>
+      <span class="nm">配音</span>
+      <button id="dubMuteBtn" title="静音配音：单句/跟读播放时把参考声音静音，让学生自己配音，节奏仍随高亮走">🔊 参考声音</button>
+      <button id="countInBtn" title="每句开始前 3-2-1 倒数提示">倒数 关</button>
+      <button id="dubFollowBtn" title="配音跟读：按打好的时间轴逐句高亮走一遍，供学生对着画面配音">▶ 配音跟读</button>
       <span class="synchint" id="pTapHint" hidden>播放后，在<b>每句开头</b>按 <kbd>空格</kbd>（或点该句卡片）打一下点，自动跳下一句；<kbd>Backspace</kbd> 纠正。</span>
     </div>
+
+    <div class="dubbrief" id="dubBrief">
+      <div class="db-head">
+        <div class="db-t">配音任务 <small id="dbTitle">DUBBING TASK</small></div>
+        <button class="ghost" id="dubEditBtn" style="padding:6px 14px">编辑任务</button>
+      </div>
+      <div class="db-grid">
+        <div class="db-item"><span class="db-k">语速</span><span class="db-v empty" id="dbvRate">—</span></div>
+        <div class="db-item"><span class="db-k">提交</span><span class="db-v empty" id="dbvSubmit">—</span></div>
+        <div class="db-item" style="grid-column:1/-1"><span class="db-k">重点</span><span class="db-v empty" id="dbvFocus">—</span></div>
+        <div class="db-item"><span class="db-k">截止</span><span class="db-v empty" id="dbvDdl">—</span></div>
+        <div class="db-item"><span class="db-k">句数</span><span class="db-v" id="dbvCount">—</span></div>
+      </div>
+    </div>
+
     <div id="cardPractice"></div>
 
     <div class="barwrap" id="barwrap" style="display:none">
@@ -412,6 +512,8 @@
   <button class="primary" id="exitPresent">退出</button>
 </div>
 <div class="laserdot" id="laserdot"></div>
+<div id="countIn"><span></span></div>
+<div class="dubbadge" id="dubBadge"><i></i>配音中 · 参考已静音</div>
 
 <div id="previewModal" hidden>
   <img id="pvImg" alt="导出预览">
@@ -435,6 +537,23 @@
   <div class="ne-row"><label>词上 · 中文（如：抱在怀里）</label><input id="neCn" type="text"></div>
   <div class="ne-row"><label>词下 · 音标（如：/tə/）</label><input id="neIpa" type="text"></div>
   <div class="ne-btns"><button class="primary" id="neSave">保存</button><button id="neClear">清除</button><button class="ghost" id="neCancel">取消</button></div>
+</div>
+
+<div id="expandEditor" hidden>
+  <div class="xe-title">表达延伸 · 讲解这一句</div>
+  <div class="xe-row"><label>地道释义（这句/这个表达真正的意思）</label><textarea id="xeMeaning" placeholder="如：seize the day = 把握当下，及时行乐（拉丁语 carpe diem）"></textarea></div>
+  <div class="xe-row"><label>延伸用法 / 搭配（同义替换、常见搭配、语气）</label><textarea id="xeUsage" placeholder="如：口语里也说 live in the moment；make the most of…；反义 put off / procrastinate"></textarea></div>
+  <div class="xe-row"><label>例句（一行一句）</label><textarea id="xeEx" placeholder="Seize the day — you may not get another chance.&#10;Don't wait for perfect; seize the moment."></textarea></div>
+  <div class="xe-btns"><button class="primary" id="xeSave">保存</button><button id="xeClear">清除</button><button class="ghost" id="xeCancel">取消</button></div>
+</div>
+
+<div id="dubEditor" hidden>
+  <div class="xe-title">配音任务设置</div>
+  <div class="xe-row"><label>语速要求</label><input id="dbRate" type="text" placeholder="如：先 0.8× 慢跟，再 1.0× 齐配"></div>
+  <div class="xe-row"><label>配音重点</label><textarea id="dbFocus" placeholder="如：注意 want to→wanna 的连读；句末降调；情绪要到位"></textarea></div>
+  <div class="xe-row"><label>提交方式</label><input id="dbSubmit" type="text" placeholder="如：录屏后发学习群 / 提交到班级相册"></div>
+  <div class="xe-row"><label>截止时间</label><input id="dbDdl" type="text" placeholder="如：本周日 20:00 前"></div>
+  <div class="xe-btns"><button class="primary" id="dbSave">保存</button><button id="dbClearBtn">清空</button><button class="ghost" id="dbCancel">取消</button></div>
 </div>
 
 <script>
@@ -463,7 +582,7 @@
   function undo(){
     if(!history.length) return;
     lines=JSON.parse(history.pop(),reviver);
-    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; });
+    lines.forEach(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; if(l.expand===undefined) l.expand=null; });
     pendingArc=null; buildFlat(); render(); renderPractice(); save();
   }
 
@@ -483,7 +602,7 @@
     lines=en.map(function(text,i){
       var cells=[];
       for(var j=0;j<text.length;j++) cells.push({ch:text[j],isLetter:/[^\s]/.test(text[j])});
-      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),flap:new Set(),arcs:[],ins:[],kw:new Set(),notes:{},beats:new Set(),lstart:null};
+      var l={cells:cells,zh:(zh[i]||'').trim(),strike:new Set(),weak:new Set(),flap:new Set(),arcs:[],ins:[],kw:new Set(),notes:{},beats:new Set(),expand:null,lstart:null};
       l.words=computeWords(l); l.wtimes=l.words.map(function(){return null;});
       return l;
     });
@@ -510,8 +629,10 @@
       var row=document.createElement('div');
       row.className='line'+(showZh?'':' hidezh');
       var built=buildEnglish(line,li,true);
+      attachXMark(built.el,line,li);
       row.appendChild(built.el);
       if(line.zh){ var zh=document.createElement('div'); zh.className='zh'; zh.textContent=line.zh; row.appendChild(zh); }
+      var xc=buildExpandCard(line); if(xc) row.appendChild(xc);
       card.appendChild(row);
       row._svg=built.svg; row._en=built.el;
     });
@@ -594,12 +715,41 @@
     });
   }
 
+  // ---------- 表达延伸讲解 (expansion card) ----------
+  function hasExpand(line){ var x=line&&line.expand; return !!(x && (x.meaning||x.usage||x.examples)); }
+  function buildExpandCard(line){
+    if(!hasExpand(line)) return null;
+    var x=line.expand;
+    var el=document.createElement('div'); el.className='xcard';
+    var t=document.createElement('div'); t.className='xtitle'; t.textContent='表达延伸 · EXPRESSION'; el.appendChild(t);
+    function addRow(k,v,isList){
+      if(!v) return;
+      var r=document.createElement('div'); r.className='xrow';
+      var kk=document.createElement('span'); kk.className='xk'; kk.textContent=k; r.appendChild(kk);
+      var vv=document.createElement('span'); vv.className='xv';
+      if(isList){ v.split('\n').forEach(function(s0){ s0=s0.trim(); if(!s0) return; var s=document.createElement('span'); s.className='exl'; s.textContent=s0; vv.appendChild(s); }); }
+      else vv.textContent=v;
+      r.appendChild(vv); el.appendChild(r);
+    }
+    addRow('释义',x.meaning,false);
+    addRow('延伸',x.usage,false);
+    addRow('例句',x.examples,true);
+    return el;
+  }
+  function attachXMark(host,line,li){
+    if(!hasExpand(line)) return;
+    var mk=document.createElement('span'); mk.className='xmark'; mk.textContent='延'; mk.title='点开 / 编辑这句的表达延伸';
+    mk.addEventListener('click',function(e){ e.stopPropagation(); if(!document.body.classList.contains('present')) openExpandEditor(li,mk); });
+    host.appendChild(mk);
+  }
+
   // ---------- annotation interactions ----------
   function onCellClick(e){
     var li=+this.dataset.line, ci=+this.dataset.cell, wi=+this.dataset.word;
     if(document.body.classList.contains('present')){ return; }  // present = focus mode (handled by delegated listener)
     if(syncMode){ setCursorToCell(li,ci); return; }   // during sync, click retargets
     var line=lines[li];
+    if(tool==='expand'){ openExpandEditor(li,this); return; }
     if(tool==='note'){ openNoteEditor(li,wi,this); return; }
     if(tool==='beat'){ snapshot();
       if(!line.beats) line.beats=new Set();
@@ -665,6 +815,45 @@
   ['neCn','neIpa'].forEach(function(id){ document.getElementById(id).addEventListener('keydown',function(e){
     if(e.key==='Enter'){ e.preventDefault(); saveNote(); } else if(e.key==='Escape'){ e.preventDefault(); closeNote(); }
   }); });
+
+  // ---------- expand (表达延伸) editor ----------
+  var expandTarget=null;
+  function openExpandEditor(li,anchor){
+    expandTarget=li;
+    var x=(lines[li]&&lines[li].expand)||{};
+    document.getElementById('xeMeaning').value=x.meaning||'';
+    document.getElementById('xeUsage').value=x.usage||'';
+    document.getElementById('xeEx').value=x.examples||'';
+    var ed=document.getElementById('expandEditor'); ed.hidden=false;
+    var r=anchor.getBoundingClientRect(), ew=320;
+    ed.style.left=Math.max(8,Math.min(window.scrollX+r.left, window.scrollX+window.innerWidth-ew-8))+'px';
+    ed.style.top=(window.scrollY+r.bottom+10)+'px';
+    document.getElementById('xeMeaning').focus();
+  }
+  function closeExpand(){ document.getElementById('expandEditor').hidden=true; expandTarget=null; }
+  function saveExpand(){
+    if(expandTarget==null) return; snapshot();
+    var line=lines[expandTarget];
+    var m=document.getElementById('xeMeaning').value.trim(),
+        u=document.getElementById('xeUsage').value.trim(),
+        ex=document.getElementById('xeEx').value.replace(/\n{3,}/g,'\n\n').trim();
+    if(m||u||ex) line.expand={meaning:m,usage:u,examples:ex}; else line.expand=null;
+    render(); renderPractice(); save(); closeExpand();
+  }
+  document.getElementById('xeSave').addEventListener('click',saveExpand);
+  document.getElementById('xeClear').addEventListener('click',function(){
+    if(expandTarget==null) return; snapshot(); lines[expandTarget].expand=null; render(); renderPractice(); save(); closeExpand();
+  });
+  document.getElementById('xeCancel').addEventListener('click',closeExpand);
+  document.getElementById('expandEditor').addEventListener('keydown',function(e){
+    if(e.key==='Escape'){ e.preventDefault(); closeExpand(); }
+    else if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); saveExpand(); }
+  });
+  document.getElementById('expandToggle').addEventListener('click',function(){
+    document.body.classList.toggle('hidex');
+    this.classList.toggle('primary',document.body.classList.contains('hidex'));
+    toast(document.body.classList.contains('hidex')?'已隐藏所有讲解卡（讲完再点开）':'讲解卡已显示');
+  });
 
   // ---------- toolbar ----------
   document.querySelectorAll('.tool[data-tool]').forEach(function(btn){
@@ -803,7 +992,8 @@
     playK=true; document.getElementById('playKtoggle').textContent='停止跟唱';
     lastActive=-1; player.play();
   }
-  function stopPlayK(){ playK=false; document.getElementById('playKtoggle').textContent='跟唱播放'; clearK(); }
+  function stopPlayK(){ playK=false; document.getElementById('playKtoggle').textContent='跟唱播放'; clearK();
+    var df=document.getElementById('dubFollowBtn'); if(df) df.textContent='▶ 配音跟读'; }
   function stopPlayKvisual(){ stopPlayK(); }
   document.getElementById('playKtoggle').addEventListener('click',function(){ playK?stopPlayK():startPlayK(); });
 
@@ -830,6 +1020,8 @@
 
   // ---------- practice (sentence-by-sentence) view ----------
   var mode='anno', kwMode=false, practiceState=null, loopSet=new Set();
+  var contentType='电影', dubBrief={rate:'',focus:'',submit:'',ddl:''};
+  var dubMute=false, dubCountIn=false;
   var pTap=false, pCursor=0, playRate=1;
   var revealMode=false, revealCount=0;
   var pHost=document.getElementById('cardPractice');
@@ -861,8 +1053,9 @@
       var num=document.createElement('div'); num.className='pnum'; num.textContent=(n+1); pc.appendChild(num);
 
       var body=document.createElement('div'); body.className='pbody';
-      body.appendChild(buildPen(line,li));
+      var pen=buildPen(line,li); attachXMark(pen,line,li); body.appendChild(pen);
       if(line.zh){ var zh=document.createElement('div'); zh.className='pzh'; zh.textContent=line.zh; body.appendChild(zh); }
+      var xc=buildExpandCard(line); if(xc) body.appendChild(xc);
       pc.appendChild(body);
 
       var ctrl=document.createElement('div'); ctrl.className='pctrl';
@@ -890,6 +1083,7 @@
       pHost.appendChild(pc);
     });
     requestAnimationFrame(drawArcsPractice);
+    renderDubBrief();
     if(pTap && flatL[pCursor]!=null && pHost.children.length){
       var idx=-1; for(var k=0;k<lines.length && k<=flatL[pCursor];k++){ if(lines[k].words&&lines[k].words.length) idx++; }
       if(pHost.children[idx]) pHost.children[idx].scrollIntoView({behavior:'smooth',block:'center'});
@@ -908,7 +1102,8 @@
     for(var j=li+1;j<lines.length;j++){ if(lines[j].lstart!=null && lines[j].lstart>line.lstart){ end=lines[j].lstart; break; } }
     if(end==null) end=(player.duration&&isFinite(player.duration))?player.duration:line.lstart+6;
     practiceState={li:li,end:end,loop:loopSet.has(li)};
-    player.currentTime=line.lstart; player.play(); renderPractice();
+    var go=function(){ player.currentTime=line.lstart; player.play(); renderPractice(); };
+    if(dubCountIn) runCountIn(3,go); else go();
   }
   player.addEventListener('timeupdate',function(){
     if(!practiceState) return;
@@ -1267,7 +1462,7 @@
 
   // ---------- project export / import ----------
   document.getElementById('exportJson').addEventListener('click',function(){
-    var data={v:2,en:enBox.value,zh:zhBox.value,timesMode:timesMode,lines:lines};
+    var data={v:3,en:enBox.value,zh:zhBox.value,timesMode:timesMode,contentType:contentType,dubBrief:dubBrief,lines:lines};
     var blob=new Blob([JSON.stringify(data,replacer)],{type:'application/json'});
     var a=document.createElement('a'); a.download='noya-project.json'; a.href=URL.createObjectURL(blob); a.click();
   });
@@ -1277,14 +1472,131 @@
     r.onload=function(){ try{
       var d=JSON.parse(r.result,reviver);
       enBox.value=d.en||''; zhBox.value=d.zh||''; timesMode=d.timesMode||'word';
-      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={};
+      lines=(d.lines||[]).map(function(l){ l.strike=new Set(l.strike); l.weak=new Set(l.weak); l.flap=new Set(l.flap); l.kw=new Set(l.kw); l.beats=new Set(l.beats); if(!l.notes) l.notes={}; if(l.expand===undefined) l.expand=null;
         if(!l.words) l.words=computeWords(l); if(!l.wtimes) l.wtimes=l.words.map(function(){return null;});
         if(l.lstart===undefined) l.lstart=null; return l; });
+      if(d.dubBrief) dubBrief=d.dubBrief; if(d.contentType) contentType=d.contentType;
       granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===timesMode);});
-      loopSet=new Set(); buildFlat(); render(); renderPractice(); save();
+      document.getElementById('typeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.ty===contentType);});
+      loopSet=new Set(); buildFlat(); render(); renderPractice(); renderDubBrief(); save();
     }catch(err){ alert('导入失败：文件格式不正确。'); } };
     r.readAsText(f);
   });
+
+  // ---------- content type ----------
+  document.getElementById('typeSeg').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-ty]'); if(!b) return;
+    contentType=b.dataset.ty; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.ty===contentType);});
+    renderDubBrief(); save();
+  });
+
+  // ---------- 配音任务简报 (dubbing brief) ----------
+  function renderDubBrief(){
+    function set(id,v){ var el=document.getElementById(id); if(!el) return;
+      if(v){ el.textContent=v; el.classList.remove('empty'); } else { el.textContent='—'; el.classList.add('empty'); } }
+    set('dbvRate',dubBrief.rate); set('dbvSubmit',dubBrief.submit); set('dbvFocus',dubBrief.focus); set('dbvDdl',dubBrief.ddl);
+    var n=lines.filter(function(l){return l.words&&l.words.length;}).length;
+    document.getElementById('dbvCount').textContent = n?(n+' 句'):'—';
+    document.getElementById('dbTitle').textContent = (contentType||'原声')+' · DUBBING';
+  }
+  function vtrim(id){ return document.getElementById(id).value.trim(); }
+  function openDubEditor(){
+    document.getElementById('dbRate').value=dubBrief.rate||'';
+    document.getElementById('dbFocus').value=dubBrief.focus||'';
+    document.getElementById('dbSubmit').value=dubBrief.submit||'';
+    document.getElementById('dbDdl').value=dubBrief.ddl||'';
+    document.getElementById('dubEditor').hidden=false; document.getElementById('dbRate').focus();
+  }
+  function closeDub(){ document.getElementById('dubEditor').hidden=true; }
+  document.getElementById('dubBtn').addEventListener('click',function(){
+    if(mode!=='practice'){ document.getElementById('viewSeg').querySelector('button[data-view="practice"]').click(); }
+    openDubEditor();
+  });
+  document.getElementById('dubEditBtn').addEventListener('click',openDubEditor);
+  document.getElementById('dbSave').addEventListener('click',function(){
+    dubBrief={rate:vtrim('dbRate'),focus:vtrim('dbFocus'),submit:vtrim('dbSubmit'),ddl:vtrim('dbDdl')};
+    renderDubBrief(); save(); closeDub(); toast('配音任务已更新');
+  });
+  document.getElementById('dbCancel').addEventListener('click',closeDub);
+  document.getElementById('dbClearBtn').addEventListener('click',function(){ ['dbRate','dbFocus','dbSubmit','dbDdl'].forEach(function(id){document.getElementById(id).value='';}); });
+  document.getElementById('dubEditor').addEventListener('keydown',function(e){
+    if(e.key==='Escape'){ e.preventDefault(); closeDub(); }
+    else if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); document.getElementById('dbSave').click(); }
+  });
+
+  // ---------- 倒数 count-in ----------
+  function runCountIn(n,done){
+    var ov=document.getElementById('countIn'), sp=ov.querySelector('span');
+    var i=n; ov.classList.add('show'); sp.textContent=i;
+    var iv=setInterval(function(){
+      i--;
+      if(i<=0){ clearInterval(iv); ov.classList.remove('show'); done&&done(); return; }
+      sp.textContent=i; sp.style.animation='none'; void sp.offsetWidth; sp.style.animation='';
+    },700);
+  }
+  document.getElementById('countInBtn').addEventListener('click',function(){
+    dubCountIn=!dubCountIn; this.textContent=dubCountIn?'倒数 开':'倒数 关'; this.classList.toggle('primary',dubCountIn);
+  });
+
+  // ---------- 静音配音 (mute reference so student dubs) ----------
+  function setDubMute(on){ dubMute=on; player.muted=on;
+    var b=document.getElementById('dubMuteBtn'); b.textContent=on?'🔇 静音配音':'🔊 参考声音'; b.classList.toggle('primary',on);
+    document.body.classList.toggle('dubbing', on && !player.paused);
+  }
+  document.getElementById('dubMuteBtn').addEventListener('click',function(){
+    setDubMute(!dubMute); toast(dubMute?'参考已静音 · 让学生自己配音（节奏仍随高亮走）':'参考声音已恢复');
+  });
+  player.addEventListener('play',function(){ document.body.classList.toggle('dubbing', dubMute); });
+  player.addEventListener('pause',function(){ document.body.classList.remove('dubbing'); });
+
+  // ---------- 配音跟读：按时间轴逐句高亮走一遍 ----------
+  document.getElementById('dubFollowBtn').addEventListener('click',function(){
+    var df=this;
+    if(playK){ stopPlayK(); return; }
+    if(!player.src){ alert('请先载入音频。'); return; }
+    buildEvents();
+    if(!playEvents.length){ alert('还没有时间轴：先在下方「逐句打点」或音频区「开始打轴」记录每句开始时间。'); return; }
+    var go=function(){ player.currentTime=0; startPlayK(); df.textContent='■ 停止配音'; };
+    if(dubCountIn) runCountIn(3,go); else go();
+  });
+
+  // ---------- 导出配音任务卡 ----------
+  function exportDubCard(returnUrl){
+    var vis=lines.filter(function(l){return l.words&&l.words.length;});
+    if(!vis.length){ alert('还没有内容，先粘贴原文并「生成标注区」。'); return; }
+    var W=1080, pad=64;
+    var title=(document.getElementById('songTitle').value||'').trim();
+    var rowsHtml=vis.map(function(l,i){
+      var en=l.cells.map(function(c){return c.ch;}).join('');
+      var zh=l.zh?("<div style=\"font-family:var(--serif);font-size:21px;color:#b3a891;margin-top:4px\">"+esc(l.zh)+"</div>"):'';
+      return "<div style=\"display:flex;gap:14px;padding:14px 0;border-top:1px solid rgba(255,255,255,.09)\">"
+        +"<div style=\"flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:1px solid #b98a34;color:#d9a441;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:15px\">"+(i+1)+"</div>"
+        +"<div style=\"flex:1;min-width:0\"><div style=\"font-family:var(--serif);font-size:27px;color:#f2ead9;line-height:1.42\">"+esc(en)+"</div>"+zh+"</div></div>";
+    }).join('');
+    function briefRow(k,v){ if(!v) return '';
+      return "<div style=\"display:flex;gap:12px;margin:8px 0\"><span style=\"flex:0 0 auto;font-family:var(--sans);font-size:15px;color:#241a06;background:#d9a441;border-radius:7px;padding:3px 11px;height:fit-content\">"+k+"</span>"
+        +"<span style=\"flex:1;font-family:var(--serif);font-size:21px;color:#efe6d5;line-height:1.45;white-space:pre-wrap\">"+esc(v)+"</span></div>"; }
+    var briefHtml=briefRow('语速',dubBrief.rate)+briefRow('重点',dubBrief.focus)+briefRow('提交',dubBrief.submit)+briefRow('截止',dubBrief.ddl);
+    if(!briefHtml) briefHtml="<div style=\"font-family:var(--serif);font-size:19px;color:#8a7f6a;font-style:italic\">（点「配音任务」填写语速 / 重点 / 提交方式 / 截止）</div>";
+    var inner=
+      "<div style=\"width:"+W+"px;background:linear-gradient(160deg,#1c1710,#241d13 55%,#191410);padding:"+pad+"px;box-sizing:border-box\">"
+      +"<div style=\"font-family:var(--sans);font-size:16px;letter-spacing:.2em;color:#d9a441\">"+esc(contentType||'原声')+" · 配音任务 DUBBING</div>"
+      +(title?"<div style=\"font-family:var(--serif);font-size:42px;color:#f6efe1;margin-top:10px;line-height:1.2\">"+esc(title)+"</div>":"")
+      +"<div style=\"margin:22px 0 6px\">"+briefHtml+"</div>"
+      +"<div style=\"font-family:var(--sans);font-size:14px;letter-spacing:.14em;color:#b98a34;margin:24px 0 2px\">要配的句子 · "+vis.length+"</div>"
+      +rowsHtml
+      +"<div style=\"display:flex;justify-content:space-between;align-items:center;margin-top:30px;gap:16px\">"
+      +"<div style=\"font-family:var(--sans);font-size:14px;color:#8a7f6a\">对着画面 · 可静音原声配音 · 注意连读与重音</div>"
+      +"<div style=\"font-family:var(--serif);font-style:italic;font-size:22px;color:#d9a441;white-space:nowrap\">诺雅 · Noya</div></div>"
+      +"</div>";
+    var probe=document.createElement('div'); probe.style.cssText='position:absolute;left:-99999px;top:0;width:'+W+'px;'+cssVars();
+    probe.innerHTML='<style>'+document.getElementById('mainstyle').textContent+'</style>'+inner;
+    document.body.appendChild(probe);
+    var H=Math.ceil(probe.getBoundingClientRect().height)+8; if(!H||H<200) H=1400;
+    document.body.removeChild(probe);
+    rasterize(inner, W, H, '', '#1c1710', 'noya-dub-'+(contentType||'task')+'.png', returnUrl);
+  }
+  document.getElementById('exportDub').addEventListener('click',function(){ toast('正在生成配音卡…'); exportDubCard(false); });
 
   // ---------- persistence ----------
   function save(){ try{
@@ -1298,6 +1610,8 @@
     localStorage.setItem('noya2-ratio',posterRatio);
     localStorage.setItem('noya2-blur',bgBlur?'1':'0');
     localStorage.setItem('noya2-scrim',scrimLevel);
+    localStorage.setItem('noya2-ctype',contentType);
+    localStorage.setItem('noya2-dub',JSON.stringify(dubBrief));
     localStorage.setItem('noya2-lines',JSON.stringify(lines,replacer));
     try{ if(bgData) localStorage.setItem('noya2-bg',bgData); else localStorage.removeItem('noya2-bg'); }catch(e){ /* image too big for quota; session-only */ }
   }catch(e){} }
@@ -1307,7 +1621,7 @@
     if(e!=null) enBox.value=e; if(z!=null) zhBox.value=z;
     var ti=localStorage.getItem('noya2-title'); if(ti!=null) document.getElementById('songTitle').value=ti;
     if(m){ timesMode=m; granSeg.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.gran===m);}); }
-    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.flap=new Set(x.flap); x.kw=new Set(x.kw); x.beats=new Set(x.beats); if(!x.notes) x.notes={};
+    if(l){ lines=JSON.parse(l,reviver); lines.forEach(function(x){ x.strike=new Set(x.strike); x.weak=new Set(x.weak); x.flap=new Set(x.flap); x.kw=new Set(x.kw); x.beats=new Set(x.beats); if(!x.notes) x.notes={}; if(x.expand===undefined) x.expand=null;
       if(!x.words) x.words=computeWords(x); if(!x.wtimes) x.wtimes=x.words.map(function(){return null;});
       if(x.lstart===undefined) x.lstart=null; }); buildFlat(); render(); renderPractice(); }
     if(v==='practice'){
@@ -1315,6 +1629,11 @@
       document.getElementById('viewSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.view==='practice');});
       document.getElementById('kwBtn').style.display=''; renderPractice();
     }
+    var ct=localStorage.getItem('noya2-ctype'), db=localStorage.getItem('noya2-dub');
+    if(ct) contentType=ct;
+    if(db){ try{ var dd=JSON.parse(db); if(dd&&typeof dd==='object') dubBrief={rate:dd.rate||'',focus:dd.focus||'',submit:dd.submit||'',ddl:dd.ddl||''}; }catch(e){} }
+    document.getElementById('typeSeg').querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.ty===contentType);});
+    renderDubBrief();
     var th=localStorage.getItem('noya2-theme'), st=localStorage.getItem('noya2-scenetext'), ra=localStorage.getItem('noya2-ratio'), bg=localStorage.getItem('noya2-bg'),
         bl=localStorage.getItem('noya2-blur'), sc=localStorage.getItem('noya2-scrim');
     if(bg) bgData=bg;
