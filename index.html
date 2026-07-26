@@ -328,6 +328,34 @@
   .xe-btns{display:flex;gap:7px;margin-top:2px}
   .xe-btns button{padding:6px 12px;font-size:12px}
   .xe-title{font-family:var(--serif);font-size:15px;color:var(--accent);margin-bottom:10px}
+
+  /* ---------- 视频同步展示 (synced video panel) ---------- */
+  #videoPanel{position:fixed;z-index:175;top:82px;right:20px;width:var(--vpw,520px);background:var(--panel);
+    border:1px solid var(--panel-line);border-radius:14px;box-shadow:0 18px 55px rgba(0,0,0,.55);overflow:hidden}
+  #videoPanel[hidden]{display:none}
+  .vp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;cursor:move;
+    background:#1c1710;border-bottom:1px solid var(--panel-line);user-select:none}
+  .vp-title{font-size:13px;color:var(--ink);letter-spacing:.04em;white-space:nowrap}
+  .vp-actions{display:flex;gap:4px;align-items:center}
+  .vp-actions button{padding:4px 8px;font-size:11px;background:#2c251a;border:1px solid var(--panel-line);color:var(--ink);
+    border-radius:7px;cursor:pointer}
+  .vp-actions button.on{background:var(--accent);color:#241a06;border-color:transparent;font-weight:600}
+  .vp-actions .vp-sz{display:inline-flex;border:1px solid var(--panel-line);border-radius:7px;overflow:hidden}
+  .vp-actions .vp-sz button{border:none;border-radius:0;padding:4px 7px}
+  .vp-actions .vp-sz button.on{background:var(--accent)}
+  .vp-actions #vpClose{font-size:17px;padding:1px 7px;color:var(--ink-dim);background:transparent;border:none}
+  .vp-video{background:#000;display:flex}
+  .vp-video video{width:100%;height:auto;max-height:68vh;display:block}
+  .vcap{padding:9px 14px;background:#17130d;text-align:center;font-family:var(--serif);min-height:1em}
+  .vcap .vcap-en{display:block;font-size:19px;color:#f2ead9;line-height:1.35}
+  .vcap .vcap-zh{display:block;font-size:14px;color:#b3a891;margin-top:3px}
+  body.nocap .vcap{display:none}
+  /* current-line follow highlight during plain video playback */
+  .line.vfollow{border-radius:12px;box-shadow:inset 0 0 0 2px var(--accent);background:rgba(217,164,65,.06)}
+  .pcard.vfollow{box-shadow:0 0 0 2px var(--accent)}
+  body.present .vcap .vcap-en{font-size:25px}
+  body.present .vcap .vcap-zh{font-size:16px}
+  #mediaKindNote{color:var(--accent);font-size:12px}
 </style>
 
 <header>
@@ -367,6 +395,7 @@
     <button class="primary" id="gen">生成标注区</button>
     <button class="ghost" id="clearText">清空文本</button>
     <button class="filebtn" id="audioBtn">载入音频<input type="file" id="audioFile" accept="audio/*"></button>
+    <button class="filebtn" id="videoBtn">载入视频<input type="file" id="videoFile" accept="video/*"></button>
     <span class="seg" id="viewSeg" style="margin-left:6px">
       <button data-view="anno" class="on">标注</button>
       <button data-view="practice">练习页</button>
@@ -469,6 +498,7 @@
     <div class="barwrap" id="barwrap" style="display:none">
       <div class="rowflex">
         <audio id="player" controls></audio>
+        <span class="nm" id="mediaKindNote"></span>
         <span class="nm" id="audioName"></span>
       </div>
       <div class="rowflex">
@@ -514,6 +544,24 @@
 <div class="laserdot" id="laserdot"></div>
 <div id="countIn"><span></span></div>
 <div class="dubbadge" id="dubBadge"><i></i>配音中 · 参考已静音</div>
+
+<div id="videoPanel" hidden>
+  <div class="vp-head" id="vpHead">
+    <span class="vp-title">🎬 视频同步</span>
+    <span class="vp-actions">
+      <span class="vp-sz" id="vpSize">
+        <button data-sz="360">小</button>
+        <button data-sz="520" class="on">中</button>
+        <button data-sz="760">大</button>
+      </span>
+      <button id="vpFollow" class="on" title="播放时自动高亮 / 滚动到当前句">跟随</button>
+      <button id="vpCap" class="on" title="显示字幕条">字幕</button>
+      <button id="vpClose" title="关闭视频">×</button>
+    </span>
+  </div>
+  <div class="vp-video"><video id="vplayer" controls playsinline></video></div>
+  <div class="vcap" id="vcap"><span class="vcap-en">载入视频后，随播放显示当前句</span></div>
+</div>
 
 <div id="previewModal" hidden>
   <img id="pvImg" alt="导出预览">
@@ -562,7 +610,13 @@
   var card=document.getElementById('card');
   var enBox=document.getElementById('en');
   var zhBox=document.getElementById('zh');
-  var player=document.getElementById('player');
+  var audioEl=document.getElementById('player');
+  var videoEl=document.getElementById('vplayer');
+  var player=audioEl;                 // active media (audio or video); reassigned on load
+  var mediaKind='none';               // 'none' | 'audio' | 'video'
+  var videoFollow=true;
+  // bind the same handler to both media elements (only the playing one fires events)
+  function onMedia(evt,fn){ audioEl.addEventListener(evt,fn); videoEl.addEventListener(evt,fn); }
 
   // lines: [{cells, zh, strike:Set, weak:Set, arcs:[[a,b]], ins:[{after,g}], words:[{cells:[ci]}], wtimes:[t|null], lstart:t|null}]
   var lines=[];
@@ -872,13 +926,36 @@
   document.getElementById('clearText').addEventListener('click',function(){ enBox.value=''; zhBox.value=''; });
   document.getElementById('toggleZh').addEventListener('click',function(){ showZh=!showZh; render(); });
 
-  // ---------- audio ----------
+  // ---------- media (audio / video) ----------
+  function useMedia(kind){
+    mediaKind=kind;
+    if(kind==='video'){ audioEl.pause(); player=videoEl; }
+    else { videoEl.pause(); player=audioEl; }
+    // reflect in the timeline bar
+    audioEl.style.display = kind==='video' ? 'none' : '';
+    var note=document.getElementById('mediaKindNote');
+    note.textContent = kind==='video' ? '🎬 视频模式 · 用右上浮窗播放' : '';
+    player.playbackRate=playRate; player.muted=dubMute;
+  }
   document.getElementById('audioFile').addEventListener('change',function(e){
     var f=e.target.files[0]; if(!f) return;
+    useMedia('audio');
     player.src=URL.createObjectURL(f);
     document.getElementById('audioName').textContent=f.name;
     document.getElementById('barwrap').style.display='flex';
     player.addEventListener('loadedmetadata',function(){ player.playbackRate=playRate; },{once:true});
+  });
+  document.getElementById('videoFile').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    if(syncMode) finishSync(); if(playK) stopPlayK(); if(practiceState){ audioEl.pause(); practiceState=null; }
+    useMedia('video');
+    player.src=URL.createObjectURL(f);
+    document.getElementById('audioName').textContent=f.name;
+    document.getElementById('barwrap').style.display='flex';
+    document.getElementById('videoPanel').hidden=false;
+    lastVCap=-2;
+    player.addEventListener('loadedmetadata',function(){ player.playbackRate=playRate; },{once:true});
+    toast('视频已载入 · 先「逐句打点/开始打轴」，再「跟唱播放」即随视频高亮');
   });
 
   // ---------- karaoke: sync recording ----------
@@ -997,7 +1074,7 @@
   function stopPlayKvisual(){ stopPlayK(); }
   document.getElementById('playKtoggle').addEventListener('click',function(){ playK?stopPlayK():startPlayK(); });
 
-  player.addEventListener('timeupdate',function(){
+  onMedia('timeupdate',function(){
     if(syncMode||!playK||!playEvents.length) return;
     var cur=player.currentTime, idx=-1;
     for(var i=0;i<playEvents.length;i++){ if(playEvents[i].t<=cur) idx=i; else break; }
@@ -1016,7 +1093,46 @@
       if(beat){ beat.classList.remove('pulse'); void beat.offsetWidth; beat.classList.add('pulse'); }
     }
   });
-  player.addEventListener('ended',function(){ if(playK) stopPlayK(); if(syncMode) finishSync(); });
+  onMedia('ended',function(){ if(playK) stopPlayK(); if(syncMode) finishSync(); });
+
+  // ---------- 视频字幕 + 当前句跟随 ----------
+  function currentLineByTime(t){
+    var best=-1,bt=-2;
+    lines.forEach(function(l,i){ if(l.lstart!=null && l.lstart<=t+0.02 && l.lstart>bt){ bt=l.lstart; best=i; } });
+    return best;
+  }
+  var lastVCap=-2;
+  function followTarget(li){
+    if(li<0) return null;
+    if(mode==='practice'){
+      var idx=-1; for(var k=0;k<lines.length && k<=li;k++){ if(lines[k].words&&lines[k].words.length) idx++; }
+      return pHost.children[idx]||null;
+    }
+    return card.children[li]||null;
+  }
+  // Re-assert highlight every tick (survives renderPractice rebuilds); only scroll when the line changes.
+  function ensureFollow(li,doScroll){
+    var target=followTarget(li);
+    if(target && target.classList.contains('vfollow')){ if(doScroll) target.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    document.querySelectorAll('.vfollow').forEach(function(el){ el.classList.remove('vfollow'); });
+    if(target){ target.classList.add('vfollow'); target.scrollIntoView({behavior:'smooth',block:'center'}); }
+  }
+  function updateCaption(li){
+    var cap=document.getElementById('vcap');
+    if(li<0){ cap.innerHTML='<span class="vcap-en">—</span>'; return; }
+    var l=lines[li], en=l.cells.map(function(c){return c.ch;}).join('');
+    cap.innerHTML='<span class="vcap-en"></span>'+(l.zh?'<span class="vcap-zh"></span>':'');
+    cap.querySelector('.vcap-en').textContent=en;
+    if(l.zh) cap.querySelector('.vcap-zh').textContent=l.zh;
+  }
+  function videoSyncTick(){
+    if(mediaKind!=='video') return;
+    var li=currentLineByTime(player.currentTime), changed=(li!==lastVCap);
+    if(changed){ lastVCap=li; updateCaption(li); }
+    if(videoFollow && !syncMode && !playK) ensureFollow(li,changed);
+    else if(!videoFollow){ var el; while((el=document.querySelector('.vfollow'))) el.classList.remove('vfollow'); }
+  }
+  onMedia('timeupdate',videoSyncTick);
 
   // ---------- practice (sentence-by-sentence) view ----------
   var mode='anno', kwMode=false, practiceState=null, loopSet=new Set();
@@ -1105,15 +1221,15 @@
     var go=function(){ player.currentTime=line.lstart; player.play(); renderPractice(); };
     if(dubCountIn) runCountIn(3,go); else go();
   }
-  player.addEventListener('timeupdate',function(){
+  onMedia('timeupdate',function(){
     if(!practiceState) return;
     if(player.currentTime>=practiceState.end-0.03){
       if(practiceState.loop){ player.currentTime=lines[practiceState.li].lstart; }
       else { player.pause(); practiceState=null; renderPractice(); }
     }
   });
-  player.addEventListener('play',function(){ if(mode==='practice') renderPractice(); });
-  player.addEventListener('pause',function(){ if(mode==='practice') renderPractice(); });
+  onMedia('play',function(){ if(mode==='practice') renderPractice(); });
+  onMedia('pause',function(){ if(mode==='practice') renderPractice(); });
 
   // tap-along: one pass to set every line's start time
   function pTapStart(){
@@ -1233,6 +1349,41 @@
   document.getElementById('laserBtn').addEventListener('click',function(){ setLaser(!laserOn); });
   document.getElementById('pbLaser').addEventListener('click',function(){ setLaser(!laserOn); });
   window.addEventListener('mousemove',function(e){ if(laserOn){ laserdot.style.left=e.clientX+'px'; laserdot.style.top=e.clientY+'px'; } });
+
+  // ---------- video panel: drag / size / follow / caption / close ----------
+  (function(){
+    var panel=document.getElementById('videoPanel'), head=document.getElementById('vpHead'), drag=null;
+    head.addEventListener('mousedown',function(e){
+      if(e.target.closest('button')) return;
+      var r=panel.getBoundingClientRect();
+      drag={dx:e.clientX-r.left, dy:e.clientY-r.top};
+      panel.style.right='auto'; panel.style.left=r.left+'px'; panel.style.top=r.top+'px'; e.preventDefault();
+    });
+    window.addEventListener('mousemove',function(e){
+      if(!drag) return;
+      panel.style.left=Math.max(0,Math.min(window.innerWidth-60, e.clientX-drag.dx))+'px';
+      panel.style.top=Math.max(0,Math.min(window.innerHeight-40, e.clientY-drag.dy))+'px';
+    });
+    window.addEventListener('mouseup',function(){ drag=null; });
+    document.getElementById('vpSize').addEventListener('click',function(e){
+      var b=e.target.closest('button[data-sz]'); if(!b) return;
+      panel.style.setProperty('--vpw', b.dataset.sz+'px');
+      this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});
+    });
+    document.getElementById('vpFollow').addEventListener('click',function(){
+      videoFollow=!videoFollow; this.classList.toggle('on',videoFollow);
+      if(!videoFollow) document.querySelectorAll('.vfollow').forEach(function(el){el.classList.remove('vfollow');});
+      toast(videoFollow?'播放时高亮当前句':'已关闭当前句高亮');
+    });
+    document.getElementById('vpCap').addEventListener('click',function(){
+      document.body.classList.toggle('nocap'); this.classList.toggle('on',!document.body.classList.contains('nocap'));
+    });
+    document.getElementById('vpClose').addEventListener('click',function(){
+      videoEl.pause(); panel.hidden=true;
+      document.querySelectorAll('.vfollow').forEach(function(el){ el.classList.remove('vfollow'); });
+      if(audioEl.src){ useMedia('audio'); } else { useMedia('none'); document.getElementById('barwrap').style.display='none'; }
+    });
+  })();
 
   // ---------- 意境背景 (themed background) ----------
   var bgData=null;        // original uploaded image (dataURL)
@@ -1546,8 +1697,8 @@
   document.getElementById('dubMuteBtn').addEventListener('click',function(){
     setDubMute(!dubMute); toast(dubMute?'参考已静音 · 让学生自己配音（节奏仍随高亮走）':'参考声音已恢复');
   });
-  player.addEventListener('play',function(){ document.body.classList.toggle('dubbing', dubMute); });
-  player.addEventListener('pause',function(){ document.body.classList.remove('dubbing'); });
+  onMedia('play',function(){ document.body.classList.toggle('dubbing', dubMute); });
+  onMedia('pause',function(){ document.body.classList.remove('dubbing'); });
 
   // ---------- 配音跟读：按时间轴逐句高亮走一遍 ----------
   document.getElementById('dubFollowBtn').addEventListener('click',function(){
