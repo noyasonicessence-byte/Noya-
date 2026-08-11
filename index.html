@@ -136,6 +136,44 @@
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;background:rgba(34,28,20,.96);color:var(--ink);
     border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
   #toast.show{opacity:1}
+
+  /* ---------- export dialog + preview ---------- */
+  .modal{position:fixed;inset:0;z-index:90;background:rgba(10,8,6,.78);display:flex;align-items:center;justify-content:center;padding:24px}
+  .modal[hidden]{display:none}
+  .dlg{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;width:380px;max-width:92vw}
+  .dlg h3{margin:0 0 14px;font-size:15px;font-weight:600}
+  .dlg .fl{margin-top:2px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:14px}
+  .seg button{border:none;border-radius:0;background:transparent;padding:7px 14px;font-size:12.5px}
+  .seg button.on{background:var(--accent);color:#241a06;font-weight:600}
+  .dlg .acts{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  #previewModal img{max-width:92vw;max-height:74vh;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.6);background:#fff}
+  #previewModal{flex-direction:column;gap:14px}
+  .pv-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .pv-bar a.dl{background:var(--accent);color:#241a06;font-weight:600;border:none;border-radius:999px;padding:9px 20px;font-size:14px;text-decoration:none;font-family:var(--sans)}
+  .pv-hint{color:#c9bfa8;font-size:12.5px}
+
+  /* teaching sheet (used by image export + print) */
+  .sheet{background:var(--card);color:var(--card-ink);padding:46px 52px;width:960px;font-family:var(--serif);display:flex;flex-direction:column;gap:30px}
+  .sheet-title{font-size:34px;text-align:center;text-wrap:balance;margin-bottom:6px}
+  .sheet-block{display:flex;flex-direction:column;gap:10px;padding-bottom:26px;border-bottom:1px solid #e0d8c6}
+  .sheet-block:last-child{border-bottom:none}
+  .sheet-num{font-family:var(--sans);font-size:12px;color:#a99a80;letter-spacing:.08em}
+  .sheet-en{font-size:34px;line-height:1.7;position:relative;padding:1.4em 0 .9em}
+  .sheet-en .en{position:relative;display:block}
+  .sheet-zh{font-size:17px;color:#6f665a}
+  .sheet-dims{display:flex;flex-direction:column;gap:7px;margin-top:6px;border-left:3px solid var(--accent);padding-left:14px}
+  .sheet-dim{font-size:14.5px;line-height:1.7;color:#4a4234;font-family:var(--sans)}
+  .sheet-dim b{font-family:var(--sans);color:#7a5a12;font-weight:700;margin-right:6px}
+
+  #printArea{display:none}
+  @media print{
+    header,#source,main,.modal,#toast,#noteEditor,#mutEditor{display:none!important}
+    html,body{height:auto;overflow:visible;background:#fff}
+    #printArea{display:block!important}
+    .sheet{width:auto;box-shadow:none}
+    .sheet-block{break-inside:avoid;page-break-inside:avoid}
+  }
 </style>
 
 <header>
@@ -143,7 +181,7 @@
   <div class="titlewrap"><input id="title" type="text" placeholder="标题（歌名 / 台词出处 / 文章名…）"></div>
   <button class="hbtn ghost" id="editSrc">原文 / 编辑</button>
   <div class="sp"></div>
-  <button class="hbtn ghost" id="expBtn">导出教学</button>
+  <button class="hbtn primary" id="expBtn">导出</button>
   <button class="hbtn ghost filebtn" id="impBtn" style="position:relative;overflow:hidden">导入<input id="impFile" type="file" accept="application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></button>
 </header>
 
@@ -178,6 +216,34 @@
   <div class="ne-btns"><button class="primary" id="mutSave">保存</button><button id="mutClear">清除</button><button class="ghost" id="mutCancel">取消</button></div>
 </div>
 <div id="toast"></div>
+
+<div id="exportModal" class="modal" hidden>
+  <div class="dlg">
+    <h3>导出</h3>
+    <div class="fl">范围</div>
+    <span class="seg" id="scopeSeg"><button data-s="current" class="on">本句</button><button data-s="all">全部</button></span>
+    <div class="fl">内容</div>
+    <span class="seg" id="contentSeg"><button data-c="sound" class="on">仅发音标注</button><button data-c="full">标注 + 七维</button></span>
+    <div class="acts">
+      <button class="primary" id="doImg">导出图片</button>
+      <button id="doPrint">打印 / 存 PDF</button>
+      <button class="ghost" id="doJson">导出 JSON</button>
+      <button class="ghost" id="expClose">取消</button>
+    </div>
+    <div class="fl" style="margin-top:12px;line-height:1.6">图片会在页面内弹出预览，可下载或长按/右键保存。「打印」用浏览器的"存为 PDF"。</div>
+  </div>
+</div>
+
+<div id="previewModal" class="modal" hidden>
+  <img id="pvImg" alt="导出预览">
+  <div class="pv-bar">
+    <a class="dl" id="pvDownload" download>下载图片</a>
+    <button class="ghost" id="pvClose">关闭</button>
+    <span class="pv-hint">若没自动下载：右键 / 长按图片即可保存</span>
+  </div>
+</div>
+
+<div id="printArea"></div>
 
 <script>
 (function(){
@@ -542,12 +608,91 @@
   $('gen').addEventListener('click',build);
   titleEl.addEventListener('input',save);
 
-  $('expBtn').addEventListener('click',function(){
+  // ---------- export (image / print-PDF / JSON) ----------
+  var expScope='current', expContent='sound';
+  $('expBtn').addEventListener('click',function(){ if(!lines.length){ toast('先生成句子'); return; } $('exportModal').hidden=false; });
+  $('expClose').addEventListener('click',function(){ $('exportModal').hidden=true; });
+  $('exportModal').addEventListener('click',function(e){ if(e.target===this) this.hidden=true; });
+  $('scopeSeg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; expScope=b.dataset.s; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.s===expScope);}); });
+  $('contentSeg').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b)return; expContent=b.dataset.c; this.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.c===expContent);}); });
+  $('doJson').addEventListener('click',function(){
     var data={v:3,title:titleEl.value,en:enBox.value,zh:zhBox.value,lines:lines};
     var blob=new Blob([JSON.stringify(data,replacer,1)],{type:'application/json'});
     var a=document.createElement('a'); a.download=(titleEl.value||'noya-teaching').replace(/\s+/g,'_')+'.json'; a.href=URL.createObjectURL(blob); a.click();
-    toast('已导出教学工程 JSON');
+    toast('已导出 JSON'); $('exportModal').hidden=true;
   });
+  $('doImg').addEventListener('click',function(){ $('exportModal').hidden=true; toast('正在生成图片…'); setTimeout(function(){ exportSheetImage(expScope, expContent==='full'); },30); });
+  $('doPrint').addEventListener('click',function(){ $('exportModal').hidden=true; printSheet(expScope, expContent==='full'); });
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escNl(s){ return esc(s).replace(/\n/g,'<br>'); }
+  function buildSheet(scope, withDims){
+    var idxs = scope==='current' ? (sel>=0?[sel]:[]) : lines.map(function(_,i){return i;});
+    var sheet=document.createElement('div'); sheet.className='sheet';
+    if(titleEl.value.trim()){ var h=document.createElement('div'); h.className='sheet-title'; h.textContent=titleEl.value.trim(); sheet.appendChild(h); }
+    var savedPending=pendingArc; pendingArc=null;
+    var refs=[];
+    idxs.forEach(function(i){
+      var l=lines[i], block=document.createElement('div'); block.className='sheet-block';
+      var num=document.createElement('div'); num.className='sheet-num'; num.textContent=(i+1<10?'0':'')+(i+1); block.appendChild(num);
+      var built=buildLineEl(l); var enw=document.createElement('div'); enw.className='sheet-en'; enw.appendChild(built.el); block.appendChild(enw);
+      refs.push({en:built.el,svg:built.svg,l:l});
+      if(l.zh){ var zh=document.createElement('div'); zh.className='sheet-zh'; zh.textContent=l.zh; block.appendChild(zh); }
+      if(withDims) appendDims(block,l);
+      sheet.appendChild(block);
+    });
+    pendingArc=savedPending;
+    return {sheet:sheet, refs:refs};
+  }
+  function appendDims(block,l){
+    var t=l.teach, wrap=document.createElement('div'); wrap.className='sheet-dims';
+    function row(lb,html){ var d=document.createElement('div'); d.className='sheet-dim'; d.innerHTML='<b>'+lb+'</b>'+html; wrap.appendChild(d); }
+    if(t.thinking.trim()) row('思维', escNl(t.thinking));
+    var maps=t.mapping.filter(function(m){return (m.en||'').trim()||(m.zh||'').trim();});
+    if(maps.length) row('双语映射', maps.map(function(m){return esc(m.en)+' &nbsp;↕&nbsp; '+esc(m.zh);}).join('　｜　'));
+    if(t.resonance.trim()) row('实时共振', escNl(t.resonance));
+    if(t.visual.trim()) row('画面觉醒', escNl(t.visual));
+    var c=t.cinematic, cin=[['人物',c.characters],['场景',c.scene],['前因',c.cause],['此刻',c.moment],['后续',c.aftermath],['来源',c.source]].filter(function(x){return (x[1]||'').trim();});
+    if(cin.length) row('电影记忆', cin.map(function(x){return x[0]+'：'+esc(x[1]);}).join('；&nbsp;'));
+    if(t.flow.trim()){ var parts=t.flow.split('\n').map(function(s){return s.trim();}).filter(Boolean); row('Flow', esc(parts.join('  ›  '))); }
+    if(wrap.children.length) block.appendChild(wrap);
+  }
+  function cssVars(){
+    var names=['--card','--card-ink','--accent','--accent-soft','--c-arc','--c-weak','--c-strike','--c-ins','--c-flap','--c-beat','--c-pause','--c-mut','--serif','--sans'];
+    var rcs=getComputedStyle(document.documentElement); return names.map(function(v){return v+':'+rcs.getPropertyValue(v).trim();}).join(';');
+  }
+  function rasterize(inner,w,h,ground,filename){
+    var css=$('mainstyle').textContent, scale=2;
+    var body="<div xmlns='http://www.w3.org/1999/xhtml' style='width:"+w+"px;background:"+ground+";"+cssVars()+"'><style>"+css+"</style>"+inner+"</div>";
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'"><foreignObject x="0" y="0" width="'+w+'" height="'+h+'">'+body+'</foreignObject></svg>';
+    var img=new Image();
+    img.onload=function(){ var c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale;
+      var ctx=c.getContext('2d'); ctx.fillStyle=ground; ctx.fillRect(0,0,c.width,c.height); ctx.scale(scale,scale); ctx.drawImage(img,0,0);
+      var url; try{ url=c.toDataURL('image/png'); }catch(e){ toast('生成失败，请直接截图'); return; }
+      showPreview(url,filename); };
+    img.onerror=function(){ toast('生成失败，请直接截图'); };
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  }
+  function exportSheetImage(scope,withDims){
+    var built=buildSheet(scope,withDims); if(!built.refs.length){ toast('没有可导出的句子'); return; }
+    var sheet=built.sheet; sheet.style.position='absolute'; sheet.style.left='-99999px'; sheet.style.top='0'; document.body.appendChild(sheet);
+    requestAnimationFrame(function(){
+      built.refs.forEach(function(r){ drawArcs(r.en,r.svg,r.l); });
+      var w=Math.ceil(sheet.scrollWidth), h=Math.ceil(sheet.scrollHeight);
+      sheet.removeAttribute('style');
+      rasterize(new XMLSerializer().serializeToString(sheet), w, h, '#efe9dc', (titleEl.value||'noya-teaching').replace(/\s+/g,'_')+'.png');
+      document.body.removeChild(sheet);
+    });
+  }
+  function printSheet(scope,withDims){
+    var built=buildSheet(scope,withDims); if(!built.refs.length){ toast('没有可导出的句子'); return; }
+    var area=$('printArea'); area.innerHTML=''; area.appendChild(built.sheet);
+    requestAnimationFrame(function(){ built.refs.forEach(function(r){ drawArcs(r.en,r.svg,r.l); });
+      setTimeout(function(){ try{ window.print(); }catch(e){ toast('此环境不支持打印，请用「导出图片」'); } }, 80); });
+  }
+  function showPreview(url,filename){ $('pvImg').src=url; var d=$('pvDownload'); d.href=url; d.download=filename||'noya.png'; $('previewModal').hidden=false; }
+  $('pvClose').addEventListener('click',function(){ $('previewModal').hidden=true; });
+  $('previewModal').addEventListener('click',function(e){ if(e.target===this) this.hidden=true; });
   $('impFile').addEventListener('change',function(e){
     var f=e.target.files[0]; if(!f)return; var r=new FileReader();
     r.onload=function(){ try{ var d=JSON.parse(r.result,reviver);
