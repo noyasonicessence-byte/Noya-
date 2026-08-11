@@ -66,8 +66,8 @@
 
   /* middle: stage */
   .stage-empty{color:#9c9384;font-family:var(--serif);font-size:17px;text-align:center;margin-top:16vh;line-height:1.9}
-  #stageLine{position:relative;font-family:var(--serif);width:100%;max-width:900px;padding-top:2em}
-  #stageLine .en{font-size:40px;line-height:1.5;letter-spacing:.01em;position:relative}
+  #stageLine{position:relative;font-family:var(--serif);width:100%;max-width:900px;padding:2em 0 1.1em}
+  #stageLine .en{font-size:40px;line-height:1.7;letter-spacing:.01em;position:relative}
   #stageZh{font-family:var(--serif);font-size:19px;color:#8f8676;max-width:900px;width:100%;line-height:1.6}
   .word{position:relative;display:inline-block}
   .cell{display:inline-block;position:relative;cursor:default;padding:0 .5px;border-radius:3px}
@@ -80,8 +80,10 @@
   .cell.weak{color:var(--c-weak)}
   .cell.flap{color:var(--c-flap)}
   .cell.mut{color:var(--c-mut)}
-  .mutlabel{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:.12em;font-family:var(--serif);font-style:italic;font-size:.4em;color:var(--c-mut);white-space:nowrap;line-height:1;pointer-events:none}
-  .flapd{display:inline-block;color:var(--c-flap);font-size:.4em;vertical-align:.42em;font-family:var(--serif);margin-left:.02em}
+  /* per-letter sound labels sit BELOW the letter (arcs live above → no overlap) */
+  .belowmark{position:absolute;left:50%;transform:translateX(-50%);top:100%;margin-top:.1em;font-family:var(--serif);font-size:.42em;white-space:nowrap;line-height:1;pointer-events:none}
+  .mutlabel{color:var(--c-mut);font-style:italic}
+  .flapmark{color:var(--c-flap)}
   .ins{display:inline-block;color:var(--c-ins);font-size:.6em;vertical-align:.5em;font-style:italic;font-family:var(--serif);margin:0 .02em;cursor:pointer}
   .pause{display:inline-block;color:var(--c-pause);margin:0 .06em;font-weight:300;cursor:pointer}
   .beat{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:.32em;width:.22em;height:.22em;border-radius:50%;background:var(--c-beat)}
@@ -302,9 +304,9 @@
         if(l.mut&&l.mut[ci]!=null)ls.className+=' mut';
         if(pendingArc===ci)ls.className+=' pending';
         ls.textContent=cell.ch; ls.dataset.cell=ci; ls.dataset.word=wi; ls.addEventListener('click',onCellClick);
-        if(l.mut&&l.mut[ci]!=null){ var ml=document.createElement('span'); ml.className='mutlabel'; ml.textContent=l.mut[ci]; ls.appendChild(ml); }
+        if(l.flap.has(ci)){ var fd=document.createElement('span'); fd.className='belowmark flapmark'; fd.textContent='ɾ'; ls.appendChild(fd); }
+        if(l.mut&&l.mut[ci]!=null){ var ml=document.createElement('span'); ml.className='belowmark mutlabel'; ml.textContent=l.mut[ci]; ls.appendChild(ml); }
         curWord.appendChild(ls);
-        if(l.flap.has(ci)){ var fd=document.createElement('span'); fd.className='flapd'; fd.textContent='[d]'; curWord.appendChild(fd); }
         l.ins.forEach(function(x){ if(x.after===ci){ var g=document.createElement('span'); g.className='ins'; g.textContent=x.g;
           g.title='点击删除加音'; g.addEventListener('click',function(e){ e.stopPropagation(); snapshot(); l.ins=l.ins.filter(function(y){return !(y.after===x.after&&y.g===x.g);}); renderStage(); saveDots(); }); curWord.appendChild(g); } });
         // pause after last cell of a word
@@ -524,7 +526,7 @@
     lg.innerHTML=
       '<div class="lg"><span class="sw" style="color:var(--c-arc)">⌒</span><b>连读</b> 先点起点字母，再点终点</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-strike);text-decoration:line-through">t</span><b>失爆/吞音</b> 变灰</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-flap)">t</span><b>弹舌 t</b> 变红 [d]</div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-flap)">t</span><b>弹舌 t</b> 变红 · 下方 ɾ（音标里的弹舌符）</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-weak)">ə</span><b>弱读</b> 变绿</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-ins);font-style:italic">ʷ</span><b>加音</b> 两元音间 w/y</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-mut)">↝</span><b>变音</b> 自己填变成的音（如 t+you→ch）</div>'+
