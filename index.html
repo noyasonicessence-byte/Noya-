@@ -6,7 +6,7 @@
     --bg:#17130d; --panel:#221c14; --panel-2:#1b1610; --line:#3a3024;
     --ink:#e9e0cf; --ink-dim:#a99f8c; --accent:#d9a441; --accent-soft:#b98a34;
     --card:#efe9dc; --card-ink:#2a2320;
-    --c-arc:#c8563d; --c-weak:#3f8f43; --c-strike:#b1a897; --c-ins:#3f78c9; --c-flap:#d2452f; --c-beat:#d9a441; --c-pause:#8a7f6a;
+    --c-arc:#c8563d; --c-weak:#3f8f43; --c-strike:#b1a897; --c-ins:#3f78c9; --c-flap:#d2452f; --c-beat:#d9a441; --c-pause:#8a7f6a; --c-mut:#9b5bd6;
     --serif:"Georgia","Times New Roman","Songti SC","STSong","Noto Serif CJK SC","SimSun",serif;
     --sans:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
     /* dimension colors */
@@ -79,6 +79,8 @@
   .cell.strike::after{content:"";position:absolute;left:-1px;right:-1px;top:52%;height:2px;background:var(--c-strike);transform:rotate(-18deg);border-radius:2px}
   .cell.weak{color:var(--c-weak)}
   .cell.flap{color:var(--c-flap)}
+  .cell.mut{color:var(--c-mut)}
+  .mutlabel{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;margin-bottom:.12em;font-family:var(--serif);font-style:italic;font-size:.4em;color:var(--c-mut);white-space:nowrap;line-height:1;pointer-events:none}
   .flapd{display:inline-block;color:var(--c-flap);font-size:.4em;vertical-align:.42em;font-family:var(--serif);margin-left:.02em}
   .ins{display:inline-block;color:var(--c-ins);font-size:.6em;vertical-align:.5em;font-style:italic;font-family:var(--serif);margin:0 .02em;cursor:pointer}
   .pause{display:inline-block;color:var(--c-pause);margin:0 .06em;font-weight:300;cursor:pointer}
@@ -169,6 +171,10 @@
   <div class="ne-row"><label class="fl">词下 · 音标（如：/jər/）</label><input id="neIpa" type="text"></div>
   <div class="ne-btns"><button class="primary" id="neSave">保存</button><button id="neClear">清除</button><button class="ghost" id="neCancel">取消</button></div>
 </div>
+<div id="mutEditor" hidden>
+  <div class="ne-row"><label class="fl">变成的音（自己填，如 ch / tʃ / j）</label><input id="mutIn" type="text"></div>
+  <div class="ne-btns"><button class="primary" id="mutSave">保存</button><button id="mutClear">清除</button><button class="ghost" id="mutCancel">取消</button></div>
+</div>
 <div id="toast"></div>
 
 <script>
@@ -198,28 +204,35 @@
   function computeWords(line){ var w=[],cur=null; line.cells.forEach(function(c,i){ if(c.isLetter){ if(!cur){cur={cells:[]};w.push(cur);} cur.cells.push(i);} else cur=null; }); return w; }
   function makeLine(text,zh){
     var cells=[]; for(var i=0;i<text.length;i++) cells.push({ch:text[i],isLetter:/\S/.test(text[i])});
-    var l={cells:cells,zh:(zh||'').trim(),strike:new Set(),weak:new Set(),flap:new Set(),beats:new Set(),pauses:new Set(),arcs:[],ins:[],notes:{},dims:new Set(),teach:newTeach()};
+    var l={cells:cells,zh:(zh||'').trim(),strike:new Set(),weak:new Set(),flap:new Set(),beats:new Set(),pauses:new Set(),arcs:[],ins:[],notes:{},mut:{},dims:new Set(),teach:newTeach()};
     l.words=computeWords(l); return l;
   }
   function reviveLine(l){
     l.strike=new Set(l.strike||[]); l.weak=new Set(l.weak||[]); l.flap=new Set(l.flap||[]); l.beats=new Set(l.beats||[]); l.pauses=new Set(l.pauses||[]);
-    l.dims=new Set(l.dims||[]); if(!l.arcs)l.arcs=[]; if(!l.ins)l.ins=[]; if(!l.notes)l.notes={}; if(!l.teach)l.teach=newTeach();
+    l.dims=new Set(l.dims||[]); if(!l.arcs)l.arcs=[]; if(!l.ins)l.ins=[]; if(!l.notes)l.notes={}; if(!l.mut)l.mut={}; if(!l.teach)l.teach=newTeach();
     if(!l.words)l.words=computeWords(l); return l;
   }
 
   function build(){
     var en=enBox.value.replace(/\r/g,'').split('\n'), zh=zhBox.value.replace(/\r/g,'').split('\n');
     while(en.length>1 && en[en.length-1].trim()==='') en.pop();
-    var hasData=lines.some(function(l){ return hasAnyContent(l); });
-    if(hasData && !confirm('重新生成会清空现有的标注与教学内容，确定吗？')) return;
-    lines=en.map(function(t,i){ return makeLine(t, zh[i]||''); });
-    sel = lines.length? 0 : -1; history=[]; pendingArc=null;
+    // Preserve annotations/teaching for lines whose English text is unchanged; only new/changed lines are fresh.
+    var pool={}; lines.forEach(function(l){ var t=lineText(l); (pool[t]=pool[t]||[]).push(l); });
+    var kept=0;
+    lines=en.map(function(t,i){
+      var arr=pool[t];
+      if(arr && arr.length){ var o=arr.shift(); o.zh=(zh[i]||'').trim(); kept++; return o; }
+      return makeLine(t, zh[i]||'');
+    });
+    sel = lines.length? Math.min(sel<0?0:sel, lines.length-1) : -1;
+    history=[]; pendingArc=null;
     document.body.classList.remove('editing');
     renderAll(); save();
+    toast('已生成 '+lines.length+' 句'+(kept?(' · 保留了 '+kept+' 句已做内容'):''));
   }
 
   // ---------- content checks (for dots/tab markers) ----------
-  function soundHas(l){ return l.strike.size||l.weak.size||l.flap.size||l.beats.size||l.pauses.size||l.arcs.length||l.ins.length||Object.keys(l.notes).length; }
+  function soundHas(l){ return l.strike.size||l.weak.size||l.flap.size||l.beats.size||l.pauses.size||l.arcs.length||l.ins.length||Object.keys(l.notes).length||Object.keys(l.mut||{}).length; }
   function dimHas(l,k){
     var t=l.teach;
     if(k==='sound') return !!soundHas(l);
@@ -286,8 +299,10 @@
         }
         var ls=document.createElement('span'); ls.className='cell letter';
         if(l.strike.has(ci))ls.className+=' strike'; if(l.weak.has(ci))ls.className+=' weak'; if(l.flap.has(ci))ls.className+=' flap';
+        if(l.mut&&l.mut[ci]!=null)ls.className+=' mut';
         if(pendingArc===ci)ls.className+=' pending';
         ls.textContent=cell.ch; ls.dataset.cell=ci; ls.dataset.word=wi; ls.addEventListener('click',onCellClick);
+        if(l.mut&&l.mut[ci]!=null){ var ml=document.createElement('span'); ml.className='mutlabel'; ml.textContent=l.mut[ci]; ls.appendChild(ml); }
         curWord.appendChild(ls);
         if(l.flap.has(ci)){ var fd=document.createElement('span'); fd.className='flapd'; fd.textContent='[d]'; curWord.appendChild(fd); }
         l.ins.forEach(function(x){ if(x.after===ci){ var g=document.createElement('span'); g.className='ins'; g.textContent=x.g;
@@ -343,6 +358,7 @@
     if(activeDim!=='sound') return;
     var ci=+this.dataset.cell, wi=+this.dataset.word, l=lines[sel];
     if(tool==='note'){ openNote(wi,this); return; }
+    if(tool==='mut'){ openMut(ci,this); return; }
     if(tool==='beat'){ snapshot(); l.beats.has(wi)?l.beats.delete(wi):l.beats.add(wi); renderStage(); saveDots(); return; }
     if(tool==='pause'){ snapshot(); l.pauses.has(wi)?l.pauses.delete(wi):l.pauses.add(wi); renderStage(); saveDots(); return; }
     if(tool==='strike'){ snapshot(); l.strike.has(ci)?l.strike.delete(ci):(l.strike.add(ci),l.weak.delete(ci),l.flap.delete(ci)); renderStage(); saveDots(); return; }
@@ -379,6 +395,21 @@
   $('neClear').addEventListener('click',function(){ if(noteWi===null)return; snapshot(); delete lines[sel].notes[noteWi]; renderStage(); saveDots(); closeNote(); });
   $('neCancel').addEventListener('click',closeNote);
   ['neCn','neIpa'].forEach(function(id){ $(id).addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();$('neSave').click();} if(e.key==='Escape')closeNote(); }); });
+
+  // 变音 (custom mutation) editor — free text, teacher fills the resulting sound
+  var mutCi=null;
+  function openMut(ci,anchor){
+    mutCi=ci; $('mutIn').value=(lines[sel].mut&&lines[sel].mut[ci])||'';
+    var ed=$('mutEditor'); ed.hidden=false;
+    var r=anchor.getBoundingClientRect();
+    ed.style.left=Math.max(8,Math.min(r.left, window.innerWidth-244))+'px'; ed.style.top=(r.bottom+8)+'px'; $('mutIn').focus();
+  }
+  function closeMut(){ $('mutEditor').hidden=true; mutCi=null; }
+  $('mutSave').addEventListener('click',function(){ if(mutCi===null)return; snapshot(); var l=lines[sel]; if(!l.mut)l.mut={};
+    var v=$('mutIn').value.trim(); if(v)l.mut[mutCi]=v; else delete l.mut[mutCi]; renderStage(); saveDots(); closeMut(); });
+  $('mutClear').addEventListener('click',function(){ if(mutCi===null)return; snapshot(); if(lines[sel].mut)delete lines[sel].mut[mutCi]; renderStage(); saveDots(); closeMut(); });
+  $('mutCancel').addEventListener('click',closeMut);
+  $('mutIn').addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();$('mutSave').click();} if(e.key==='Escape')closeMut(); });
 
   // ---------- right: tabs + editors ----------
   function renderTabs(){
@@ -468,6 +499,7 @@
   var TOOLS=[
     {k:'arc',ic:'⌒',cn:'连读'},{k:'weak',ic:'ə',cn:'弱读',clr:'var(--c-weak)'},{k:'strike',ic:'a̸',cn:'失爆'},
     {k:'flap',ic:'t',cn:'弹舌t',clr:'var(--c-flap)'},{k:'ins-w',ic:'ʷ',cn:'加w',clr:'var(--c-ins)'},{k:'ins-y',ic:'ʲ',cn:'加y',clr:'var(--c-ins)'},
+    {k:'mut',ic:'↝',cn:'变音',clr:'var(--c-mut)'},
     {k:'beat',ic:'•',cn:'重音',clr:'var(--c-beat)'},{k:'pause',ic:'│',cn:'停顿'},{k:'note',ic:'A文',cn:'词注'}
   ];
   function renderSound(){
@@ -484,9 +516,9 @@
     var ops=document.createElement('div'); ops.style.display='flex'; ops.style.gap='8px'; ops.style.marginBottom='6px';
     var un=document.createElement('button'); un.className='ghost'; un.textContent='↶ 撤销'; un.addEventListener('click',undo); ops.appendChild(un);
     var cl=document.createElement('button'); cl.className='ghost'; cl.textContent='清除本句标注'; cl.addEventListener('click',function(){
-      if(!confirm('清除这一句的所有发音标注？'))return; snapshot(); var l=lines[sel];
-      l.strike=new Set();l.weak=new Set();l.flap=new Set();l.beats=new Set();l.pauses=new Set();l.arcs=[];l.ins=[];l.notes={};
-      pendingArc=null; renderStage(); saveDots(); });
+      snapshot(); var l=lines[sel];
+      l.strike=new Set();l.weak=new Set();l.flap=new Set();l.beats=new Set();l.pauses=new Set();l.arcs=[];l.ins=[];l.notes={};l.mut={};
+      pendingArc=null; renderStage(); saveDots(); toast('已清除本句标注（可撤销）'); });
     ops.appendChild(cl); box.appendChild(ops);
     var lg=document.createElement('div'); lg.className='legend';
     lg.innerHTML=
@@ -495,6 +527,7 @@
       '<div class="lg"><span class="sw" style="color:var(--c-flap)">t</span><b>弹舌 t</b> 变红 [d]</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-weak)">ə</span><b>弱读</b> 变绿</div>'+
       '<div class="lg"><span class="sw" style="color:var(--c-ins);font-style:italic">ʷ</span><b>加音</b> 两元音间 w/y</div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-mut)">↝</span><b>变音</b> 自己填变成的音（如 t+you→ch）</div>'+
       '<div class="lg"><span class="sw">•</span><b>重音</b> 词上圆点 &nbsp;·&nbsp; <b>停顿</b> │ 断句/意群</div>';
     box.appendChild(lg);
     return box;
@@ -519,7 +552,7 @@
       titleEl.value=d.title||''; enBox.value=d.en||''; zhBox.value=d.zh||'';
       lines=(d.lines||[]).map(reviveLine); sel=lines.length?0:-1; history=[];
       renderAll(); save(); toast('已导入');
-    }catch(err){ alert('导入失败：文件格式不正确。'); } };
+    }catch(err){ toast('导入失败：文件格式不正确'); } };
     r.readAsText(f);
   });
 
@@ -529,7 +562,7 @@
   window.addEventListener('keydown',function(e){
     var typing=/^(TEXTAREA|INPUT)$/.test(e.target.tagName||'');
     if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!typing){ e.preventDefault(); undo(); }
-    if(e.key==='Escape'){ if(!$('noteEditor').hidden)closeNote(); }
+    if(e.key==='Escape'){ if(!$('noteEditor').hidden)closeNote(); if(!$('mutEditor').hidden)closeMut(); }
   });
   window.addEventListener('resize',function(){ if(sel>=0){ var c=document.querySelector('#stageLine .en'); var s=document.querySelector('#stageLine .arclayer'); if(c&&s) requestAnimationFrame(function(){drawArcs(c,s,lines[sel]);}); } });
 
