@@ -121,8 +121,8 @@
   .tbtn .ic{font-family:var(--serif);font-size:17px;line-height:1}
   .tbtn.on{background:var(--accent);border-color:transparent}
   .tbtn.on small,.tbtn.on .ic{color:#241a06}
-  .legend{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
-  .lg{display:flex;align-items:center;gap:8px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+  .lg{display:flex;align-items:center;gap:6px}
   .lg b{color:var(--ink);font-weight:600}
   .sw{width:22px;height:16px;border-radius:4px;background:var(--card);display:inline-flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;flex:0 0 auto}
 
@@ -409,9 +409,6 @@
     var wrap=document.createElement('div'); wrap.id='stageLine';
     var built=buildLineEl(l); wrap.appendChild(built.el); card.appendChild(wrap);
     if(l.zh){ var zh=document.createElement('div'); zh.id='stageZh'; zh.textContent=l.zh; card.appendChild(zh); }
-    var hint=document.createElement('div'); hint.className='stage-hint';
-    hint.textContent = activeDim==='sound' ? '语感模式：在右侧选工具，点这里的字母进行标注' : '当前在「'+dimCn(activeDim)+'」维度 · 切到右侧「语感」可标注发音';
-    card.appendChild(hint);
     stageEl.appendChild(card);
     requestAnimationFrame(function(){ drawArcs(built.el,built.svg,l); });
   }
@@ -590,13 +587,15 @@
     ops.appendChild(cl); box.appendChild(ops);
     var lg=document.createElement('div'); lg.className='legend';
     lg.innerHTML=
-      '<div class="lg"><span class="sw" style="color:var(--c-arc)">⌒</span><b>连读</b> 先点起点字母，再点终点</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-strike);text-decoration:line-through">t</span><b>失爆/吞音</b> 变灰</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-flap)">t</span><b>弹舌 t</b> 变红 · 下方 ɾ（音标里的弹舌符）</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-weak)">ə</span><b>弱读</b> 变绿</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-ins);font-style:italic">ʷ</span><b>加音</b> 两元音间 w/y</div>'+
-      '<div class="lg"><span class="sw" style="color:var(--c-mut)">↝</span><b>变音</b> 自己填变成的音（如 t+you→ch）</div>'+
-      '<div class="lg"><span class="sw">•</span><b>重音</b> 词上圆点 &nbsp;·&nbsp; <b>停顿</b> │ 断句/意群</div>';
+      '<div class="lg"><span class="sw" style="color:var(--c-arc)">⌒</span><b>连读</b></div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-strike);text-decoration:line-through">t</span><b>失爆/吞音</b></div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-flap)">t</span><b>弹舌 t</b></div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-weak)">ə</span><b>弱读</b></div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-ins);font-style:italic">ʷ</span><b>加音</b></div>'+
+      '<div class="lg"><span class="sw" style="color:var(--c-mut)">↝</span><b>变音</b></div>'+
+      '<div class="lg"><span class="sw">•</span><b>重音</b></div>'+
+      '<div class="lg"><span class="sw">│</span><b>停顿</b></div>'+
+      '<div class="lg"><span class="sw">A文</span><b>词注</b></div>';
     box.appendChild(lg);
     return box;
   }
