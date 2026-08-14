@@ -182,6 +182,12 @@ main{flex:1;display:grid;grid-template-columns:288px 1fr 320px;gap:0;overflow:hi
 .block.tiny .btime{display:none}
 .block .statedot{width:7px;height:7px;border-radius:50%;flex:none}
 .block .anchoricon{font-size:10px;opacity:.5}
+.block .bdel{position:absolute;top:5px;right:6px;width:20px;height:20px;padding:0;border:none;border-radius:50%;
+  background:rgba(44,42,36,.06);color:var(--ink-2);font-size:15px;line-height:18px;text-align:center;
+  opacity:0;transition:.13s;z-index:6}
+.block:hover .bdel{opacity:1}
+.block .bdel:hover{background:#c9705e;color:#fff}
+.block.tiny .bdel{top:50%;transform:translateY(-50%)}
 
 .block.food{background:var(--c-food-bg);border-left:3px solid var(--c-food)}
 .block.move{background:var(--c-move-bg);border-left:3px solid var(--c-move)}
@@ -845,8 +851,12 @@ function blockNode(b,day,y){
     <div class="btime">${fmt(b.start)}${isMoment?'':' – '+fmt(b.end)}</div>
     <div class="bname">${anchor}${crea}${b.name}${sc?`<span class="statedot" style="background:${sc}"></span>`:''}</div>
     ${b.type==='creation'?'<div class="btag">Creation Territory · time protected</div>':''}
+    <button class="bdel" title="Remove">×</button>
     <div class="bhandle top"></div><div class="bhandle bot"></div>`;
   // interactions
+  const del=n.querySelector('.bdel');
+  del.onclick=(e)=>{e.stopPropagation();const d=curDay();d.blocks=d.blocks.filter(x=>x.id!==b.id);toast(`Removed ${b.name}`);render();};
+  del.onpointerdown=(e)=>e.stopPropagation();
   n.onclick=(e)=>{if(n._moved)return;openBlockMenu(b,n,e);};
   makeDraggableBlock(n,b,day);
   return n;
