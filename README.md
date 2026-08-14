@@ -1,3 +1,37 @@
+本仓库包含两个独立工具，都是零依赖、浏览器打开即用、内容存本地：
+
+- **`life-workbench.html`** — 诺雅 · 生活工作台 / NOYA Life Workbench（见下方）
+- **`index.html`** — 诺雅 · 七维教学工作台 / Noya Expression Studio（语言教学标注工具）
+
+---
+
+# 诺雅 · 生活工作台 / NOYA Life Workbench
+
+> A Living System for Time, Energy, Creation & Life
+> **Plan lightly. Live fully. Observe honestly. Adjust gently.**
+
+一个「会呼吸的生活系统」，不是日历、不是待办、不是习惯/健身/饮食打卡。它帮你回答四个问题：**什么已经占据了我的生活？哪些时间还属于我？我可以在哪里深度创作？这一周我究竟是怎么活的？**
+
+直接用浏览器打开 `life-workbench.html` 即可，无需安装，数据自动存在浏览器本地（localStorage）。首次打开自带一周真实感示例数据，可直接体验后再录入真实数据。
+
+## 三栏结构
+
+- **左 · Life Library（生活素材库）**：FOOD / MOVEMENT / WORK / REST / LIFE 五大库。可展开、搜索、增删改、拖拽。每个条目可带节奏规则（repeatable / weekly target / max / rotation / optional / anchor）、偏好时段、覆盖标签（如蔬菜的深绿、十字花科；水果的柑橘、浆果）。双击条目可编辑，`+` 快速加入今天。
+- **中 · Time Landscape（时间景观 · 主角）**：一条覆盖真实清醒时段（示例 03:30–23:00）的竖向时间轴。把素材拖到时间轴生成区块；三种区块行为 **Anchor（锚点·受保护）/ Flexible（可移动）/ Open（开放时间）**。系统自动识别**连续开放窗口**并标注（微/轻/工作/深度创作窗口），高亮**当日最长连续时段**。任意开放窗口一键「⟡ Protect as Creation」变成**创作领地**——先保护时间，稍后再决定创作内容。拖动可移动区块，开放窗口实时重排。点击区块可做**极轻量状态记录**（Energy / Flow / Feeling）。
+- **右 · Living Map（生活地图）**：本周 Movement / Food Diversity / Work Rhythm / Creation / Rest / Life Presence。每项可展开看细节。全部用观察式语言（covered / in rotation / not yet / emerging），**没有失败红色状态**。
+
+## 关键交互
+
+- **Week Landscape（周景观）**：七天时间景观并排，可按 Work / Creation / Movement / Food / Rest / Life 过滤。
+- **Emerging Rhythm（自然涌现的节奏）**：系统观察创作真实发生的时段（如「4/6 天在 8:50–11:50 创作」），给你一个 **Protect this window** 按钮——系统发现节奏，而不强加节奏。
+- **Export Weekly Landscape（导出周景观）**：一张设计过的生活地图，导出 **PNG / 打印 PDF**，另可导出 **JSON** 供每周与 AI 复盘。
+
+## 说明
+
+这是可迭代的 V1 原型：视觉、素材库、拖拽、时间景观、开放窗口、创作领地、周景观、Living Map、状态记录、导出、本地持久化均已可用。云同步、AI 节奏分析、营养智能、日历集成等作为后续能力，架构已为其预留。
+
+---
+
 # 诺雅 · 七维教学工作台 / Noya Expression Studio
 
 一个专注**语言教学内容本身**的标注与设计工具。拍摄交给相机/直播，剪辑/背景/画面交给剪映——本工具只做「逐句拆解 + 七维教学设计」，输出可用于课程 / 短视频 / 直播 / 教案 / 跟读练习的结构化内容。
