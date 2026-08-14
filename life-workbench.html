@@ -122,7 +122,17 @@ main{flex:1;display:grid;grid-template-columns:288px 1fr 320px;gap:0;overflow:hi
 .chip.done{opacity:.45}
 .chip.rot{color:var(--ink-dim)}
 .item .win{font-size:9.5px;color:var(--ink-dim);opacity:.7}
-.item-add{width:20px;height:20px;border-radius:50%;border:1px dashed var(--line);color:var(--ink-dim);font-size:13px;line-height:16px;text-align:center;background:transparent;padding:0;opacity:0;transition:.13s}
+/* weekly-frequency stepper */
+.freq{display:flex;align-items:center;gap:2px;opacity:.4;transition:.13s}
+.item:hover .freq{opacity:1}
+.freq.set{opacity:1}
+.freq .fq{width:17px;height:17px;min-width:17px;padding:0;border-radius:5px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink-dim);font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center}
+.freq .fq:hover{border-color:var(--c-creation);color:var(--c-creation);background:#fff}
+.freq .fq-n{min-width:13px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-dim)}
+.freq.set .fq-n{color:var(--c-creation);font-weight:600}
+.freq .fq-lbl{font-size:8.5px;color:var(--ink-dim);letter-spacing:.02em;margin-left:1px}
+.item-add{width:20px;height:20px;min-width:20px;border-radius:50%;border:1px dashed var(--line);color:var(--ink-dim);font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center;background:transparent;padding:0;opacity:0;transition:.13s}
 .item:hover .item-add{opacity:1}
 .item-add:hover{border-style:solid;border-color:var(--c-creation);color:var(--c-creation)}
 .addnew{width:100%;margin-top:6px;border-style:dashed;color:var(--ink-dim);font-size:12px;background:transparent}
@@ -732,21 +742,46 @@ function renderLibrary(){
   });
 }
 function rhythmChip(i){
+  // numeric weekly targets are shown by the inline stepper; only show non-numeric rhythm hints here
   const r=i.rhythm||{};
-  if(r.type==='target'){const done=r.done||0;return `<span class="chip tgt${done>=r.target?' done':''}">${done}/${r.target}</span>`;}
   if(r.type==='rotation') return `<span class="chip rot">rotation</span>`;
   if(r.type==='anchor') return `<span class="chip">anchor</span>`;
-  if(r.type==='optional') return `<span class="chip">optional</span>`;
   return '';
+}
+/* weekly-frequency stepper — set how many times per week (0–7, 7 = daily) */
+function weeklyTarget(i){const r=i.rhythm||{};return (r.type==='target'||r.type==='max')?(r.target||0):0;}
+function setWeeklyTarget(i,n){
+  n=Math.max(0,Math.min(7,n));
+  const wasMax=i.rhythm?.type==='max';
+  const done=i.rhythm?.done||0;
+  if(n===0){ i.rhythm={type: i.cat==='food'||i.cat==='life' ? 'optional' : 'repeatable'}; }
+  else { i.rhythm={type: wasMax?'max':'target', target:n, done}; }
+  save(); renderLibrary();
+}
+function freqNode(i){
+  const t=weeklyTarget(i);
+  const w=el('div','freq'+(t?' set':''));
+  w.innerHTML=`<button class="fq fq-m" title="Fewer per week">−</button>
+    <span class="fq-n" title="Times per week">${t||'·'}</span>
+    <button class="fq fq-p" title="More per week (max 7 = daily)">＋</button>
+    <span class="fq-lbl">/wk</span>`;
+  w.querySelector('.fq-m').onclick=(e)=>{e.stopPropagation();setWeeklyTarget(i,t-1);};
+  w.querySelector('.fq-p').onclick=(e)=>{e.stopPropagation();setWeeklyTarget(i,t+1);};
+  [...w.querySelectorAll('button')].forEach(b=>{b.draggable=false;b.onpointerdown=e=>e.stopPropagation();});
+  return w;
 }
 function itemNode(i,c){
   const n=el('div','item');
   n.draggable=true;
-  n.innerHTML=`<span class="bar" style="background:${c.color}"></span>
-    <span class="nm">${i.name}</span>
-    <span class="meta">${i.window?`<span class="win">${i.window.split(/[\/–]/)[0].trim()}</span>`:''}${rhythmChip(i)}</span>`;
-  const addBtn=el('button','item-add','+');
-  addBtn.title='Add to '+fmt( curDay().wake );
+  n.innerHTML=`<span class="bar" style="background:${c.color}"></span><span class="nm">${i.name}</span>`;
+  const meta=el('span','meta');
+  const chip=rhythmChip(i); if(chip) meta.insertAdjacentHTML('beforeend',chip);
+  if(i.rhythm?.type!=='anchor') meta.appendChild(freqNode(i));
+  n.appendChild(meta);
+  const addBtn=el('button','item-add','＋');
+  addBtn.title='Drop into today';
+  addBtn.draggable=false;
+  addBtn.onpointerdown=e=>e.stopPropagation();
   addBtn.onclick=(e)=>{e.stopPropagation();quickAddToDay(i);};
   n.appendChild(addBtn);
   n.ondblclick=()=>openItemEditor(i.cat,i);
