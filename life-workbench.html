@@ -807,6 +807,33 @@ function quickAddToDay(i){
   render();
 }
 
+/* ---- lane packing: overlapping blocks share width in columns ---- */
+function layoutLanes(blocks){
+  const items=blocks.map(b=>({id:b.id,s:b.start,e:b.end>b.start?b.end:b.start+1}));
+  items.sort((a,z)=>a.s-z.s||a.e-z.e);
+  const res=new Map();
+  let cluster=[],clusterEnd=-1;
+  const flush=()=>{
+    if(!cluster.length)return;
+    const cols=[]; // last-end per column
+    cluster.forEach(it=>{
+      let placed=false;
+      for(let c=0;c<cols.length;c++){if(it.s>=cols[c]){cols[c]=it.e;it.col=c;placed=true;break;}}
+      if(!placed){it.col=cols.length;cols.push(it.e);}
+    });
+    const n=cols.length;
+    cluster.forEach(it=>res.set(it.id,{col:it.col,cols:n}));
+    cluster=[];
+  };
+  items.forEach(it=>{
+    if(cluster.length&&it.s>=clusterEnd)flush();
+    cluster.push(it);
+    clusterEnd=cluster.length===1?it.e:Math.max(clusterEnd,it.e);
+  });
+  flush();
+  return res;
+}
+
 /* ---- TIME LANDSCAPE ---- */
 function renderLandscape(){
   const day=curDay();
@@ -842,10 +869,11 @@ function renderLandscape(){
   });
   wrap.appendChild(winLayer);
 
-  // blocks layer
+  // blocks layer — overlapping blocks are packed into side-by-side lanes
   const bl=el('div','blocklayer');
+  const lanes=layoutLanes(day.blocks);
   day.blocks.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
-    bl.appendChild(blockNode(b,day,y));
+    bl.appendChild(blockNode(b,day,y,lanes.get(b.id)));
   });
   wrap.appendChild(bl);
 
@@ -872,13 +900,22 @@ function stateColor(s){
   if(s.feeling==='heavy')return 'var(--c-rest)';
   return 'var(--ink-dim)';
 }
-function blockNode(b,day,y){
+function blockNode(b,day,y,lane){
   const len=b.end-b.start;
   const isMoment=len<=0;
   const cls=`block ${b.cat} ${b.type==='creation'?'creation':''} ${b.type==='anchor'?'anchor-lock':''} ${len<28&&!isMoment?'tiny':''}`;
   const n=el('div',cls);
   n.style.top=y(b.start)+'px';
   n.style.height=Math.max(isMoment?20:len*PXM,20)+'px';
+  // side-by-side lanes for overlapping blocks
+  const cols=lane?lane.cols:1, col=lane?lane.col:0;
+  if(cols>1){
+    const w=100/cols;
+    n.style.left=`calc(${col*w}% + 2px)`;
+    n.style.width=`calc(${w}% - 4px)`;
+    n.style.right='auto';
+    n.dataset.laned='1';
+  }
   const sc=stateColor(b.state);
   const anchor = b.type==='anchor'?'<span class="anchoricon">⚓</span>':'';
   const crea = b.type==='creation'?'<span class="anchoricon">⟡</span>':'';
