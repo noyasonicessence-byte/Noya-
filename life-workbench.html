@@ -138,7 +138,10 @@ main{flex:1;display:grid;grid-template-columns:288px 1fr 320px;gap:0;overflow:hi
 .item-del{width:20px;height:20px;min-width:20px;border-radius:50%;border:1px solid transparent;color:var(--ink-dim);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;background:transparent;padding:0;opacity:0;transition:.13s}
 .item:hover .item-del{opacity:.55}
 .item-del:hover{opacity:1;background:#c9705e;color:#fff}
-.addnew{width:100%;margin-top:6px;border-style:dashed;color:var(--ink-dim);font-size:12px;background:transparent}
+.addnew{width:100%;border-style:dashed;color:var(--ink-dim);font-size:12px;background:transparent}
+.cat-actions{margin-top:7px;display:flex;flex-direction:column;gap:5px}
+.catreset{align-self:center;border:none;background:transparent;color:var(--ink-dim);font-size:11px;opacity:.65;padding:2px 8px}
+.catreset:hover{color:#c9705e;opacity:1;background:transparent}
 
 /* ---------- TIME LANDSCAPE (center) ---------- */
 .col.center{background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0))}
@@ -417,28 +420,20 @@ const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 /* ---- Seed Library (realistic sample data; fully editable) ---- */
 function seedLibrary(){
   const L={food:[],move:[],work:[],rest:[],life:[]};
-  const F=(name,sub,extra={})=>({id:uid('it'),cat:'food',name,sub,tags:[],rhythm:{type:'repeatable'},...extra});
-  // FOOD — organized by food structure
+  const F=(name,extra={})=>({id:uid('it'),cat:'food',name,sub:'',tags:[],rhythm:{type:'repeatable'},...extra});
+  // FOOD — by food structure only (one entry per family; track diversity, not individual foods)
   L.food.push(
-    F('Oats','Whole Grains'), F('Millet','Whole Grains'), F('Quinoa','Whole Grains'), F('Brown Rice','Whole Grains'), F('Corn','Whole Grains'),
-    F('Sweet Potato','Roots & Tubers'), F('Purple Sweet Potato','Roots & Tubers'), F('Pumpkin','Roots & Tubers'), F('Chinese Yam','Roots & Tubers'), F('Taro','Roots & Tubers'), F('Carrot','Roots & Tubers',{coverage:['Red / Orange']}),
-    F('Soybeans','Legumes & Soy'), F('Black Beans','Legumes & Soy'), F('Red Beans','Legumes & Soy'), F('Tofu','Legumes & Soy'),
-    F('Soy Milk Mix','Legumes & Soy',{notes:'Soybean · Black Bean · Red Bean · Peanut', mix:['Soybean','Black Bean','Red Bean','Peanut']}),
-    F('Broccoli','Vegetables',{coverage:['Deep Green','Cruciferous']}), F('Spinach','Vegetables',{coverage:['Deep Green']}),
-    F('Cabbage','Vegetables',{coverage:['Cruciferous']}), F('Tomato','Vegetables',{coverage:['Red / Orange']}),
-    F('Bell Pepper','Vegetables',{coverage:['Red / Orange','Other Greens']}), F('Shiitake Mushroom','Vegetables',{coverage:['Mushrooms']}), F('Bok Choy','Vegetables',{coverage:['Deep Green','Other Greens']}),
-    F('Blueberry','Fruit',{tags:['Berries','Vitamin-C-rich'],rhythm:{type:'rotation'}}), F('Orange','Fruit',{tags:['Citrus','Vitamin-C-rich']}),
-    F('Banana','Fruit',{tags:['Potassium-rich']}), F('Kiwi','Fruit',{tags:['Vitamin-C-rich']}), F('Apple','Fruit',{tags:['High-water-content','Regular']}),
-    F('Cashew','Nuts & Seeds',{rhythm:{type:'rotation'}}), F('Almond','Nuts & Seeds',{rhythm:{type:'rotation'}}), F('Walnut','Nuts & Seeds',{rhythm:{type:'rotation'}}),
-    F('Pumpkin Seed','Nuts & Seeds'), F('Chia Seed','Nuts & Seeds'), F('Flaxseed','Nuts & Seeds'),
-    F('Yogurt','Fermented / Dairy / Egg',{rhythm:{type:'optional'}}), F('Egg','Fermented / Dairy / Egg',{rhythm:{type:'optional'}}),
-    F('Spirulina + B12','Powders / Superfoods',{rhythm:{type:'rotation'},window:'Morning',notes:'Preferred timing & pairing — editable'}),
-    F('Turmeric','Powders / Superfoods',{rhythm:{type:'rotation'},notes:'Pairs with black pepper'}),
-    F('Barley Grass','Powders / Superfoods',{rhythm:{type:'rotation'}}), F('Five-Black Powder','Powders / Superfoods',{rhythm:{type:'rotation'}}),
-    F('Flaxseed Meal','Powders / Superfoods'), F('Plant Protein Powder','Powders / Superfoods'),
-    F('Vitamin D3','Supplements',{rhythm:{type:'optional'},notes:'Dose · Timing · Reason — editable'}),
-    F('Vitamin B12','Supplements',{rhythm:{type:'optional'}}), F('Magnesium','Supplements',{rhythm:{type:'optional'}}),
-    F('Olive Oil','Oils & Condiments',{rhythm:{type:'optional'}}),
+    F('Whole Grains',{rhythm:{type:'target',target:7,done:4},notes:'Oats · Millet · Quinoa · Brown Rice · Corn'}),
+    F('Roots & Tubers',{rhythm:{type:'target',target:5,done:3},notes:'Sweet Potato · Pumpkin · Yam · Taro · Carrot'}),
+    F('Legumes & Soy',{rhythm:{type:'target',target:5,done:2},notes:'Soybeans · Black/Red Beans · Tofu'}),
+    F('Soy Milk Mix',{rhythm:{type:'target',target:4,done:2},notes:'Soybean · Black Bean · Red Bean · Peanut'}),
+    F('Vegetables',{rhythm:{type:'target',target:7,done:5},notes:'Deep Green · Cruciferous · Red/Orange · Mushrooms'}),
+    F('Fruit',{rhythm:{type:'target',target:7,done:4},notes:'Rotate variety — citrus, berries, seasonal'}),
+    F('Nuts & Seeds',{rhythm:{type:'target',target:5,done:3},notes:'Rotate — cashew, almond, walnut, pumpkin/chia/flax'}),
+    F('Fermented / Dairy / Egg',{rhythm:{type:'optional'},notes:'Yogurt · Egg'}),
+    F('Powders / Superfoods',{rhythm:{type:'rotation'},window:'Morning',notes:'Spirulina · Barley Grass · Five-Black · Turmeric — rotate'}),
+    F('Supplements',{rhythm:{type:'optional'},notes:'Kept separate from food — D3 · B12 · Magnesium'}),
+    F('Oils & Condiments',{rhythm:{type:'optional'},notes:'Low priority'}),
   );
   const M=(name,sub,win,rhythm)=>({id:uid('it'),cat:'move',name,sub,tags:[],window:win,rhythm:rhythm||{type:'repeatable'}});
   L.move.push(
@@ -617,13 +612,16 @@ function computeMetrics(){
     mrows.push({name:i.name,done,tgt});
   });
   const movement=moves.length?Math.round(mHit/mTot*100):0;
-  // FOOD diversity — coverage groups & variety
-  const foodBlocks=blocks.filter(b=>b.cat==='food');
-  const groups=['Whole Grains','Roots & Tubers','Legumes & Soy','Vegetables','Fruit','Nuts & Seeds','Powders / Superfoods'];
-  const covered=new Set();
-  foodBlocks.forEach(b=>{const it=itemById(b.itemId);if(it)covered.add(it.sub);});
-  const vegCov=new Set(); foodBlocks.forEach(b=>{const it=itemById(b.itemId);(it?.coverage||[]).forEach(c=>vegCov.add(c));});
-  const foodDiv=Math.min(100,Math.round((covered.size/groups.length)*70 + (vegCov.size/5)*30));
+  // FOOD diversity — how well each food family met its weekly rhythm
+  const foods=STATE.library.food.filter(i=>i.rhythm?.type==='target');
+  let fTot=0,fHit=0; const frows=[];
+  foods.forEach(i=>{
+    const done=blocks.filter(b=>b.cat==='food'&&b.name===i.name).length || i.rhythm.done||0;
+    const tgt=i.rhythm.target;
+    fTot+=1; fHit+=Math.min(1,done/tgt);
+    frows.push({name:i.name,done,tgt});
+  });
+  const foodDiv=foods.length?Math.round(fHit/fTot*100):0;
   // WORK rhythm — consistency of work presence across days
   const workDays=new Set(blocks.filter(b=>b.cat==='work').map(b=>b.day));
   const workRhythm=Math.round(workDays.size/7*100);
@@ -638,7 +636,7 @@ function computeMetrics(){
   const lifeDays=new Set(blocks.filter(b=>b.cat==='life').map(b=>b.day));
   return {
     movement:{v:movement,rows:mrows},
-    food:{v:foodDiv,covered:[...covered],veg:[...vegCov]},
+    food:{v:foodDiv,rows:frows},
     work:{v:workRhythm,days:workDays.size},
     creation:{v:Math.min(100,creation),days:creaDays.size,rows:creaBlocks},
     rest:{v:rest,days:restDays.size},
@@ -730,15 +728,21 @@ function renderLibrary(){
     cat.appendChild(head);
     if(open){
       const wrap=el('div','libcat-items');
-      // group by sub
-      const subs={};items.forEach(i=>{(subs[i.sub]=subs[i.sub]||[]).push(i);});
+      // group by sub — items with a blank sub render flat, without a header
+      const subs={};items.forEach(i=>{(subs[i.sub||'']=subs[i.sub||'']||[]).push(i);});
       Object.entries(subs).forEach(([sub,its])=>{
-        wrap.appendChild(el('div','subgroup',sub));
+        if(sub) wrap.appendChild(el('div','subgroup',sub));
         its.forEach(i=>wrap.appendChild(itemNode(i,c)));
       });
+      const actions=el('div','cat-actions');
       const add=el('button','addnew','+ Add item to '+c.name);
       add.onclick=()=>openItemEditor(ck,null);
-      wrap.appendChild(add);
+      actions.appendChild(add);
+      const reset=el('button','catreset','⟲ Reset to defaults');
+      reset.title='Replace this library with the built-in sample set';
+      reset.onclick=()=>resetCategory(ck,c.name);
+      actions.appendChild(reset);
+      wrap.appendChild(actions);
       cat.appendChild(wrap);
     }
     body.appendChild(cat);
@@ -780,6 +784,12 @@ function deleteLibraryItem(i){
   arr.splice(idx,1);
   toast(`Removed “${i.name}” from library`);
   save();renderLibrary();
+}
+function resetCategory(ck,name){
+  if(!confirm(`Reset the ${name} library to the built-in sample set?\n\nItems you added or edited here will be replaced. Your timeline blocks are kept.`))return;
+  STATE.library[ck]=seedLibrary()[ck];
+  save();renderLibrary();
+  toast(`${name} library reset to defaults`);
 }
 function itemNode(i,c){
   const n=el('div','item');
@@ -1156,12 +1166,11 @@ function renderLivingMap(){
   map.appendChild(metric('move','Movement',M.movement.v+'%',()=>
     M.movement.rows.map(r=>`<div class="drow"><span class="dn">${r.name}</span><span class="dstate ${r.done>=r.tgt?'covered':'notyet'}">${r.done>=r.tgt?'covered':'in progress'}</span><span class="dv">${r.done}/${r.tgt}</span></div>`).join('')
   ));
-  map.appendChild(metric('food','Food Diversity',M.food.v+'%',()=>{
-    const groups=['Whole Grains','Roots & Tubers','Legumes & Soy','Vegetables','Fruit','Nuts & Seeds','Powders / Superfoods'];
-    return groups.map(g=>`<div class="drow"><span class="dn">${g}</span><span class="dstate ${M.food.covered.includes(g)?'covered':'notyet'}">${M.food.covered.includes(g)?'covered':'not yet'}</span></div>`).join('')
-      +`<div class="drow" style="margin-top:6px;border-top:1px solid var(--line-soft);padding-top:8px"><span class="dn">Vegetable coverage</span><span class="dv">${M.food.veg.length}/5</span></div>`
-      +(M.food.veg.length?`<div style="font-size:10.5px;color:var(--ink-dim);margin-top:3px">${M.food.veg.join(' · ')}</div>`:'');
-  }));
+  map.appendChild(metric('food','Food Diversity',M.food.v+'%',()=>
+    M.food.rows.length
+      ? M.food.rows.map(r=>`<div class="drow"><span class="dn">${r.name}</span><span class="dstate ${r.done>=r.tgt?'covered':'notyet'}">${r.done>=r.tgt?'covered':'in rotation'}</span><span class="dv">${r.done}/${r.tgt}</span></div>`).join('')
+      : `<div class="drow"><span class="dn">Set a weekly target on food families to track diversity</span></div>`
+  ));
   map.appendChild(metric('work','Work Rhythm',M.work.v+'%',()=>
     `<div class="drow"><span class="dn">Days with work presence</span><span class="dv">${M.work.days}/7</span></div>
      <div class="drow"><span class="dn">Rhythm</span><span class="dstate emerging">emerging</span></div>`
