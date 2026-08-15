@@ -1,0 +1,1305 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NOYA · LIFE ATLAS</title>
+<style>
+  :root{
+    /* ---- archival / editorial palette ---- */
+    --bg:#171310;              /* deep soft black-brown night */
+    --bg-2:#1d1813;
+    --paper:#efe7d6;           /* warm ivory / parchment */
+    --paper-ink:#2a2320;
+    --ink:#e9e0cf;             /* warm light ink */
+    --ink-dim:#a99f8c;
+    --ink-faint:#6f665a;
+    --line:#332a20;
+    --line-soft:#2a221a;
+    --gold:#d9b45f;
+    --gold-soft:#b98a34;
+    --glow:#f4e3b0;
+    /* dimensions — muted, editorial */
+    --d-body:#cf8a90;          /* dusty rose */
+    --d-family:#dd9a6f;        /* soft coral */
+    --d-creation:#e0be6a;      /* muted gold / light */
+    --d-work:#8aa4c6;          /* soft blue */
+    --d-business:#b79366;      /* bronze */
+    --d-learning:#94ac86;      /* sage */
+    --d-travel:#6fb0aa;        /* dusty teal */
+    --d-inner:#b4a1d4;         /* subtle lavender */
+    --d-culture:#c295b4;       /* soft plum */
+    --serif:"Georgia","Times New Roman","Songti SC","Noto Serif CJK SC",serif;
+    --sans:"PingFang SC","Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(217,180,95,.05), transparent 60%),
+      radial-gradient(900px 500px at 10% 108%, rgba(180,161,212,.05), transparent 60%),
+      var(--bg);
+    position:relative;
+  }
+  /* faint paper grain */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/></svg>");
+    mix-blend-mode:overlay}
+  ::selection{background:rgba(217,180,95,.25)}
+  button{font-family:var(--sans);cursor:pointer;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:9px;font-size:13px;padding:7px 13px;transition:.18s ease}
+  button:hover{border-color:var(--gold-soft);color:var(--glow)}
+  input,textarea,select{font-family:var(--sans);background:#12100b;border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:14px;padding:9px 11px;width:100%}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold-soft)}
+  textarea{font-family:var(--serif);line-height:1.6;resize:vertical}
+  .wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 22px 120px}
+  .small-caps{font-variant:small-caps;letter-spacing:.16em}
+
+  /* ---------------- header ---------------- */
+  header{padding:34px 0 20px;display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap}
+  .brandblock{flex:1;min-width:260px}
+  .brand-eyebrow{font-size:11px;letter-spacing:.42em;color:var(--ink-faint);text-transform:uppercase;margin-bottom:10px}
+  .brand-title{font-family:var(--serif);font-size:30px;letter-spacing:.32em;font-weight:400;margin:0;color:var(--ink)}
+  .brand-title b{color:var(--gold);font-weight:400}
+  .brand-strip{font-size:11px;letter-spacing:.34em;color:var(--gold-soft);margin-top:9px;text-transform:uppercase}
+  .brand-sub{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-dim);line-height:1.7;margin-top:12px;max-width:430px}
+  .hactions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hactions .divider{width:1px;height:22px;background:var(--line);margin:0 3px}
+  .btn-primary{background:linear-gradient(180deg,#e6c877,#d9b45f);color:#2a2006;border-color:transparent;font-weight:600}
+  .btn-primary:hover{color:#2a2006;filter:brightness(1.06)}
+
+  /* ---------------- view bar ---------------- */
+  .viewbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:14px 2px;margin-top:6px}
+  .scopes{display:flex;gap:2px;background:#0f0d09;border:1px solid var(--line);border-radius:11px;padding:3px}
+  .scope{border:none;background:transparent;color:var(--ink-dim);padding:6px 15px;border-radius:8px;letter-spacing:.14em;font-size:12px}
+  .scope.on{background:#2a2318;color:var(--glow);box-shadow:inset 0 0 0 1px var(--gold-soft)}
+  .scope.disabled{opacity:.35;cursor:default}
+  .yearnav{display:flex;align-items:center;gap:14px;font-family:var(--serif)}
+  .yearnav button{border:none;background:transparent;font-size:20px;color:var(--ink-dim);padding:2px 8px}
+  .yearnav .ylabel{font-size:26px;letter-spacing:.14em;min-width:110px;text-align:center;color:var(--ink)}
+  .yearnav .ylabel small{display:block;font-size:10px;letter-spacing:.32em;color:var(--ink-faint);font-family:var(--sans)}
+  .vspace{flex:1}
+  .cyc-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-dim);letter-spacing:.08em;cursor:pointer;user-select:none}
+  .cyc-toggle .sw{width:34px;height:18px;border-radius:20px;background:#2a2318;position:relative;transition:.2s;border:1px solid var(--line)}
+  .cyc-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--ink-dim);transition:.2s}
+  .cyc-toggle.on .sw{background:rgba(207,138,144,.28)}
+  .cyc-toggle.on .sw::after{left:17px;background:var(--d-body)}
+
+  /* ---------------- summary ---------------- */
+  .summary{display:flex;gap:30px;flex-wrap:wrap;align-items:baseline;padding:20px 4px 6px;color:var(--ink-dim)}
+  .summary .stat{font-family:var(--serif)}
+  .summary .stat .n{font-size:23px;color:var(--ink);margin-right:7px}
+  .summary .stat .l{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+  .summary .spring{flex:1}
+  .summary .alive{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .summary .alive b{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:.02em;font-size:14px;font-weight:400;margin-left:6px}
+
+  /* ---------------- dimension filter ---------------- */
+  .dimbar{display:flex;flex-wrap:wrap;gap:7px;padding:16px 2px 4px}
+  .dchip{border:1px solid var(--line);background:transparent;color:var(--ink-dim);border-radius:20px;font-size:11.5px;letter-spacing:.1em;padding:6px 14px;display:flex;align-items:center;gap:7px;text-transform:uppercase}
+  .dchip .swatch{width:8px;height:8px;border-radius:50%;background:var(--dc,var(--gold))}
+  .dchip.on{color:var(--paper-ink);background:var(--dc,var(--gold));border-color:transparent;font-weight:600}
+  .dchip.on .swatch{background:rgba(0,0,0,.35)}
+  .dchip.allchip.on{background:#efe7d6;color:#2a2320}
+
+  /* ---------------- landscape ---------------- */
+  .landscape-shell{margin-top:14px;border:1px solid var(--line-soft);border-radius:18px;
+    background:linear-gradient(180deg,#1b160f,#161109 70%);overflow-x:auto;overflow-y:hidden;position:relative}
+  .landscape-shell::-webkit-scrollbar{height:9px}
+  .landscape-shell::-webkit-scrollbar-thumb{background:#2f2718;border-radius:9px}
+  #land{position:relative;height:560px}
+  #landsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .marker{position:absolute;transform:translate(-50%,-50%);cursor:pointer;color:var(--dc,var(--gold));
+    transition:opacity .5s ease, filter .3s ease, transform .25s ease;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .marker .glyphwrap{display:flex;align-items:center;justify-content:center;position:relative}
+  .marker svg{display:block;overflow:visible}
+  .marker .mlabel{font-family:var(--serif);font-size:11.5px;color:var(--ink-dim);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;text-align:center;opacity:.85;transition:.25s}
+  .marker:hover{transform:translate(-50%,-50%) scale(1.06)}
+  .marker:hover .mlabel{color:var(--glow)}
+  .marker:hover .glyphwrap{filter:drop-shadow(0 0 10px var(--dc))}
+  .marker.approaching{opacity:.5}
+  .marker.approaching .glyphwrap{animation:breathe 5.5s ease-in-out infinite}
+  .marker.gv4 .glyphwrap,.marker.gv5 .glyphwrap{filter:drop-shadow(0 0 9px color-mix(in srgb,var(--dc) 55%,transparent))}
+  .marker.dim-out{opacity:.08 !important;pointer-events:none}
+  .marker.dim-out .mlabel{opacity:0}
+  @keyframes breathe{0%,100%{opacity:.4}50%{opacity:.72}}
+  .halo{fill:none;stroke:var(--dc);opacity:.25}
+  .today-flag{position:absolute;top:14px;transform:translateX(-50%);text-align:center;pointer-events:none}
+  .today-flag .lbl{font-size:9.5px;letter-spacing:.34em;color:var(--glow);text-transform:uppercase}
+  .today-flag .dt{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--ink-dim);margin-top:3px}
+  .month-tick{position:absolute;bottom:14px;transform:translateX(-50%);text-align:center;pointer-events:none}
+  .month-tick .mn{font-family:var(--serif);font-size:13px;color:var(--ink-dim);letter-spacing:.08em}
+  .month-tick.approaching .mn{color:var(--ink-faint)}
+  .era-label{position:absolute;pointer-events:none;font-family:var(--serif);font-style:italic;font-size:12px;letter-spacing:.14em;
+    color:var(--ec,var(--gold));opacity:.7;text-transform:uppercase;white-space:nowrap}
+  .lived-tag,.approaching-tag{position:absolute;top:14px;font-size:9.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-faint);pointer-events:none}
+  .lived-tag{left:20px}
+  .approaching-tag{right:20px;color:var(--gold-soft)}
+  .cyc-lane-label{position:absolute;left:16px;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--d-body);opacity:.7;pointer-events:none}
+
+  /* rose bloom marker */
+  .rose{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;transition:opacity .5s}
+
+  .empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--ink-faint);font-family:var(--serif);font-style:italic}
+
+  /* ---------------- next arrival card ---------------- */
+  .subrow{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px}
+  .panel{border:1px solid var(--line-soft);border-radius:16px;background:#1a150e;padding:20px 22px}
+  .panel h3{margin:0 0 4px;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+  .arrival{flex:1.3;min-width:250px;display:flex;align-items:center;gap:18px}
+  .arrival .halo-dot{width:46px;height:46px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--dc,var(--gold));
+    box-shadow:0 0 24px color-mix(in srgb,var(--dc,var(--gold)) 40%,transparent);animation:breathe 5s ease-in-out infinite}
+  .arrival .big{font-family:var(--serif);font-size:20px;color:var(--ink);line-height:1.3}
+  .arrival .in{font-size:12px;letter-spacing:.16em;color:var(--gold-soft);text-transform:uppercase;margin-top:5px}
+  .onthisday{flex:1;min-width:250px}
+  .otd-item{font-family:var(--serif);padding:8px 0;border-bottom:1px dashed var(--line);cursor:pointer;transition:.15s}
+  .otd-item:last-child{border-bottom:none}
+  .otd-item:hover{color:var(--glow)}
+  .otd-item .yr{color:var(--gold-soft);font-size:13px;letter-spacing:.1em;margin-right:12px}
+  .otd-item .ti{color:var(--ink-dim);font-size:14px}
+  .otd-empty{font-family:var(--serif);font-style:italic;color:var(--ink-faint);font-size:14px;padding:8px 0}
+
+  /* ---------------- modal / capsule ---------------- */
+  .scrim{position:fixed;inset:0;background:rgba(9,7,4,.72);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:40px 18px;overflow:auto}
+  .scrim.on{display:flex}
+  .sheet{background:linear-gradient(180deg,#1e1810,#181209);border:1px solid var(--line);border-radius:18px;width:100%;max-width:620px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:rise .35s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .sheet-hd{display:flex;align-items:flex-start;gap:16px;padding:26px 28px 8px}
+  .sheet-hd .capglyph{flex:0 0 auto;color:var(--dc,var(--gold))}
+  .sheet-hd .meta{flex:1;min-width:0}
+  .sheet-hd .capdate{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft)}
+  .sheet-hd h2{font-family:var(--serif);font-size:26px;font-weight:400;margin:6px 0 0;line-height:1.25}
+  .sheet-hd .taglist{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .minitag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);border-radius:14px;padding:3px 10px;color:var(--ink-dim);display:flex;gap:6px;align-items:center}
+  .minitag .swatch{width:7px;height:7px;border-radius:50%;background:var(--dc,var(--gold))}
+  .gravity-pill{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-soft);border-radius:14px;padding:3px 10px}
+  .closeb{border:none;background:transparent;color:var(--ink-dim);font-size:22px;padding:0 4px;line-height:1}
+  .sheet-body{padding:8px 28px 26px}
+  .capnote{font-family:var(--serif);font-size:17px;line-height:1.75;color:var(--ink);margin:14px 0}
+  .capreflect{font-family:var(--serif);font-size:15px;line-height:1.85;color:var(--ink-dim);border-left:2px solid var(--line);padding-left:16px;margin:16px 0;font-style:italic}
+  .capfield{margin:16px 0}
+  .capfield .k{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+  .capfield .v{font-family:var(--serif);font-size:15px;color:var(--ink-dim)}
+  .connlist{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .connitem{display:flex;align-items:center;gap:10px;font-family:var(--serif);color:var(--ink-dim);font-size:14px;cursor:pointer;padding:6px 10px;border:1px solid var(--line-soft);border-radius:10px}
+  .connitem:hover{border-color:var(--gold-soft);color:var(--glow)}
+  .connitem .arrow{color:var(--gold-soft)}
+  .sheet-foot{display:flex;gap:8px;padding:0 28px 26px;flex-wrap:wrap}
+  .sheet-foot .spring{flex:1}
+  .danger:hover{border-color:#b06a5a;color:#e0a08f}
+
+  /* forms in quick add */
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px}
+  .field-row{display:flex;gap:12px;flex-wrap:wrap}
+  .field-row .field{flex:1;min-width:140px}
+  .chipselect{display:flex;flex-wrap:wrap;gap:6px}
+  .chipselect button{font-size:11px;letter-spacing:.06em;padding:6px 11px;border-radius:16px;color:var(--ink-dim)}
+  .chipselect button.on{background:var(--dc,var(--gold));color:var(--paper-ink);border-color:transparent;font-weight:600}
+  .markselect{display:flex;flex-wrap:wrap;gap:6px}
+  .markselect button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:11px;color:var(--ink-dim);padding:0}
+  .markselect button.on{color:var(--gold);border-color:var(--gold-soft);background:#241d12}
+  .gravselect{display:flex;gap:6px;flex-wrap:wrap}
+  .gravselect button{flex:1;min-width:90px;flex-direction:column;align-items:flex-start;gap:3px;padding:9px 11px;text-align:left}
+  .gravselect button .gv-n{font-size:11px;letter-spacing:.14em;color:var(--ink-faint)}
+  .gravselect button.on,.gravselect button.on *{color:var(--gold)}
+  .gravselect button.on{border-color:var(--gold-soft);background:#241d12}
+  .advtoggle{font-size:12px;color:var(--gold-soft);cursor:pointer;letter-spacing:.1em;display:inline-flex;align-items:center;gap:6px;margin:4px 0 16px}
+  #advfields{display:none}
+  #advfields.on{display:block}
+
+  /* search */
+  .searchsheet{max-width:680px}
+  .searchbox{display:flex;align-items:center;gap:12px;padding:22px 26px 8px}
+  .searchbox input{font-family:var(--serif);font-size:19px;border:none;background:transparent;padding:6px 0}
+  .searchbox input:focus{border:none}
+  .searchhints{display:flex;gap:6px;flex-wrap:wrap;padding:0 26px 14px}
+  .searchhints button{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);border-radius:14px;padding:4px 10px}
+  .searchresults{max-height:56vh;overflow:auto;padding:6px 14px 20px}
+  .sres{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;cursor:pointer}
+  .sres:hover{background:#221b12}
+  .sres .g{color:var(--dc,var(--gold));flex:0 0 auto}
+  .sres .info .t{font-family:var(--serif);font-size:16px;color:var(--ink)}
+  .sres .info .d{font-size:11px;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase;margin-top:3px}
+  .sres .grav{margin-left:auto;font-size:10px;letter-spacing:.14em;color:var(--gold-soft);text-transform:uppercase}
+  .sempty{padding:30px;text-align:center;color:var(--ink-faint);font-family:var(--serif);font-style:italic}
+
+  /* export preview */
+  .exportsheet{max-width:940px}
+  .export-head{display:flex;align-items:center;gap:12px;padding:20px 26px;border-bottom:1px solid var(--line)}
+  .export-head .spring{flex:1}
+  .export-stage{padding:22px;max-height:70vh;overflow:auto;display:flex;justify-content:center;background:#0e0b07}
+  .export-stage svg{max-width:100%;height:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#241d12;border:1px solid var(--gold-soft);color:var(--glow);
+    font-family:var(--serif);font-size:14px;padding:11px 20px;border-radius:12px;z-index:90;opacity:0;transition:.3s;pointer-events:none}
+  .toast.on{opacity:1}
+
+  /* floating add */
+  .fab{position:fixed;right:28px;bottom:28px;width:60px;height:60px;border-radius:50%;z-index:40;
+    background:linear-gradient(180deg,#e6c877,#d0a748);color:#2a2006;border:none;font-size:28px;font-weight:300;
+    box-shadow:0 12px 34px rgba(217,180,95,.32);display:flex;align-items:center;justify-content:center}
+  .fab:hover{filter:brightness(1.06);transform:translateY(-2px);color:#2a2006}
+  .fab .lbl{position:absolute;right:70px;white-space:nowrap;font-family:var(--serif);font-size:13px;color:var(--ink-dim);opacity:0;transition:.2s;pointer-events:none}
+  .fab:hover .lbl{opacity:1}
+
+  footer{text-align:center;color:var(--ink-faint);font-size:11px;letter-spacing:.14em;padding:40px 0 10px;font-family:var(--serif);font-style:italic}
+
+  @media(max-width:720px){
+    .brand-title{font-size:23px;letter-spacing:.22em}
+    header{padding-top:24px}
+    .hactions .hlabel-full{display:none}
+    #land{height:480px}
+    .fab{width:54px;height:54px;right:18px;bottom:18px}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brandblock">
+      <div class="brand-eyebrow">Noya Personal Life OS · Time &amp; Memory Layer</div>
+      <h1 class="brand-title">NOYA <b>·</b> LIFE ATLAS</h1>
+      <div class="brand-strip">Time · Memory · Life</div>
+      <div class="brand-sub">A living map of what has happened, what is unfolding, and what is yet to arrive.</div>
+    </div>
+    <div class="hactions">
+      <button id="btnToday">Today</button>
+      <button id="btnSearch">Search</button>
+      <div class="divider"></div>
+      <button id="btnAdd" class="btn-primary">＋ <span class="hlabel-full">Add Moment</span></button>
+      <button id="btnExport">Export</button>
+    </div>
+  </header>
+
+  <div class="viewbar">
+    <div class="scopes" id="scopes">
+      <button class="scope disabled" data-scope="life" title="Coming soon">Life</button>
+      <button class="scope on" data-scope="year">Year</button>
+      <button class="scope" data-scope="month">Month</button>
+    </div>
+    <div class="yearnav" id="yearnav">
+      <button id="prevPeriod">‹</button>
+      <div class="ylabel" id="periodLabel">2026<small>The year unfolding</small></div>
+      <button id="nextPeriod">›</button>
+    </div>
+    <div class="vspace"></div>
+    <div class="cyc-toggle on" id="cycToggle"><span class="sw"></span>Rhythms &amp; Cycles</div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="dimbar" id="dimbar"></div>
+
+  <div class="landscape-shell">
+    <div id="land">
+      <svg id="landsvg" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <div class="subrow">
+    <div class="panel arrival" id="arrivalPanel"></div>
+    <div class="panel onthisday">
+      <h3>On This Day · <span id="otdDate"></span></h3>
+      <div id="otdList"></div>
+    </div>
+  </div>
+
+  <footer>I don't want to manage my life here. I want to see it.</footer>
+</div>
+
+<button class="fab" id="fab"><span class="lbl">Add a moment</span>＋</button>
+
+<!-- ===== Time Capsule ===== -->
+<div class="scrim" id="capsuleScrim">
+  <div class="sheet" id="capsuleSheet"></div>
+</div>
+
+<!-- ===== Quick Add ===== -->
+<div class="scrim" id="addScrim">
+  <div class="sheet" id="addSheet">
+    <div class="sheet-hd">
+      <div class="meta">
+        <div class="capdate small-caps" id="addKicker">A moment worth keeping</div>
+        <h2 id="addTitleHd">Add to the Atlas</h2>
+      </div>
+      <button class="closeb" data-close="addScrim">×</button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>What happened · One sentence</label>
+        <input id="f_title" placeholder="e.g. Today I understood what a Tiny Unit means." autocomplete="off"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>When</label>
+          <input id="f_date" type="date"/>
+        </div>
+        <div class="field" style="flex:2">
+          <label>Life Marker</label>
+          <div class="markselect" id="markselect"></div>
+        </div>
+      </div>
+
+      <div class="advtoggle" id="advToggle">＋ Add dimension, gravity &amp; reflection</div>
+
+      <div id="advfields">
+        <div class="field">
+          <label>Life Dimension</label>
+          <div class="chipselect" id="dimselect"></div>
+        </div>
+        <div class="field">
+          <label>Gravity · How much did this weigh?</label>
+          <div class="gravselect gravselect" id="gravselect"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>People</label><input id="f_people" placeholder="Comma separated"/></div>
+          <div class="field"><label>Place</label><input id="f_place" placeholder="Where"/></div>
+        </div>
+        <div class="field">
+          <label>What did this mean to me?</label>
+          <textarea id="f_reflection" rows="3" placeholder="A longer reflection — you can also come back later."></textarea>
+        </div>
+        <div class="field">
+          <label>End date · for something that spans time (optional)</label>
+          <input id="f_end" type="date"/>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <div class="spring"></div>
+      <button data-close="addScrim">Cancel</button>
+      <button class="btn-primary" id="saveMoment">Keep this moment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Search ===== -->
+<div class="scrim" id="searchScrim">
+  <div class="sheet searchsheet">
+    <div class="searchbox">
+      <span style="color:var(--gold-soft)">⌕</span>
+      <input id="searchInput" placeholder="Search your life — a name, a place, a turning point…" autocomplete="off"/>
+      <button class="closeb" data-close="searchScrim">×</button>
+    </div>
+    <div class="searchhints" id="searchHints"></div>
+    <div class="searchresults" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- ===== Export ===== -->
+<div class="scrim" id="exportScrim">
+  <div class="sheet exportsheet">
+    <div class="export-head">
+      <div class="scopes">
+        <button class="scope on" id="expMonthBtn">Month Map</button>
+        <button class="scope" id="expYearBtn">Year Map</button>
+      </div>
+      <div class="spring"></div>
+      <button id="expPng" class="btn-primary">Download PNG</button>
+      <button id="expSvg">Download SVG</button>
+      <button class="closeb" data-close="exportScrim">×</button>
+    </div>
+    <div class="export-stage" id="exportStage"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   NOYA · LIFE ATLAS  —  prototype
+   A life-observation system, not a productivity system.
+   Single-file, vanilla JS, localStorage-backed data layer.
+   ============================================================ */
+
+/* ---------- 0. tiny helpers ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const el = (t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseISO=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const TODAY = parseISO("2026-08-15"); // demo "now" — matches session date; live build would use new Date()
+function dayOfYear(d){const s=new Date(d.getFullYear(),0,0);return Math.floor((d-s)/864e5);}
+function isLeap(y){return (y%4===0&&y%100!==0)||y%400===0;}
+function daysInYear(y){return isLeap(y)?366:365;}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0);}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("on"),2200);}
+
+/* ---------- 1. definitions (extensible) ---------- */
+const DIMENSIONS = [
+  {key:"body",     name:"Body",       cn:"身体",   color:"var(--d-body)",     hex:"#cf8a90"},
+  {key:"family",   name:"Family",     cn:"家庭",   color:"var(--d-family)",   hex:"#dd9a6f"},
+  {key:"creation", name:"Creation",   cn:"创作",   color:"var(--d-creation)", hex:"#e0be6a"},
+  {key:"work",     name:"Work",       cn:"工作",   color:"var(--d-work)",     hex:"#8aa4c6"},
+  {key:"business", name:"Business",   cn:"事业",   color:"var(--d-business)", hex:"#b79366"},
+  {key:"learning", name:"Learning",   cn:"学习",   color:"var(--d-learning)", hex:"#94ac86"},
+  {key:"travel",   name:"Travel",     cn:"旅行",   color:"var(--d-travel)",   hex:"#6fb0aa"},
+  {key:"inner",    name:"Inner Life", cn:"内在",   color:"var(--d-inner)",    hex:"#b4a1d4"},
+  {key:"culture",  name:"Culture",    cn:"文化",   color:"var(--d-culture)",  hex:"#c295b4"},
+];
+const DIM = Object.fromEntries(DIMENSIONS.map(d=>[d.key,d]));
+
+const GRAVITY = [
+  {n:1,key:"moment",   name:"Moment",        cn:"瞬间",   note:"A small thing worth keeping"},
+  {n:2,key:"event",    name:"Event",         cn:"事件",   note:"A clear, meaningful event"},
+  {n:3,key:"milestone",name:"Milestone",     cn:"里程碑", note:"A marker along the way"},
+  {n:4,key:"turning",  name:"Turning Point", cn:"转折",   note:"A change of direction"},
+  {n:5,key:"era",      name:"Era Marker",    cn:"时代标志",note:"A life stage begins to shift"},
+];
+const GRAV = Object.fromEntries(GRAVITY.map(g=>[g.n,g]));
+
+/* Marker visual vocabulary — extensible. Each returns an inline <svg> body (viewBox 0 0 24 24). */
+const MARKERS = {
+  rose:   {name:"Rose",       cn:"玫瑰", draw:s=>`<circle cx="12" cy="12" r="3.1"/><path d="M12 8.9c1.9 0 3.1 1.2 3.1 3.1M12 15.1c-1.9 0-3.1-1.2-3.1-3.1"/><path d="M12 6.6c3 0 4.8 2 4.8 5.4M12 17.4c-3 0-4.8-2-4.8-5.4"/><path d="M12 4.4c4.2 0 6.6 2.9 6.6 7.6M12 19.6c-4.2 0-6.6-2.9-6.6-7.6"/>`},
+  star:   {name:"Insight",    cn:"星",   draw:s=>`<path d="M12 3.2c.4 4.2 1.4 5.2 5.6 5.6-4.2.4-5.2 1.4-5.6 5.6-.4-4.2-1.4-5.2-5.6-5.6 4.2-.4 5.2-1.4 5.6-5.6Z" transform="translate(0 3)"/>`},
+  light:  {name:"Creation",   cn:"光",   draw:s=>`<circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="5" opacity=".5"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2" opacity=".7"/>`},
+  note:   {name:"Music",      cn:"音",   draw:s=>`<path d="M6 15.5V6l10-2v9.5"/><circle cx="6" cy="16" r="2"/><circle cx="16" cy="14" r="2"/>`},
+  ripple: {name:"Body",       cn:"波纹", draw:s=>`<circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><path d="M12 8.4a3.6 3.6 0 0 1 0 7.2M12 5.4a6.6 6.6 0 0 1 0 13.2" opacity=".8"/>`},
+  route:  {name:"Travel",     cn:"旅程", draw:s=>`<path d="M5 18c4-1 4-8 8-8s5 4 6 3" stroke-dasharray="1.5 2.5"/><circle cx="5" cy="18" r="1.6" fill="currentColor" stroke="none"/><path d="M17 9l3-1-1 3" fill="none"/>`},
+  heart:  {name:"Family",     cn:"家",   draw:s=>`<path d="M12 19s-6.5-4.2-6.5-9A3.6 3.6 0 0 1 12 7.4 3.6 3.6 0 0 1 18.5 10c0 4.8-6.5 9-6.5 9Z"/>`},
+  crystal:{name:"Learning",   cn:"晶体", draw:s=>`<path d="M12 3.5 18 9l-6 11.5L6 9Z"/><path d="M6 9h12M12 3.5V20.5" opacity=".55"/>`},
+  moon:   {name:"Inner Shift",cn:"月相", draw:s=>`<path d="M15.5 4a8 8 0 1 0 4.5 12A9 9 0 0 1 15.5 4Z"/>`},
+  page:   {name:"Writing",    cn:"文稿", draw:s=>`<rect x="6" y="4" width="12" height="16" rx="1.5"/><path d="M9 8.5h6M9 12h6M9 15.5h4" opacity=".6"/>`},
+  film:   {name:"Film",       cn:"电影", draw:s=>`<rect x="4.5" y="6" width="15" height="12" rx="1.5"/><path d="M8 6v12M16 6v12" opacity=".6"/><circle cx="6.2" cy="9" r=".5" fill="currentColor"/><circle cx="6.2" cy="15" r=".5" fill="currentColor"/><circle cx="17.8" cy="9" r=".5" fill="currentColor"/><circle cx="17.8" cy="15" r=".5" fill="currentColor"/>`},
+  flag:   {name:"Beginning",  cn:"起点", draw:s=>`<path d="M7 21V4"/><path d="M7 5c3-1.5 6 1.5 9 0v7c-3 1.5-6-1.5-9 0"/>`},
+  compass:{name:"Direction",  cn:"方向", draw:s=>`<circle cx="12" cy="12" r="8"/><path d="M14.5 9.5 11 11l-1.5 3.5L13 13Z" fill="currentColor" stroke="none"/>`},
+};
+const MARKER_ORDER = ["light","star","moon","rose","note","film","page","heart","route","crystal","flag","ripple","compass"];
+
+function glyphSVG(markerKey, px, extraClass=""){
+  const m = MARKERS[markerKey] || MARKERS.star;
+  const sw = clamp(px/13, 1.1, 2.1);
+  return `<svg class="${extraClass}" width="${px}" height="${px}" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${m.draw(px)}</svg>`;
+}
+
+/* ---------- 2. data layer (localStorage) ---------- */
+const STORE_KEY = "noya.lifeatlas.v1";
+let DB = { events:[], eras:[], cycles:[], settings:{} };
+
+function saveDB(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }catch(e){ console.warn("save failed",e);} }
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ DB = JSON.parse(raw); return true; }
+  }catch(e){ console.warn("load failed",e); }
+  return false;
+}
+function uid(prefix="e"){ return prefix+"_"+Math.random().toString(36).slice(2,9); }
+
+/* derive lived/approaching from date */
+function statusOf(ev){
+  const d = parseISO(ev.endDate || ev.date);
+  return d < TODAY ? "lived" : "approaching";
+}
+
+/* ---------- 3. demo seed ---------- */
+function seedDemo(){
+  const Y = 2026;
+  const mk = (m,d,title,dims,grav,marker,extra={})=>({
+    id:uid(), title, date:`${Y}-${pad(m)}-${pad(d)}`,
+    dimensions:Array.isArray(dims)?dims:[dims], gravity:grav, marker,
+    note:extra.note||"", reflection:extra.reflection||"", lookingBack:extra.lookingBack||"",
+    people:extra.people||[], place:extra.place||"", tags:extra.tags||[], related:extra.related||[],
+    attachments:[], source:"seed", sourceType:null, sourceId:null
+  });
+  const evs = [
+    mk(1,7,"New Year Reflection","inner",2,"moon",{note:"A quiet morning. Wrote down what I want this year to feel like — not a list of goals, but a texture.",reflection:"I noticed I keep returning to one word: spaciousness.",tags:["reflection","new year"],place:"Home"}),
+    mk(2,14,"Family Journey","family",3,"heart",{note:"Five days away together. The kind of ordinary closeness that only appears when nothing is scheduled.",tags:["family","travel"],people:["the kids"],place:"Coast"}),
+    mk(2,16,"A Small Sea Town","travel",1,"route",{note:"Walked an empty harbor at dusk.",place:"Coast"}),
+    mk(3,9,"New Creation Begins","creation",3,"flag",{note:"Started something I've circled for two years. Named it, made the first folder, wrote the first true sentence.",reflection:"Beginnings feel fragile. This one felt inevitable.",tags:["creation","project"]}),
+    mk(4,3,"Mother Draft Born","creation",3,"page",{note:"The母稿 finally exists. Rough, alive, mine.",tags:["writing","母稿"]}),
+    mk(5,12,"A Meaningful Film","culture",2,"film",{note:"Watched something that rearranged a small room inside me.",reflection:"It gave language to a feeling I'd been carrying wordlessly.",tags:["film"]}),
+    mk(6,6,"Return to Livestream","work",3,"note",{note:"Went live again after a long pause. The old rhythm came back within minutes, like it had been waiting.",tags:["livestream","work"]}),
+    mk(7,11,"New Training Rhythm","body",2,"ripple",{note:"Morning runs are becoming a body I recognize again.",tags:["running","body"]}),
+    mk(8,4,"Important Insight","inner",2,"star",{note:"Understood what I mean by a Tiny Unit — the smallest thing that still contains the whole.",tags:["insight"]}),
+    mk(8,12,"A Turning Point","inner",4,"star",{note:"Something shifted in how I hold my own life. Less managing. More seeing.",reflection:"This is the sentence the whole year was walking toward.",lookingBack:"",tags:["turning point"]}),
+    // approaching
+    mk(9,1,"Kids Back to School","family",2,"heart",{note:"A new term begins.",tags:["family","school"]}),
+    mk(10,15,"Project Arrival","work",3,"flag",{note:"The thing built quietly through spring finally meets the world.",tags:["launch"]}),
+    mk(12,20,"Annual Film","creation",4,"film",{note:"The year's film — a moving portrait of these twelve months.",reflection:"",tags:["film","annual"]}),
+  ];
+  // connections: insight -> mother draft -> creation begins ; turning point -> annual film
+  const byTitle = t => evs.find(e=>e.title===t);
+  byTitle("New Creation Begins").related = [byTitle("Mother Draft Born").id];
+  byTitle("Mother Draft Born").related = [byTitle("New Creation Begins").id, byTitle("Annual Film").id];
+  byTitle("A Turning Point").related = [byTitle("Important Insight").id];
+  byTitle("Annual Film").related = [byTitle("Mother Draft Born").id];
+
+  const eras = [
+    {id:uid("era"), title:"A New Creation Era", dimensions:["creation"], start:`${Y}-03-01`, end:`${Y}-07-15`,
+     description:"The season everything wanted to be made.", tone:"creation"},
+    {id:uid("era"), title:"Building Noya OS", dimensions:["business"], start:`${Y}-06-01`, end:`${Y}-12-31`,
+     description:"Quietly assembling a life operating system.", tone:"business"},
+  ];
+
+  // rose menstrual cycle — ~every 29 days, ~5 day bloom
+  const roseSegs=[];
+  let start = new Date(Y,0,4);
+  for(let i=0;i<13;i++){
+    const s=new Date(start); const e=new Date(start); e.setDate(e.getDate()+4);
+    if(s.getFullYear()===Y) roseSegs.push({start:iso(s),end:iso(e)});
+    start.setDate(start.getDate()+29);
+  }
+  // running rhythm — recurring light beats from July
+  const runSegs=[];
+  let rs=new Date(Y,6,11);
+  for(let i=0;i<20 && rs.getFullYear()===Y;i++){ runSegs.push({start:iso(rs)}); rs.setDate(rs.getDate()+ (i%2?4:3)); }
+
+  const cycles=[
+    {id:uid("cyc"), type:"rose", name:"Menstrual Cycle", dimension:"body", segments:roseSegs},
+    {id:uid("cyc"), type:"beat", name:"Running Rhythm", dimension:"body", marker:"ripple", segments:runSegs},
+  ];
+
+  DB = { events:evs, eras, cycles, settings:{ startedYear:Y } };
+  saveDB();
+}
+
+/* ---------- 4. app state ---------- */
+const state = {
+  scope:"year",           // year | month
+  year:2026,
+  month:7,                // 0-based, used in month view (Aug)
+  activeDim:"all",        // "all" or dimension key
+  showCycles:true,
+};
+
+/* ---------- 5. YEAR / MONTH landscape rendering ---------- */
+const land = $("#land");
+const svg = $("#landsvg");
+const SVGNS="http://www.w3.org/2000/svg";
+function svgEl(t,attrs){const e=document.createElementNS(SVGNS,t);for(const k in attrs)e.setAttribute(k,attrs[k]);return e;}
+
+let LW=1200, LH=560; // logical landscape size (updated on render)
+
+function periodEvents(){
+  return DB.events.filter(ev=>{
+    const d=parseISO(ev.date);
+    if(state.scope==="year") return d.getFullYear()===state.year;
+    return d.getFullYear()===state.year && d.getMonth()===state.month;
+  });
+}
+
+/* x-position for a date within current period */
+function xForDate(d){
+  const padX = LW*0.055;
+  const usable = LW - padX*2;
+  if(state.scope==="year"){
+    const frac = (dayOfYear(d)-1) / (daysInYear(state.year)-1);
+    return padX + frac*usable;
+  } else {
+    const frac = (d.getDate()-1) / (daysInMonth(state.year,state.month)-1 || 1);
+    return padX + frac*usable;
+  }
+}
+/* the meandering river baseline */
+function riverY(x){
+  const midY = LH*0.50;
+  const amp = LH*0.13;
+  const t = x/LW;
+  return midY + Math.sin(t*Math.PI*2.2 + 0.7)*amp*0.6 + Math.sin(t*Math.PI*4.6+1.3)*amp*0.28;
+}
+
+function renderLandscape(){
+  // size
+  const shellW = land.parentElement.clientWidth;
+  LW = Math.max(shellW, state.scope==="year" ? 1180 : 900);
+  LH = land.clientHeight || 560;
+  land.style.width = LW+"px";
+  // clear
+  [...land.querySelectorAll(".marker,.rose,.month-tick,.today-flag,.era-label,.lived-tag,.approaching-tag,.cyc-lane-label,.empty-note")].forEach(n=>n.remove());
+  svg.innerHTML="";
+  svg.setAttribute("viewBox",`0 0 ${LW} ${LH}`);
+
+  const evs = periodEvents();
+
+  // ---- era background washes (behind everything) ----
+  drawEras();
+
+  // ---- river path ----
+  drawRiver();
+
+  // ---- lived / approaching zones + today ----
+  drawTodayAndZones();
+
+  // ---- month / day ticks ----
+  drawTicks();
+
+  // ---- cycles (rose + rhythm) ----
+  if(state.showCycles) drawCycles();
+
+  // ---- connection threads (behind markers) ----
+  drawConnections(evs);
+
+  // ---- markers ----
+  const placed = placeMarkers(evs);
+
+  if(evs.length===0){
+    const en=el("div","empty-note");
+    en.innerHTML=`<div style="font-size:26px">✦</div><div>This ${state.scope} is still unwritten.</div><div style="font-size:12px;opacity:.7">Add a moment when one arrives.</div>`;
+    land.appendChild(en);
+  }
+  return placed;
+}
+
+function drawRiver(){
+  let d="M ";
+  const step=LW/120;
+  for(let x=0;x<=LW;x+=step){ d += (x===0?"":"L ")+x.toFixed(1)+" "+riverY(x).toFixed(1)+" "; }
+  // subtle glow river: a wide faint band + a fine line
+  const band=svgEl("path",{d,fill:"none",stroke:"rgba(217,180,95,0.06)","stroke-width":LH*0.22,"stroke-linecap":"round"});
+  const line=svgEl("path",{d,fill:"none",stroke:"rgba(233,224,207,0.14)","stroke-width":1.4});
+  svg.appendChild(band); svg.appendChild(line);
+}
+
+function drawEras(){
+  if(state.scope!=="year") { drawMonthEras(); return; }
+  const bandTop=LH*0.06, bandH=LH*0.88;
+  DB.eras.forEach((era,i)=>{
+    const s=parseISO(era.start), e=parseISO(era.end||`${state.year}-12-31`);
+    if(s.getFullYear()>state.year || e.getFullYear()<state.year) return;
+    const sd=new Date(Math.max(s, new Date(state.year,0,1)));
+    const ed=new Date(Math.min(e, new Date(state.year,11,31)));
+    const x1=xForDate(sd), x2=xForDate(ed);
+    const dim=DIM[era.dimensions[0]]||{hex:"#d9b45f"};
+    const y = bandTop + i*(bandH*0.5);
+    const rect=svgEl("rect",{x:x1,y:y,width:Math.max(6,x2-x1),height:bandH*0.44,rx:16,
+      fill:hexA(dim.hex,0.05),stroke:hexA(dim.hex,0.16),"stroke-width":1});
+    svg.appendChild(rect);
+    const lbl=el("div","era-label",era.title);
+    lbl.style.setProperty("--ec",dim.hex);
+    lbl.style.left=(x1+12)+"px"; lbl.style.top=(y+10)+"px";
+    land.appendChild(lbl);
+  });
+}
+function drawMonthEras(){
+  DB.eras.forEach((era)=>{
+    const s=parseISO(era.start), e=parseISO(era.end||`${state.year}-12-31`);
+    const mStart=new Date(state.year,state.month,1), mEnd=new Date(state.year,state.month,daysInMonth(state.year,state.month));
+    if(e<mStart||s>mEnd) return;
+    const dim=DIM[era.dimensions[0]]||{hex:"#d9b45f"};
+    const x1=xForDate(new Date(Math.max(s,mStart)));
+    const x2=xForDate(new Date(Math.min(e,mEnd)));
+    const rect=svgEl("rect",{x:x1,y:LH*0.08,width:Math.max(6,x2-x1),height:LH*0.84,rx:16,
+      fill:hexA(dim.hex,0.045),stroke:hexA(dim.hex,0.14),"stroke-width":1});
+    svg.appendChild(rect);
+    const lbl=el("div","era-label",era.title);lbl.style.setProperty("--ec",dim.hex);
+    lbl.style.left=(x1+12)+"px";lbl.style.top=(LH*0.08+10)+"px";land.appendChild(lbl);
+  });
+}
+
+function hexA(hex,a){
+  const h=hex.replace("#","");const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawTodayAndZones(){
+  // only draw Today if today's within period
+  let show=false, tx=0;
+  if(state.scope==="year" && TODAY.getFullYear()===state.year){ show=true; tx=xForDate(TODAY); }
+  if(state.scope==="month" && TODAY.getFullYear()===state.year && TODAY.getMonth()===state.month){ show=true; tx=xForDate(TODAY); }
+  if(!show) return;
+  // today light line
+  const grad=svgEl("linearGradient",{id:"todayg",x1:"0",y1:"0",x2:"0",y2:"1"});
+  grad.appendChild(svgEl("stop",{offset:"0","stop-color":"rgba(244,227,176,0)"}));
+  grad.appendChild(svgEl("stop",{offset:"0.5","stop-color":"rgba(244,227,176,0.55)"}));
+  grad.appendChild(svgEl("stop",{offset:"1","stop-color":"rgba(244,227,176,0)"}));
+  const defs=svgEl("defs",{}); defs.appendChild(grad); svg.appendChild(defs);
+  const glow=svgEl("line",{x1:tx,y1:LH*0.10,x2:tx,y2:LH*0.90,stroke:"url(#todayg)","stroke-width":8,opacity:"0.5"});
+  const line=svgEl("line",{x1:tx,y1:LH*0.10,x2:tx,y2:LH*0.90,stroke:"rgba(244,227,176,0.8)","stroke-width":1});
+  svg.appendChild(glow); svg.appendChild(line);
+  // pulsing coordinate dot on the river
+  const cy=riverY(tx);
+  const dot=svgEl("circle",{cx:tx,cy:cy,r:4,fill:"#f4e3b0"});
+  const ring=svgEl("circle",{cx:tx,cy:cy,r:4,fill:"none",stroke:"#f4e3b0","stroke-width":1.2});
+  const anim=svgEl("animate",{attributeName:"r",values:"4;13;4",dur:"4s",repeatCount:"indefinite"});
+  const animO=svgEl("animate",{attributeName:"opacity",values:"0.7;0;0.7",dur:"4s",repeatCount:"indefinite"});
+  ring.appendChild(anim);ring.appendChild(animO);
+  svg.appendChild(ring);svg.appendChild(dot);
+  // flag
+  const f=el("div","today-flag");f.innerHTML=`<div class="lbl">Today</div><div class="dt">${MONTHS_SHORT[TODAY.getMonth()]} ${TODAY.getDate()}</div>`;
+  f.style.left=tx+"px";land.appendChild(f);
+  // lived / approaching tags
+  const lt=el("div","lived-tag","← Lived");lt.style.left="";lt.style.left=(Math.max(20,tx*0.5))+"px";
+  const at=el("div","approaching-tag","Approaching →");
+  lt.style.left=(tx*0.42)+"px"; at.style.right=(LW-tx)*0.5+"px";
+  if(tx>120) land.appendChild(lt);
+  if(LW-tx>150) land.appendChild(at);
+}
+
+function drawTicks(){
+  if(state.scope==="year"){
+    for(let m=0;m<12;m++){
+      const d=new Date(state.year,m,1);
+      const x=xForDate(d);
+      const appr = new Date(state.year,m,1) > TODAY;
+      const t=el("div","month-tick"+(appr?" approaching":""));
+      t.innerHTML=`<div class="mn">${MONTHS_SHORT[m]}</div>`;
+      t.style.left=x+"px";land.appendChild(t);
+      // faint vertical guide
+      svg.appendChild(svgEl("line",{x1:x,y1:LH*0.86,x2:x,y2:LH*0.90,stroke:"rgba(233,224,207,0.10)","stroke-width":1}));
+    }
+  } else {
+    const dim=daysInMonth(state.year,state.month);
+    const stepDays = dim>28?5:4;
+    for(let day=1;day<=dim;day+=stepDays){
+      const d=new Date(state.year,state.month,day);
+      const x=xForDate(d);
+      const appr=d>TODAY;
+      const t=el("div","month-tick"+(appr?" approaching":""));
+      t.innerHTML=`<div class="mn">${day}</div>`;
+      t.style.left=x+"px";land.appendChild(t);
+    }
+    // month name label centered
+    const t=el("div","cyc-lane-label",MONTHS[state.month]+" "+state.year);
+    t.style.color="var(--gold-soft)";t.style.top="14px";t.style.left="20px";land.appendChild(t);
+  }
+}
+
+function drawCycles(){
+  const bodyOut = state.activeDim!=="all" && state.activeDim!=="body";
+  const laneY = LH*0.80;
+  let labeled=false;
+  DB.cycles.forEach(cyc=>{
+    if(cyc.type==="rose"){
+      cyc.segments.forEach(seg=>{
+        const s=parseISO(seg.start), e=parseISO(seg.end);
+        if(!inPeriod(s) && !inPeriod(e)) return;
+        const mid=new Date((s.getTime()+e.getTime())/2);
+        const x=xForDate(mid);
+        const appr = e>TODAY;
+        const spanDays=(e-s)/864e5+1;
+        // draw a small rose bloom per day of the segment for a "bloom trail"
+        const startX=xForDate(s), endX=xForDate(e);
+        const n=Math.max(1,Math.round(spanDays));
+        for(let i=0;i<n;i++){
+          const bx = n===1?x : startX + (endX-startX)*(i/(n-1));
+          const grow = i/(n-1||1); // 0..1 → bud→full→fade
+          const sizeF = 1 - Math.abs(grow-0.5)*1.3; // peak in middle
+          const size = 10 + sizeF*10;
+          const r=el("div","rose");
+          r.style.left=bx+"px";r.style.top=laneY+"px";
+          r.style.opacity = (bodyOut?0.10:(appr?0.45:0.9)) * (0.55+sizeF*0.6);
+          r.innerHTML=glyphSVG("rose",size);
+          r.firstChild.style.color="var(--d-body)";
+          r.title=`Rose · ${seg.start} → ${seg.end}`;
+          land.appendChild(r);
+        }
+        if(!labeled){
+          const lab=el("div","cyc-lane-label","Body · Rose Cycle");
+          lab.style.top=(laneY-30)+"px";land.appendChild(lab);labeled=true;
+        }
+      });
+    } else if(cyc.type==="beat"){
+      cyc.segments.forEach(seg=>{
+        const s=parseISO(seg.start);
+        if(!inPeriod(s)) return;
+        const x=xForDate(s);
+        const appr=s>TODAY;
+        const c=svgEl("circle",{cx:x,cy:LH*0.88,r:2.4,fill:"var(--d-body)",opacity:(bodyOut?0.12:(appr?0.4:0.75))});
+        svg.appendChild(c);
+      });
+    }
+  });
+}
+function inPeriod(d){
+  if(state.scope==="year") return d.getFullYear()===state.year;
+  return d.getFullYear()===state.year && d.getMonth()===state.month;
+}
+
+function drawConnections(evs){
+  const idset=new Set(evs.map(e=>e.id));
+  const seen=new Set();
+  evs.forEach(ev=>{
+    (ev.related||[]).forEach(rid=>{
+      if(!idset.has(rid)) return;
+      const key=[ev.id,rid].sort().join("|"); if(seen.has(key))return; seen.add(key);
+      const a=ev, b=DB.events.find(x=>x.id===rid); if(!b)return;
+      const ax=xForDate(parseISO(a.date)), bx=xForDate(parseISO(b.date));
+      const ay=markerY(a), by=markerY(b);
+      const mx=(ax+bx)/2, my=Math.min(ay,by)-30;
+      const p=svgEl("path",{d:`M ${ax} ${ay} Q ${mx} ${my} ${bx} ${by}`,fill:"none",
+        stroke:"rgba(217,180,95,0.18)","stroke-width":1,"stroke-dasharray":"2 4"});
+      svg.appendChild(p);
+    });
+  });
+}
+
+/* deterministic vertical offset per event around the river */
+function markerY(ev){
+  const x=xForDate(parseISO(ev.date));
+  const base=riverY(x);
+  const h=hashStr(ev.id);
+  const dir = (h & 1) ? -1 : 1;
+  const spread = LH*0.20;
+  const off = dir * ( (h>>3 & 7)/7 * spread + 24 );
+  // heavier events pulled a bit toward center-top for prominence
+  const gravLift = (ev.gravity>=4)? -18 : 0;
+  // keep the marker band clear of the lower cycle lane (rose cycle sits at ~0.80)
+  const lowerBound = state.showCycles ? LH*0.63 : LH*0.72;
+  return clamp(base+off+gravLift, LH*0.16, lowerBound);
+}
+
+const gravSize={1:20,2:28,3:36,4:50,5:62};
+function placeMarkers(evs){
+  const placed=[];
+  evs.forEach(ev=>{
+    const x=xForDate(parseISO(ev.date));
+    const y=markerY(ev);
+    const dim=DIM[(ev.dimensions&&ev.dimensions[0])||"creation"]||DIM.creation;
+    const size=gravSize[ev.gravity]||28;
+    const status=statusOf(ev);
+    const m=el("div","marker gv"+ev.gravity+(status==="approaching"?" approaching":""));
+    m.style.left=x+"px";m.style.top=y+"px";
+    m.style.setProperty("--dc",dim.hex);
+    const dimOut = state.activeDim!=="all" && !(ev.dimensions||[]).includes(state.activeDim);
+    if(dimOut) m.classList.add("dim-out");
+    // halo for heavy gravity
+    let halo="";
+    if(ev.gravity>=4){
+      const hs=size+ (ev.gravity===5?26:16);
+      halo=`<svg width="${hs}" height="${hs}" viewBox="0 0 ${hs} ${hs}" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)"><circle class="halo" cx="${hs/2}" cy="${hs/2}" r="${hs/2-2}" stroke-width="1"/></svg>`;
+    }
+    m.innerHTML=`<div class="glyphwrap">${halo}${glyphSVG(ev.marker,size)}</div>`+
+      (ev.gravity>=2?`<div class="mlabel">${escapeHtml(ev.title)}</div>`:``);
+    m.addEventListener("click",()=>openCapsule(ev.id));
+    m.title=ev.title;
+    land.appendChild(m);
+    placed.push({ev,x,y});
+  });
+  return placed;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ---------- 6. summary + dimension bar + panels ---------- */
+function renderSummary(){
+  const evs = DB.events.filter(e=>parseISO(e.date).getFullYear()===state.year);
+  const count=g=>evs.filter(e=>e.gravity===g).length;
+  const moments=evs.filter(e=>e.gravity<=2).length;
+  const miles=count(3), turns=count(4), eras=count(5);
+  // most alive = dim with most events; most changed = dim with most turning points (grav>=4)
+  const tally={}, changed={};
+  evs.forEach(e=>(e.dimensions||[]).forEach(d=>{tally[d]=(tally[d]||0)+1; if(e.gravity>=4)changed[d]=(changed[d]||0)+1;}));
+  const top=o=>Object.entries(o).sort((a,b)=>b[1]-a[1])[0];
+  const alive=top(tally), change=top(changed)||top(tally);
+  const s=$("#summary");
+  s.innerHTML=`
+    <div class="stat"><span class="n">${moments}</span><span class="l">Moments</span></div>
+    <div class="stat"><span class="n">${miles}</span><span class="l">Milestones</span></div>
+    <div class="stat"><span class="n">${turns}</span><span class="l">Turning Points</span></div>
+    <div class="stat"><span class="n">${eras+DB.eras.filter(e=>parseISO(e.start).getFullYear()<=state.year).length}</span><span class="l">Era Markers</span></div>
+    <div class="spring"></div>
+    ${alive?`<div class="alive">Most Alive<b style="color:${DIM[alive[0]].hex}">${DIM[alive[0]].name}</b></div>`:""}
+    ${change?`<div class="alive">Most Changed<b style="color:${DIM[change[0]].hex}">${DIM[change[0]].name}</b></div>`:""}
+  `;
+}
+
+function renderDimBar(){
+  const bar=$("#dimbar");bar.innerHTML="";
+  const all=el("button","dchip allchip"+(state.activeDim==="all"?" on":""),"All");
+  all.onclick=()=>{state.activeDim="all";renderAll();};
+  bar.appendChild(all);
+  DIMENSIONS.forEach(d=>{
+    const has=DB.events.some(e=>(e.dimensions||[]).includes(d.key));
+    const c=el("button","dchip"+(state.activeDim===d.key?" on":""));
+    c.style.setProperty("--dc",d.hex);
+    c.innerHTML=`<span class="swatch"></span>${d.name}`;
+    if(!has) c.style.opacity=.5;
+    c.onclick=()=>{state.activeDim = state.activeDim===d.key?"all":d.key; renderAll();};
+    bar.appendChild(c);
+  });
+}
+
+function renderArrival(){
+  const p=$("#arrivalPanel");
+  const upcoming=DB.events.filter(e=>parseISO(e.date)>=TODAY).sort((a,b)=>parseISO(a.date)-parseISO(b.date));
+  if(!upcoming.length){p.innerHTML=`<div><h3>Next Arrival</h3><div style="font-family:var(--serif);font-style:italic;color:var(--ink-faint);margin-top:10px">The road ahead is open.</div></div>`;return;}
+  const nx=upcoming[0];
+  const days=Math.round((parseISO(nx.date)-TODAY)/864e5);
+  const dim=DIM[(nx.dimensions||["creation"])[0]];
+  p.style.setProperty("--dc",dim.hex);
+  p.innerHTML=`
+    <div class="halo-dot">${glyphSVG(nx.marker,26)}</div>
+    <div>
+      <h3>Next Meaningful Arrival</h3>
+      <div class="big">${escapeHtml(nx.title)}</div>
+      <div class="in">Arriving in ${days} day${days===1?"":"s"} · ${MONTHS_SHORT[parseISO(nx.date).getMonth()]} ${parseISO(nx.date).getDate()}</div>
+    </div>`;
+  p.onclick=()=>openCapsule(nx.id);
+  p.style.cursor="pointer";
+}
+
+function renderOnThisDay(){
+  $("#otdDate").textContent=`${MONTHS_SHORT[TODAY.getMonth()]} ${TODAY.getDate()}`;
+  const list=$("#otdList");list.innerHTML="";
+  const hits=DB.events.filter(e=>{const d=parseISO(e.date);return d.getMonth()===TODAY.getMonth()&&d.getDate()===TODAY.getDate();})
+    .sort((a,b)=>parseISO(a.date)-parseISO(b.date));
+  if(!hits.length){list.innerHTML=`<div class="otd-empty">No echoes on this date — yet. The years will fill it in.</div>`;return;}
+  hits.forEach(e=>{
+    const it=el("div","otd-item");
+    it.innerHTML=`<span class="yr">${parseISO(e.date).getFullYear()}</span><span class="ti">${escapeHtml(e.title)}</span>`;
+    it.onclick=()=>openCapsule(e.id);list.appendChild(it);
+  });
+}
+
+/* ---------- 7. Time Capsule ---------- */
+function openCapsule(id){
+  const ev=DB.events.find(e=>e.id===id);if(!ev)return;
+  const dim=DIM[(ev.dimensions||["creation"])[0]];
+  const grav=GRAV[ev.gravity];
+  const status=statusOf(ev);
+  const d=parseISO(ev.date);
+  const dateStr=`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const sheet=$("#capsuleSheet");
+  sheet.style.setProperty("--dc",dim.hex);
+  const dims=(ev.dimensions||[]).map(k=>`<span class="minitag"><span class="swatch" style="background:${DIM[k].hex}"></span>${DIM[k].name}</span>`).join("");
+  const marker=MARKERS[ev.marker]||MARKERS.star;
+  const related=(ev.related||[]).map(rid=>DB.events.find(e=>e.id===rid)).filter(Boolean);
+  const spanStr = ev.endDate?` – ${MONTHS_SHORT[parseISO(ev.endDate).getMonth()]} ${parseISO(ev.endDate).getDate()}`:"";
+  sheet.innerHTML=`
+    <div class="sheet-hd">
+      <div class="capglyph">${glyphSVG(ev.marker,44)}</div>
+      <div class="meta">
+        <div class="capdate">${status==="approaching"?"Approaching · ":"Lived · "}${dateStr}${spanStr} · ${marker.name}</div>
+        <h2>${escapeHtml(ev.title)}</h2>
+        <div class="taglist">
+          <span class="gravity-pill">${grav.name}</span>
+          ${dims}
+        </div>
+      </div>
+      <button class="closeb" data-close="capsuleScrim">×</button>
+    </div>
+    <div class="sheet-body">
+      ${ev.note?`<div class="capnote">${escapeHtml(ev.note)}</div>`:""}
+      ${ev.reflection?`<div class="capreflect">“${escapeHtml(ev.reflection)}”</div>`:""}
+      ${ev.lookingBack?`<div class="capfield"><div class="k">Looking Back</div><div class="v">${escapeHtml(ev.lookingBack)}</div></div>`:""}
+      ${(ev.people&&ev.people.length)?`<div class="capfield"><div class="k">People</div><div class="v">${ev.people.map(escapeHtml).join(" · ")}</div></div>`:""}
+      ${ev.place?`<div class="capfield"><div class="k">Place</div><div class="v">${escapeHtml(ev.place)}</div></div>`:""}
+      ${(ev.tags&&ev.tags.length)?`<div class="capfield"><div class="k">Tags</div><div class="v">${ev.tags.map(t=>"#"+escapeHtml(t)).join("  ")}</div></div>`:""}
+      ${related.length?`<div class="capfield"><div class="k">${related.length>1?"Connected Moments":"This moment led to"}</div>
+        <div class="connlist">${related.map(r=>`<div class="connitem" data-goto="${r.id}"><span class="arrow">→</span>${escapeHtml(r.title)} <span style="margin-left:auto;font-size:11px;color:var(--ink-faint)">${MONTHS_SHORT[parseISO(r.date).getMonth()]} ${parseISO(r.date).getFullYear()}</span></div>`).join("")}</div></div>`:""}
+      ${!ev.reflection && !ev.lookingBack ? `<div class="capfield"><div class="k">What did this mean to me?</div><div class="v" style="font-style:italic;color:var(--ink-faint);cursor:text">Come back and write it when you're ready.</div></div>`:""}
+    </div>
+    <div class="sheet-foot">
+      <div class="spring"></div>
+      <button class="danger" data-del="${ev.id}">Release</button>
+      <button data-close="capsuleScrim">Close</button>
+    </div>`;
+  sheet.querySelectorAll("[data-goto]").forEach(n=>n.onclick=()=>openCapsule(n.dataset.goto));
+  sheet.querySelector("[data-del]").onclick=()=>{
+    DB.events=DB.events.filter(e=>e.id!==ev.id);
+    DB.events.forEach(e=>e.related=(e.related||[]).filter(r=>r!==ev.id));
+    saveDB();closeScrim("capsuleScrim");renderAll();toast("Released. A path not taken.");
+  };
+  openScrim("capsuleScrim");
+}
+
+/* ---------- 8. Quick Add ---------- */
+let addSel={ marker:"star", dims:[], gravity:2 };
+function buildAddForm(){
+  // markers
+  const ms=$("#markselect");ms.innerHTML="";
+  MARKER_ORDER.forEach(k=>{
+    const b=el("button",addSel.marker===k?"on":"");
+    b.innerHTML=glyphSVG(k,22);b.title=MARKERS[k].name;
+    b.onclick=()=>{addSel.marker=k;buildAddForm();};
+    ms.appendChild(b);
+  });
+  // dims
+  const ds=$("#dimselect");ds.innerHTML="";
+  DIMENSIONS.forEach(d=>{
+    const b=el("button",addSel.dims.includes(d.key)?"on":"",d.name);
+    b.style.setProperty("--dc",d.hex);
+    b.onclick=()=>{addSel.dims=addSel.dims.includes(d.key)?addSel.dims.filter(x=>x!==d.key):[...addSel.dims,d.key];buildAddForm();};
+    ds.appendChild(b);
+  });
+  // gravity
+  const gs=$("#gravselect");gs.innerHTML="";
+  GRAVITY.forEach(g=>{
+    const b=el("button",addSel.gravity===g.n?"on":"");
+    b.innerHTML=`<span class="gv-n">0${g.n} · ${g.name}</span><span style="font-family:var(--serif);font-size:12px;color:var(--ink-dim)">${g.note}</span>`;
+    b.onclick=()=>{addSel.gravity=g.n;buildAddForm();};
+    gs.appendChild(b);
+  });
+}
+function openAdd(){
+  addSel={marker:"star",dims:[],gravity:2};
+  $("#f_title").value="";$("#f_people").value="";$("#f_place").value="";$("#f_reflection").value="";$("#f_end").value="";
+  $("#f_date").value=iso(TODAY);
+  $("#advfields").classList.remove("on");
+  buildAddForm();openScrim("addScrim");
+  setTimeout(()=>$("#f_title").focus(),80);
+}
+function saveMoment(){
+  const title=$("#f_title").value.trim();
+  if(!title){toast("A moment needs a sentence.");$("#f_title").focus();return;}
+  const ev={
+    id:uid(), title, date:$("#f_date").value||iso(TODAY),
+    endDate:$("#f_end").value||null,
+    dimensions:addSel.dims.length?addSel.dims:["inner"],
+    gravity:addSel.gravity, marker:addSel.marker,
+    note:"", reflection:$("#f_reflection").value.trim(),
+    lookingBack:"", people:$("#f_people").value.split(",").map(s=>s.trim()).filter(Boolean),
+    place:$("#f_place").value.trim(), tags:[], related:[], attachments:[],
+    source:"manual", sourceType:null, sourceId:null
+  };
+  DB.events.push(ev);saveDB();
+  // jump view to the moment's period
+  const d=parseISO(ev.date);state.year=d.getFullYear();
+  if(state.scope==="month")state.month=d.getMonth();
+  closeScrim("addScrim");renderAll();toast("Kept. It's part of your atlas now.");
+}
+
+/* ---------- 9. Search ---------- */
+function renderSearchHints(){
+  const h=$("#searchHints");h.innerHTML="";
+  ["Turning Point","Travel","Creation","2026","Family"].forEach(t=>{
+    const b=el("button","",t);b.onclick=()=>{$("#searchInput").value=t;runSearch();};h.appendChild(b);
+  });
+}
+function runSearch(){
+  const q=$("#searchInput").value.trim().toLowerCase();
+  const res=$("#searchResults");res.innerHTML="";
+  if(!q){res.innerHTML=`<div class="sempty">Search a name, place, year, dimension, marker, or a turning point.</div>`;return;}
+  const hits=DB.events.filter(e=>{
+    const hay=[e.title,e.note,e.reflection,e.place,(e.people||[]).join(" "),(e.tags||[]).join(" "),
+      (e.dimensions||[]).map(k=>DIM[k].name).join(" "),
+      GRAV[e.gravity].name,(MARKERS[e.marker]||{}).name,parseISO(e.date).getFullYear()].join(" ").toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b)=>parseISO(b.date)-parseISO(a.date));
+  if(!hits.length){res.innerHTML=`<div class="sempty">Nothing found for “${escapeHtml(q)}”. Perhaps it hasn't happened yet.</div>`;return;}
+  hits.forEach(e=>{
+    const dim=DIM[(e.dimensions||["creation"])[0]];
+    const r=el("div","sres");r.style.setProperty("--dc",dim.hex);
+    const d=parseISO(e.date);
+    r.innerHTML=`<span class="g">${glyphSVG(e.marker,26)}</span>
+      <div class="info"><div class="t">${escapeHtml(e.title)}</div>
+      <div class="d">${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()} · ${dim.name}</div></div>
+      <span class="grav">${GRAV[e.gravity].name}</span>`;
+    r.onclick=()=>{closeScrim("searchScrim");const dd=parseISO(e.date);state.year=dd.getFullYear();renderAll();openCapsule(e.id);};
+    res.appendChild(r);
+  });
+}
+
+/* ---------- 10. Export posters (dedicated SVG render) ---------- */
+let expMode="month";
+function buildMonthPoster(){
+  const W=1000,H=1414; // A-series portrait
+  const m=state.month,y=state.year;
+  const evs=DB.events.filter(e=>{const d=parseISO(e.date);return d.getFullYear()===y&&d.getMonth()===m;});
+  const dim=daysInMonth(y,m);
+  const laneL=90, laneR=W-90;
+  const xOf=day=>laneL+(day-1)/(dim-1||1)*(laneR-laneL);
+  let markers="";
+  evs.forEach((e,i)=>{
+    const d=parseISO(e.date);
+    const x=xOf(d.getDate());
+    const yy=560 + ((hashStr(e.id)&7)/7-0.5)*260 + (i%2?40:-40);
+    const dc=DIM[(e.dimensions||["creation"])[0]].hex;
+    const sz=gravSize[e.gravity]*1.1;
+    markers+=`<g transform="translate(${x},${yy})" color="${dc}">
+      <g transform="translate(${-sz/2},${-sz/2})">${glyphSVG(e.marker,sz).replace('<svg','<svg style="overflow:visible"')}</g>
+      <text x="0" y="${sz/2+20}" text-anchor="middle" fill="#5a5040" font-family="Georgia,serif" font-size="18">${escapeHtml(e.title)}</text>
+    </g>`;
+  });
+  // rose cycle for month
+  let roses="";
+  DB.cycles.filter(c=>c.type==="rose").forEach(c=>c.segments.forEach(seg=>{
+    const s=parseISO(seg.start),e=parseISO(seg.end);
+    if(s.getFullYear()!==y||s.getMonth()!==m) return;
+    for(let day=s.getDate();day<=e.getDate();day++){
+      roses+=`<g transform="translate(${xOf(day)},980)" color="#cf8a90" opacity="0.8"><g transform="translate(-9,-9)">${glyphSVG("rose",18)}</g></g>`;
+    }
+  }));
+  const quote = evs.find(e=>e.reflection)?.reflection || "See what happened. See what mattered.";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Georgia,serif">
+    <rect width="${W}" height="${H}" fill="#efe7d6"/>
+    <rect x="26" y="26" width="${W-52}" height="${H-52}" fill="none" stroke="#c9bda3" stroke-width="1.5"/>
+    <text x="${W/2}" y="130" text-anchor="middle" fill="#8a7a52" font-size="20" letter-spacing="14">NOYA · LIFE ATLAS</text>
+    <text x="${W/2}" y="220" text-anchor="middle" fill="#2a2320" font-size="82" letter-spacing="6">${MONTHS[m].toUpperCase()}</text>
+    <text x="${W/2}" y="264" text-anchor="middle" fill="#9a8c6e" font-size="24" letter-spacing="18">${y}</text>
+    <line x1="${laneL}" y1="560" x2="${laneR}" y2="560" stroke="#d0c4a8" stroke-width="1.5"/>
+    ${[...Array(dim).keys()].filter(i=>i%5===0).map(i=>`<text x="${xOf(i+1)}" y="600" text-anchor="middle" fill="#b3a789" font-size="15">${i+1}</text>`).join("")}
+    ${roses}
+    <text x="${W/2}" y="1040" text-anchor="middle" fill="#b08087" font-size="14" letter-spacing="6">BODY · ROSE CYCLE</text>
+    ${markers}
+    <line x1="${laneL}" y1="1180" x2="${laneR}" y2="1180" stroke="#d0c4a8" stroke-width="1"/>
+    <text x="${W/2}" y="1250" text-anchor="middle" fill="#5a5040" font-size="26" font-style="italic">“${escapeHtml(quote)}”</text>
+    <text x="${W/2}" y="1350" text-anchor="middle" fill="#9a8c6e" font-size="15" letter-spacing="8">${evs.length} MOMENTS · A LIVING MAP OF THIS MONTH</text>
+  </svg>`;
+}
+function buildYearPoster(){
+  const W=1500,H=1000;
+  const y=state.year;
+  const evs=DB.events.filter(e=>parseISO(e.date).getFullYear()===y);
+  const laneL=100,laneR=W-100;
+  const xOf=d=>laneL+(dayOfYear(d)-1)/(daysInYear(y)-1)*(laneR-laneL);
+  const rY=x=>500+Math.sin((x/W)*Math.PI*2.2+0.7)*70;
+  let river="M ";for(let x=laneL;x<=laneR;x+=12)river+=(x===laneL?"":"L ")+x+" "+rY(x).toFixed(1)+" ";
+  let months=MONTHS_SHORT.map((mn,i)=>`<text x="${xOf(new Date(y,i,1))}" y="860" text-anchor="middle" fill="#b3a789" font-size="16" letter-spacing="2">${mn}</text>`).join("");
+  let eras="";
+  DB.eras.forEach((era,idx)=>{
+    const s=new Date(Math.max(parseISO(era.start),new Date(y,0,1)));
+    const e=new Date(Math.min(parseISO(era.end||`${y}-12-31`),new Date(y,11,31)));
+    if(e<new Date(y,0,1))return;
+    const x1=xOf(s),x2=xOf(e);const dc=DIM[era.dimensions[0]].hex;
+    eras+=`<rect x="${x1}" y="${180+idx*70}" width="${x2-x1}" height="54" rx="10" fill="${hexA(dc,0.09)}" stroke="${hexA(dc,0.3)}"/>
+      <text x="${x1+14}" y="${214+idx*70}" fill="${dc}" font-size="16" font-style="italic" letter-spacing="3">${escapeHtml(era.title).toUpperCase()}</text>`;
+  });
+  let roses="";
+  DB.cycles.filter(c=>c.type==="rose").forEach(c=>c.segments.forEach(seg=>{
+    const s=parseISO(seg.start);if(s.getFullYear()!==y)return;
+    roses+=`<g transform="translate(${xOf(s)},760)" color="#cf8a90" opacity="0.75"><g transform="translate(-8,-8)">${glyphSVG("rose",16)}</g></g>`;
+  }));
+  let markers="";
+  evs.forEach(e=>{
+    const d=parseISO(e.date);const x=xOf(d);
+    const yy=clamp(rY(x)+(((hashStr(e.id)&7)/7-0.5)*300),200,700);
+    const dc=DIM[(e.dimensions||["creation"])[0]].hex;const sz=gravSize[e.gravity]*1.05;
+    const appr=d>TODAY?0.55:1;
+    markers+=`<g transform="translate(${x},${yy})" color="${dc}" opacity="${appr}">
+      <g transform="translate(${-sz/2},${-sz/2})">${glyphSVG(e.marker,sz)}</g>
+      ${e.gravity>=3?`<text x="0" y="${sz/2+18}" text-anchor="middle" fill="#6a6050" font-size="15" font-family="Georgia,serif">${escapeHtml(e.title)}</text>`:""}
+    </g>`;
+  });
+  const tx=TODAY.getFullYear()===y?xOf(TODAY):-100;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Georgia,serif">
+    <rect width="${W}" height="${H}" fill="#efe7d6"/>
+    <rect x="26" y="26" width="${W-52}" height="${H-52}" fill="none" stroke="#c9bda3" stroke-width="1.5"/>
+    <text x="${W/2}" y="90" text-anchor="middle" fill="#8a7a52" font-size="18" letter-spacing="16">NOYA · LIFE ATLAS</text>
+    <text x="${W/2}" y="150" text-anchor="middle" fill="#2a2320" font-size="60" letter-spacing="20">${y}</text>
+    ${eras}
+    <path d="${river}" fill="none" stroke="#d0c4a8" stroke-width="2"/>
+    ${tx>0?`<line x1="${tx}" y1="140" x2="${tx}" y2="820" stroke="#c9a94a" stroke-width="1" stroke-dasharray="3 4"/><text x="${tx}" y="135" text-anchor="middle" fill="#b89a3a" font-size="13" letter-spacing="4">TODAY</text>`:""}
+    ${roses}
+    ${markers}
+    ${months}
+    <text x="${W/2}" y="940" text-anchor="middle" fill="#9a8c6e" font-size="15" letter-spacing="8">A YEAR, SEEN WHOLE · ${evs.length} MOMENTS ALONG THE WAY</text>
+  </svg>`;
+}
+function renderExport(){
+  const stage=$("#exportStage");
+  stage.innerHTML = expMode==="month"?buildMonthPoster():buildYearPoster();
+  $("#expMonthBtn").classList.toggle("on",expMode==="month");
+  $("#expYearBtn").classList.toggle("on",expMode==="year");
+}
+function downloadSVG(){
+  const svgStr=$("#exportStage").innerHTML;
+  const blob=new Blob([svgStr],{type:"image/svg+xml"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;
+  a.download=`noya-life-atlas-${expMode==="month"?MONTHS_SHORT[state.month]+"-":""}${state.year}.svg`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  toast("Saved as SVG.");
+}
+function downloadPNG(){
+  const svgStr=$("#exportStage").innerHTML;
+  const svgNode=$("#exportStage svg");
+  const w=+svgNode.getAttribute("width"),h=+svgNode.getAttribute("height");
+  const scale=2;
+  const img=new Image();
+  const blob=new Blob([svgStr],{type:"image/svg+xml;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  img.onload=()=>{
+    const c=document.createElement("canvas");c.width=w*scale;c.height=h*scale;
+    const ctx=c.getContext("2d");ctx.scale(scale,scale);ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    c.toBlob(b=>{
+      const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;
+      a.download=`noya-life-atlas-${expMode==="month"?MONTHS_SHORT[state.month]+"-":""}${state.year}.png`;
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(u),1000);
+      toast("Saved as PNG.");
+    },"image/png");
+  };
+  img.onerror=()=>toast("PNG render failed — try SVG.");
+  img.src=url;
+}
+
+/* ---------- 11. scrim helpers ---------- */
+function openScrim(id){$("#"+id).classList.add("on");}
+function closeScrim(id){$("#"+id).classList.remove("on");}
+$$(".scrim").forEach(s=>{
+  s.addEventListener("click",e=>{if(e.target===s)s.classList.remove("on");});
+});
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-close]");if(c)closeScrim(c.dataset.close);
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$$(".scrim.on").forEach(s=>s.classList.remove("on"));});
+
+/* ---------- 12. period label + scope ---------- */
+function renderPeriodLabel(){
+  const l=$("#periodLabel");
+  if(state.scope==="year"){
+    l.innerHTML=`${state.year}<small>The year unfolding</small>`;
+  } else {
+    l.innerHTML=`${MONTHS[state.month]}<small>${state.year}</small>`;
+  }
+}
+
+/* ---------- 13. master render ---------- */
+function renderAll(){
+  renderPeriodLabel();
+  renderSummary();
+  renderDimBar();
+  renderLandscape();
+  renderArrival();
+  renderOnThisDay();
+}
+
+/* ---------- 14. wiring ---------- */
+function init(){
+  if(!loadDB()){ seedDemo(); }
+  else if(!DB.events || !DB.events.length){ seedDemo(); }
+
+  // scope switch
+  $$("#scopes .scope").forEach(b=>{
+    if(b.classList.contains("disabled"))return;
+    b.onclick=()=>{
+      state.scope=b.dataset.scope;
+      $$("#scopes .scope").forEach(x=>x.classList.toggle("on",x===b));
+      renderAll();
+    };
+  });
+  $("#prevPeriod").onclick=()=>{
+    if(state.scope==="year")state.year--;
+    else{state.month--;if(state.month<0){state.month=11;state.year--;}}
+    renderAll();
+  };
+  $("#nextPeriod").onclick=()=>{
+    if(state.scope==="year")state.year++;
+    else{state.month++;if(state.month>11){state.month=0;state.year++;}}
+    renderAll();
+  };
+  $("#btnToday").onclick=()=>{
+    state.year=TODAY.getFullYear();state.month=TODAY.getMonth();renderAll();
+    toast("Here. Now. "+MONTHS[TODAY.getMonth()]+" "+TODAY.getDate()+".");
+  };
+  $("#cycToggle").onclick=()=>{state.showCycles=!state.showCycles;$("#cycToggle").classList.toggle("on",state.showCycles);renderLandscape();};
+
+  // add
+  $("#btnAdd").onclick=openAdd;
+  $("#fab").onclick=openAdd;
+  $("#advToggle").onclick=()=>$("#advfields").classList.toggle("on");
+  $("#saveMoment").onclick=saveMoment;
+  $("#f_title").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))saveMoment();});
+
+  // search
+  $("#btnSearch").onclick=()=>{$("#searchInput").value="";renderSearchHints();runSearch();openScrim("searchScrim");setTimeout(()=>$("#searchInput").focus(),80);};
+  $("#searchInput").addEventListener("input",runSearch);
+
+  // export
+  $("#btnExport").onclick=()=>{expMode = state.scope==="month"?"month":"year";renderExport();openScrim("exportScrim");};
+  $("#expMonthBtn").onclick=()=>{expMode="month";renderExport();};
+  $("#expYearBtn").onclick=()=>{expMode="year";renderExport();};
+  $("#expSvg").onclick=downloadSVG;
+  $("#expPng").onclick=downloadPNG;
+
+  renderAll();
+  let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(renderLandscape,180);});
+}
+init();
+</script>
