@@ -546,7 +546,7 @@ function seedDays(lib){
 }
 
 /* ---- persistence ---- */
-const KEY='noya_life_workbench_v1';
+const KEY='noya_life_workbench_v2';
 let STATE=null;
 function load(){
   try{const raw=localStorage.getItem(KEY);if(raw){STATE=JSON.parse(raw);return;}}catch(e){}
