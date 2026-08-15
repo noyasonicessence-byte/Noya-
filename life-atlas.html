@@ -100,7 +100,7 @@
   .dchip.allchip.on{background:#efe7d6;color:#2a2320}
 
   /* ---------------- landscape ---------------- */
-  .landscape-shell{margin-top:14px;border:1px solid var(--line-soft);border-radius:18px;
+  .landscape-shell{border:1px solid var(--line-soft);border-radius:18px;
     background:linear-gradient(180deg,#1b160f,#161109 70%);overflow-x:auto;overflow-y:hidden;position:relative}
   .landscape-shell::-webkit-scrollbar{height:9px}
   .landscape-shell::-webkit-scrollbar-thumb{background:#2f2718;border-radius:9px}
@@ -138,6 +138,63 @@
   .rose{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer;transition:opacity .5s}
 
   .empty-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--ink-faint);font-family:var(--serif);font-style:italic}
+
+  /* ---------------- month layout: category rail + mini-calendar ---------------- */
+  .atlas-area{display:flex;gap:14px;margin-top:14px;align-items:stretch}
+  .atlas-main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .cat-rail{flex:0 0 202px;border:1px solid var(--line-soft);border-radius:16px;background:#1a150e;padding:14px 12px;display:none;flex-direction:column}
+  body.month .cat-rail{display:flex}
+  .minical{display:none}
+  body.month .minical{display:block;margin-bottom:12px}
+  .rail-hd{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-faint);margin:2px 4px 12px;display:flex;justify-content:space-between}
+  .cat-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:10px;cursor:pointer;color:var(--ink-dim);border:1px solid transparent;transition:.15s}
+  .cat-item:hover{background:#221b12}
+  .cat-item.on{background:#241d12;border-color:var(--cc);color:var(--glow)}
+  .cat-item .csym{flex:0 0 auto;display:flex;align-items:center}
+  .cat-item .cname{font-family:var(--serif);font-size:14px}
+  .cat-item .cn2{font-size:10px;color:var(--ink-faint);margin-left:auto;letter-spacing:.02em}
+  .cat-item .catdel{opacity:0;border:none;background:transparent;color:var(--ink-faint);font-size:15px;padding:0 2px;margin-left:6px}
+  .cat-item:hover .catdel{opacity:.7}
+  .cat-item .catdel:hover{color:#e0a08f}
+  .cat-add{margin-top:12px;font-size:12px;color:var(--gold-soft);cursor:pointer;letter-spacing:.06em;padding:9px;border:1px dashed var(--line);border-radius:10px;text-align:center}
+  .cat-add:hover{border-color:var(--gold-soft);color:var(--glow)}
+  .cat-form{margin-top:12px;border-top:1px solid var(--line-soft);padding-top:14px;display:none}
+  .cat-form.on{display:block}
+  .cat-form .field{margin-bottom:12px}
+  .cat-form .field label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:7px}
+  .markselect.small button{width:34px;height:34px}
+  .markselect.small svg{width:16px;height:16px}
+  .swatchrow{display:flex;flex-wrap:wrap;gap:6px}
+  .swatchrow button{width:22px;height:22px;border-radius:50%;padding:0;border:2px solid transparent}
+  .swatchrow button.on{border-color:var(--glow);box-shadow:0 0 0 1px #0e0b07 inset}
+  .catchips button{display:inline-flex;align-items:center;gap:6px}
+  .catchips svg{width:14px;height:14px}
+  .catchips button.on svg{color:var(--paper-ink)}
+
+  .minical{border:1px solid var(--line-soft);border-radius:16px;background:#1a150e;padding:15px 17px}
+  .minical-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:11px}
+  .minical-hd .t{font-family:var(--serif);font-size:16px;color:var(--ink)}
+  .minical-hd .sub{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .minical-hd .sub.penned{color:var(--gold-soft)}
+  .mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .mc-w{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);text-align:center;padding-bottom:3px}
+  .mc-day{position:relative;min-height:38px;border:1px solid transparent;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.14s;color:var(--ink-dim)}
+  .mc-day:hover{border-color:var(--gold-soft);background:#241d12;color:var(--glow)}
+  .mc-day.empty{cursor:default;pointer-events:none}
+  .mc-day.today{box-shadow:inset 0 0 0 1px var(--gold-soft);color:var(--glow)}
+  .mc-day.appr{opacity:.5}
+  .mc-day .dn{font-size:12px;font-variant-numeric:tabular-nums;line-height:1}
+  .mc-day .glyphs{display:flex;gap:1px;align-items:center;margin-top:3px;height:12px}
+  .mc-day .glyphs svg{width:11px;height:11px;display:block}
+  .mc-day .gmore{font-size:8px;color:var(--ink-faint)}
+  @media(max-width:820px){
+    .atlas-area{flex-direction:column}
+    .cat-rail{flex-basis:auto}
+    body.month .cat-rail{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}
+    .rail-hd{width:100%;margin-bottom:4px}
+    .cat-item{border:1px solid var(--line)}
+    .cat-form{width:100%}
+  }
 
   /* ---------------- next arrival card ---------------- */
   .subrow{display:flex;gap:16px;flex-wrap:wrap;margin-top:20px}
@@ -287,9 +344,15 @@
 
   <div class="dimbar" id="dimbar"></div>
 
-  <div class="landscape-shell">
-    <div id="land">
-      <svg id="landsvg" preserveAspectRatio="none"></svg>
+  <div class="atlas-area" id="atlasArea">
+    <aside class="cat-rail" id="catRail"></aside>
+    <div class="atlas-main">
+      <div class="minical" id="minical"></div>
+      <div class="landscape-shell">
+        <div id="land">
+          <svg id="landsvg" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -340,6 +403,10 @@
       <div class="advtoggle" id="advToggle">＋ Add dimension, gravity &amp; reflection</div>
 
       <div id="advfields">
+        <div class="field">
+          <label>Category · 类目</label>
+          <div class="chipselect catchips" id="catselect"></div>
+        </div>
         <div class="field">
           <label>Life Dimension</label>
           <div class="chipselect" id="dimselect"></div>
@@ -466,8 +533,13 @@ const MARKERS = {
   film:   {name:"Film",       cn:"电影", draw:s=>`<rect x="4.5" y="6" width="15" height="12" rx="1.5"/><path d="M8 6v12M16 6v12" opacity=".6"/><circle cx="6.2" cy="9" r=".5" fill="currentColor"/><circle cx="6.2" cy="15" r=".5" fill="currentColor"/><circle cx="17.8" cy="9" r=".5" fill="currentColor"/><circle cx="17.8" cy="15" r=".5" fill="currentColor"/>`},
   flag:   {name:"Beginning",  cn:"起点", draw:s=>`<path d="M7 21V4"/><path d="M7 5c3-1.5 6 1.5 9 0v7c-3 1.5-6-1.5-9 0"/>`},
   compass:{name:"Direction",  cn:"方向", draw:s=>`<circle cx="12" cy="12" r="8"/><path d="M14.5 9.5 11 11l-1.5 3.5L13 13Z" fill="currentColor" stroke="none"/>`},
+  sun:    {name:"Holiday",    cn:"假期", draw:s=>`<circle cx="12" cy="12" r="4"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>`},
+  cake:   {name:"Birthday",   cn:"生日", draw:s=>`<rect x="5" y="11.5" width="14" height="7.5" rx="1.5"/><path d="M5 14.5c2 0 2 1.3 3.5 1.3S10 14.5 12 14.5s2 1.3 3.5 1.3S17 14.5 19 14.5"/><path d="M9 11.5V8.5M12 11.5V8M15 11.5V8.5"/><circle cx="9" cy="7" r=".5" fill="currentColor"/><circle cx="12" cy="6.5" r=".5" fill="currentColor"/><circle cx="15" cy="7" r=".5" fill="currentColor"/>`},
+  leaf:   {name:"Rest",       cn:"休息", draw:s=>`<path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14Z"/><path d="M5.5 18.5C9 15 12 12 16 10" opacity=".55"/>`},
+  cup:    {name:"Quiet",      cn:"日常", draw:s=>`<path d="M6 8.5h10v3.5a5 5 0 0 1-10 0Z"/><path d="M16 9.5h1.6a2 2 0 0 1 0 4H16"/><path d="M7 20h8"/>`},
+  gift:   {name:"Gift",       cn:"礼物", draw:s=>`<rect x="5" y="10.5" width="14" height="8.5" rx="1"/><path d="M4 10.5h16M12 10.5v8.5"/><path d="M12 10.5S9.4 5.2 7.6 6.6s1.8 3.9 4.4 3.9Zm0 0s2.6-5.3 4.4-3.9-1.8 3.9-4.4 3.9Z"/>`},
 };
-const MARKER_ORDER = ["light","star","moon","rose","note","film","page","heart","route","crystal","flag","ripple","compass"];
+const MARKER_ORDER = ["light","star","moon","rose","note","film","page","heart","route","crystal","flag","ripple","compass","sun","cake","leaf","cup","gift"];
 
 function glyphSVG(markerKey, px, extraClass=""){
   const m = MARKERS[markerKey] || MARKERS.star;
@@ -554,7 +626,7 @@ function seedDemo(){
     {id:uid("cyc"), type:"beat", name:"Running Rhythm", dimension:"body", marker:"ripple", segments:runSegs},
   ];
 
-  DB = { events:evs, eras, cycles, settings:{ startedYear:Y } };
+  DB = { events:evs, eras, cycles, categories:defaultCategories(), settings:{ startedYear:Y } };
   saveDB();
 }
 
@@ -564,8 +636,22 @@ const state = {
   year:2026,
   month:7,                // 0-based, used in month view (Aug)
   activeDim:"all",        // "all" or dimension key
+  activeCat:null,         // active category id (month view "pen" + filter)
   showCycles:true,
 };
+
+/* ---------- categories (user-extensible; each carries its own symbol + color) ---------- */
+function defaultCategories(){
+  return [
+    {id:uid("cat"), name:"Menstrual", cn:"生理期", marker:"rose",  hex:"#cf8a90", dim:"body"},
+    {id:uid("cat"), name:"Holiday",   cn:"假期",   marker:"sun",   hex:"#e0be6a", dim:"travel"},
+    {id:uid("cat"), name:"Family",    cn:"家庭",   marker:"heart", hex:"#dd9a6f", dim:"family"},
+    {id:uid("cat"), name:"Travel",    cn:"旅行",   marker:"route", hex:"#6fb0aa", dim:"travel"},
+    {id:uid("cat"), name:"Insight",   cn:"觉察",   marker:"star",  hex:"#b4a1d4", dim:"inner"},
+  ];
+}
+function catById(id){ return (DB.categories||[]).find(c=>c.id===id)||null; }
+function catColorForEvent(ev){ const c=ev.category?catById(ev.category):null; return c?c.hex:null; }
 
 /* ---------- 5. YEAR / MONTH landscape rendering ---------- */
 const land = $("#land");
@@ -854,9 +940,11 @@ function placeMarkers(evs){
     const status=statusOf(ev);
     const m=el("div","marker gv"+ev.gravity+(status==="approaching"?" approaching":""));
     m.style.left=x+"px";m.style.top=y+"px";
-    m.style.setProperty("--dc",dim.hex);
-    const dimOut = state.activeDim!=="all" && !(ev.dimensions||[]).includes(state.activeDim);
-    if(dimOut) m.classList.add("dim-out");
+    const mColor = ev.color || catColorForEvent(ev) || dim.hex;
+    m.style.setProperty("--dc",mColor);
+    const outByDim = state.activeDim!=="all" && !(ev.dimensions||[]).includes(state.activeDim);
+    const outByCat = state.activeCat && ev.category!==state.activeCat;
+    if(outByDim || outByCat) m.classList.add("dim-out");
     // halo for heavy gravity
     let halo="";
     if(ev.gravity>=4){
@@ -954,7 +1042,10 @@ function openCapsule(id){
   const d=parseISO(ev.date);
   const dateStr=`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   const sheet=$("#capsuleSheet");
-  sheet.style.setProperty("--dc",dim.hex);
+  const capColor = ev.color || catColorForEvent(ev) || dim.hex;
+  sheet.style.setProperty("--dc",capColor);
+  const cat = ev.category?catById(ev.category):null;
+  const catTag = cat?`<span class="minitag"><span class="swatch" style="background:${cat.hex}"></span>${escapeHtml(cat.name)}${cat.cn?" · "+escapeHtml(cat.cn):""}</span>`:"";
   const dims=(ev.dimensions||[]).map(k=>`<span class="minitag"><span class="swatch" style="background:${DIM[k].hex}"></span>${DIM[k].name}</span>`).join("");
   const marker=MARKERS[ev.marker]||MARKERS.star;
   const related=(ev.related||[]).map(rid=>DB.events.find(e=>e.id===rid)).filter(Boolean);
@@ -967,6 +1058,7 @@ function openCapsule(id){
         <h2>${escapeHtml(ev.title)}</h2>
         <div class="taglist">
           <span class="gravity-pill">${grav.name}</span>
+          ${catTag}
           ${dims}
         </div>
       </div>
@@ -998,8 +1090,21 @@ function openCapsule(id){
 }
 
 /* ---------- 8. Quick Add ---------- */
-let addSel={ marker:"star", dims:[], gravity:2 };
+let addSel={ marker:"star", dims:[], gravity:2, color:null, category:null };
 function buildAddForm(){
+  // categories (each sets marker + color + dimension)
+  const cs=$("#catselect");cs.innerHTML="";
+  (DB.categories||[]).forEach(cat=>{
+    const b=el("button",addSel.category===cat.id?"on":"");
+    b.style.setProperty("--dc",cat.hex);
+    b.innerHTML=`${glyphSVG(cat.marker,14)}${escapeHtml(cat.name)}`;
+    b.onclick=()=>{
+      if(addSel.category===cat.id){ addSel.category=null; addSel.color=null; }
+      else { addSel.category=cat.id; addSel.marker=cat.marker; addSel.color=cat.hex; if(cat.dim) addSel.dims=[cat.dim]; }
+      buildAddForm();
+    };
+    cs.appendChild(b);
+  });
   // markers
   const ms=$("#markselect");ms.innerHTML="";
   MARKER_ORDER.forEach(k=>{
@@ -1025,11 +1130,16 @@ function buildAddForm(){
     gs.appendChild(b);
   });
 }
-function openAdd(){
-  addSel={marker:"star",dims:[],gravity:2};
+function openAdd(prefill={}){
+  const cat = prefill.category?catById(prefill.category):null;
+  addSel={ marker: cat?cat.marker:"star", dims: (cat&&cat.dim)?[cat.dim]:[], gravity:2,
+           color: cat?cat.hex:null, category: cat?cat.id:null };
   $("#f_title").value="";$("#f_people").value="";$("#f_place").value="";$("#f_reflection").value="";$("#f_end").value="";
-  $("#f_date").value=iso(TODAY);
-  $("#advfields").classList.remove("on");
+  $("#f_date").value=prefill.date||iso(TODAY);
+  $("#addKicker").textContent = cat ? `${cat.name}${cat.cn?" · "+cat.cn:""}` : "A moment worth keeping";
+  const d = prefill.date?parseISO(prefill.date):TODAY;
+  $("#addTitleHd").textContent = prefill.date ? `${MONTHS[d.getMonth()]} ${d.getDate()}` : "Add to the Atlas";
+  if(cat) $("#advfields").classList.add("on"); else $("#advfields").classList.remove("on");
   buildAddForm();openScrim("addScrim");
   setTimeout(()=>$("#f_title").focus(),80);
 }
@@ -1041,6 +1151,7 @@ function saveMoment(){
     endDate:$("#f_end").value||null,
     dimensions:addSel.dims.length?addSel.dims:["inner"],
     gravity:addSel.gravity, marker:addSel.marker,
+    category:addSel.category||null, color:addSel.color||null,
     note:"", reflection:$("#f_reflection").value.trim(),
     lookingBack:"", people:$("#f_people").value.split(",").map(s=>s.trim()).filter(Boolean),
     place:$("#f_place").value.trim(), tags:[], related:[], attachments:[],
@@ -1240,11 +1351,94 @@ function renderPeriodLabel(){
   }
 }
 
+/* ---------- 12b. Month extras: category rail + mini-calendar ---------- */
+let catForm={ marker:"star", hex:DIMENSIONS[0].hex };
+function renderCatRail(){
+  const rail=$("#catRail");rail.innerHTML="";
+  const hd=el("div","rail-hd");hd.innerHTML=`<span>Categories</span><span>类目</span>`;rail.appendChild(hd);
+  (DB.categories||[]).forEach(cat=>{
+    const it=el("div","cat-item"+(state.activeCat===cat.id?" on":""));
+    it.style.setProperty("--cc",cat.hex);
+    it.innerHTML=`<span class="csym" style="color:${cat.hex}">${glyphSVG(cat.marker,18)}</span>
+      <span class="cname">${escapeHtml(cat.name)}</span>
+      <span class="cn2">${escapeHtml(cat.cn||"")}</span>
+      <button class="catdel" title="Remove category">×</button>`;
+    it.onclick=e=>{ if(!e.target.closest(".catdel")) toggleCat(cat.id); };
+    it.querySelector(".catdel").onclick=e=>{
+      e.stopPropagation();
+      DB.categories=DB.categories.filter(c=>c.id!==cat.id);
+      if(state.activeCat===cat.id)state.activeCat=null;
+      saveDB();renderMonthExtras();renderLandscape();
+    };
+    rail.appendChild(it);
+  });
+  const add=el("div","cat-add","＋ Add category · 新增类目");
+  add.onclick=()=>$("#catForm").classList.toggle("on");
+  rail.appendChild(add);
+  // add-category form
+  const form=el("div","cat-form");form.id="catForm";
+  form.innerHTML=`
+    <div class="field"><label>Name · 名称</label><input id="cat_name" placeholder="e.g. Menstrual 生理期" autocomplete="off"/></div>
+    <div class="field"><label>Symbol · 符号</label><div class="markselect small" id="cat_sym"></div></div>
+    <div class="field"><label>Color · 颜色</label><div class="swatchrow" id="cat_col"></div></div>
+    <button class="btn-primary" id="cat_save" style="width:100%">Add to categories</button>`;
+  rail.appendChild(form);
+  const symWrap=form.querySelector("#cat_sym");
+  MARKER_ORDER.forEach(k=>{const b=el("button",k===catForm.marker?"on":"");b.innerHTML=glyphSVG(k,16);b.title=MARKERS[k].name;
+    b.onclick=()=>{catForm.marker=k;[...symWrap.children].forEach(x=>x.classList.toggle("on",x===b));};symWrap.appendChild(b);});
+  const colWrap=form.querySelector("#cat_col");
+  const swatches=[...new Set([...DIMENSIONS.map(d=>d.hex),"#cf8a90","#e0be6a"])];
+  swatches.forEach(hx=>{const b=el("button",hx===catForm.hex?"on":"");b.style.background=hx;
+    b.onclick=()=>{catForm.hex=hx;[...colWrap.children].forEach(x=>x.classList.toggle("on",x===b));};colWrap.appendChild(b);});
+  form.querySelector("#cat_save").onclick=()=>{
+    const name=form.querySelector("#cat_name").value.trim();
+    if(!name){toast("Give the category a name.");return;}
+    DB.categories.push({id:uid("cat"),name,cn:"",marker:catForm.marker,hex:catForm.hex,dim:null});
+    saveDB();renderMonthExtras();toast("Category added.");
+  };
+}
+function toggleCat(id){ state.activeCat = state.activeCat===id?null:id; renderMonthExtras(); renderLandscape(); }
+
+function renderMiniCal(){
+  const wrap=$("#minical");wrap.innerHTML="";
+  const y=state.year,m=state.month;
+  const dm=daysInMonth(y,m),first=new Date(y,m,1).getDay();
+  const evByDay={};
+  DB.events.filter(e=>{const d=parseISO(e.date);return d.getFullYear()===y&&d.getMonth()===m;})
+    .forEach(e=>{const dd=parseISO(e.date).getDate();(evByDay[dd]=evByDay[dd]||[]).push(e);});
+  const cat=state.activeCat?catById(state.activeCat):null;
+  const hd=el("div","minical-hd");
+  hd.innerHTML=`<div class="t">${MONTHS[m]} ${y}</div>
+    <div class="sub${cat?" penned":""}">${cat?`Marking as ${escapeHtml(cat.name)} — click a day`:"Click a day to record · 点选日期记录这一天"}</div>`;
+  wrap.appendChild(hd);
+  const grid=el("div","mc-grid");
+  ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(w=>grid.appendChild(el("div","mc-w",w)));
+  for(let i=0;i<first;i++)grid.appendChild(el("div","mc-day empty"));
+  for(let day=1;day<=dm;day++){
+    const d=new Date(y,m,day);
+    const isToday=d.getFullYear()===TODAY.getFullYear()&&d.getMonth()===TODAY.getMonth()&&d.getDate()===TODAY.getDate();
+    const appr=d>TODAY;
+    const c=el("div","mc-day"+(isToday?" today":"")+(appr?" appr":""));
+    const evs=evByDay[day]||[];
+    let glyphs="";
+    evs.slice(0,2).forEach(e=>{const col=e.color||catColorForEvent(e)||DIM[(e.dimensions||["inner"])[0]].hex;
+      glyphs+=`<span style="color:${col}">${glyphSVG(e.marker,11)}</span>`;});
+    if(evs.length>2)glyphs+=`<span class="gmore">+${evs.length-2}</span>`;
+    c.innerHTML=`<div class="dn">${day}</div>`+(glyphs?`<div class="glyphs">${glyphs}</div>`:"");
+    c.onclick=()=>openAdd({date:iso(d),category:state.activeCat});
+    grid.appendChild(c);
+  }
+  wrap.appendChild(grid);
+}
+function renderMonthExtras(){ renderCatRail(); renderMiniCal(); }
+
 /* ---------- 13. master render ---------- */
 function renderAll(){
+  document.body.classList.toggle("month",state.scope==="month");
   renderPeriodLabel();
   renderSummary();
   renderDimBar();
+  if(state.scope==="month") renderMonthExtras();
   renderLandscape();
   renderArrival();
   renderOnThisDay();
@@ -1254,12 +1448,15 @@ function renderAll(){
 function init(){
   if(!loadDB()){ seedDemo(); }
   else if(!DB.events || !DB.events.length){ seedDemo(); }
+  // migrate older saves that predate categories
+  if(!DB.categories || !DB.categories.length){ DB.categories = defaultCategories(); saveDB(); }
 
   // scope switch
   $$("#scopes .scope").forEach(b=>{
     if(b.classList.contains("disabled"))return;
     b.onclick=()=>{
       state.scope=b.dataset.scope;
+      if(state.scope!=="month") state.activeCat=null;
       $$("#scopes .scope").forEach(x=>x.classList.toggle("on",x===b));
       renderAll();
     };
