@@ -10,10 +10,29 @@
 
 ---
 
-## 打开方式
+## 打开方式（推荐：单文件版）
 
-直接用浏览器打开 `kids-life-lab/index.html`。
-（无需构建、无需 npm、无需联网。）
+> **只想双击打开、不折腾？下载这一个文件就够了：**
+> [`kids-life-lab-standalone.html`](kids-life-lab-standalone.html)
+
+这是把 CSS 和 JS 全部打包进去的**单文件版本**，不依赖任何其它文件。
+下载它一个，双击就能用浏览器打开，数据依旧存在本地、刷新不丢。
+
+**在 GitHub 上怎么下载单个文件：** 打开
+`kids-life-lab/kids-life-lab-standalone.html` → 右上角点 **Download raw file**
+（下载原始文件）→ 双击打开即可。
+
+### 为什么之前打不开？
+
+原来的 `index.html` 是**多文件结构**（`index.html` + `css/` 文件夹 + `js/`
+文件夹）。如果你只下载了 `index.html` 一个文件，它找不到旁边的
+`css/`、`js/`，页面就会是空白。要么下载**整个 `kids-life-lab` 文件夹**再打开
+`index.html`，要么直接用上面的**单文件版**（最省事）。
+
+### 开发用的多文件版
+
+`index.html` + `css/` + `js/` 是便于继续开发和扩展的版本。
+改完源码后，运行 `node build.mjs` 就能重新生成单文件版。
 
 ---
 

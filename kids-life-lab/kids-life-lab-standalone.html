@@ -1,0 +1,1811 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NOYA Kids · Life Lab</title>
+  <meta name="description" content="孩子自己的小世界 — 学习、生活、责任、成长、金钱与选择。" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🏝️</text></svg>" />
+  <style>
+/* ============================================================
+   NOYA Kids · Life Lab — styles
+   storybook · exploration map · warm paper · quiet gamification
+   ============================================================ */
+
+:root{
+  --paper:#f2eadb; --paper-2:#ece2cf;
+  --card:#faf5e9; --card-2:#f4ecd9;
+  --ink:#40382e; --ink-2:#726553; --ink-3:#9a8d78;
+  --line:#e6dcc5; --line-2:#dccfb3;
+  --gold:#b8894b; --gold-soft:#c7a86f;
+  --rose:#c67e79; --sage:#85a16e; --clay:#c08763; --sky:#86a9c4; --teal:#5c9187;
+
+  /* map sea (overridden per world theme) */
+  --sea-1:#f6ede0; --sea-2:#efd9cb; --sea-line:#e2c4b2; --route:#c99a7f;
+  --orb:#d59a76;
+
+  --serif:"Georgia","Iowan Old Style","Palatino Linotype","Songti SC","STSong","Noto Serif CJK SC","SimSun",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",system-ui,-apple-system,sans-serif;
+
+  --shadow:0 10px 30px -14px rgba(70,55,35,.28);
+  --shadow-sm:0 4px 14px -8px rgba(70,55,35,.30);
+  --radius:20px;
+}
+
+/* world tints */
+[data-theme="sunrise"]{ --sea-1:#f7eee1; --sea-2:#f0d8c8; --sea-line:#e4c5b1; --route:#c99a7f; --orb:#d99a72; }
+[data-theme="meadow"]{ --sea-1:#eef1e2; --sea-2:#dae7cf; --sea-line:#c5d5b4; --route:#9db487; --orb:#8fa972; }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 15% -5%, #fbf4e6 0%, transparent 55%),
+    radial-gradient(1000px 700px at 95% 10%, #f5ecda 0%, transparent 50%),
+    var(--paper);
+  background-attachment:fixed;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+/* faint paper grain */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(120,95,60,.035) 0 1px, transparent 1px),
+    radial-gradient(circle at 70% 60%, rgba(120,95,60,.03) 0 1px, transparent 1px),
+    radial-gradient(circle at 40% 80%, rgba(120,95,60,.03) 0 1px, transparent 1px);
+  background-size:7px 7px, 11px 11px, 9px 9px;
+}
+#app{position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:0 24px 80px}
+button{font-family:inherit; cursor:pointer}
+h1,h2,h3{font-family:var(--serif); font-weight:600; margin:0; letter-spacing:.01em}
+
+/* ---------------- topbar ---------------- */
+.topbar{
+  display:flex; align-items:center; gap:20px;
+  padding:22px 4px 18px; position:sticky; top:0; z-index:40;
+  background:linear-gradient(var(--paper) 72%, transparent);
+  backdrop-filter:blur(2px);
+}
+.brand{display:flex; align-items:center; gap:10px; flex:0 0 auto}
+.brand-mark{color:var(--gold); font-size:20px; transform:translateY(1px)}
+.brand-name{font-family:var(--serif); font-size:19px; letter-spacing:.03em; color:var(--ink)}
+.brand-dot{color:var(--gold)}
+.switcher{display:flex; gap:10px; margin-left:6px; flex:1 1 auto}
+.chip{
+  display:inline-flex; align-items:center; gap:9px;
+  border:1px solid var(--line-2); background:var(--card);
+  padding:8px 16px 8px 10px; border-radius:999px; color:var(--ink-2);
+  font-size:15px; transition:.18s; box-shadow:var(--shadow-sm);
+}
+.chip .chip-orb{width:16px; height:16px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff6, transparent 60%), var(--orb);
+  box-shadow:inset 0 0 0 2px #fff8; }
+.chip[data-theme="sunrise"] .chip-orb{ --orb:#d99a72 }
+.chip[data-theme="meadow"] .chip-orb{ --orb:#8fa972 }
+.chip:hover{transform:translateY(-1px); color:var(--ink)}
+.chip.on{background:var(--ink); color:#f7efdf; border-color:var(--ink)}
+.chip.on .chip-orb{box-shadow:inset 0 0 0 2px #fff4, 0 0 0 3px #ffffff22}
+.parent-btn{
+  border:1px solid var(--line-2); background:transparent; color:var(--ink-2);
+  padding:9px 16px; border-radius:999px; font-size:14px; transition:.18s;
+}
+.parent-btn:hover{background:var(--card); color:var(--ink)}
+.parent-btn.on{background:var(--gold); color:#fff; border-color:var(--gold)}
+
+/* ---------------- hero ---------------- */
+.hero{
+  display:flex; justify-content:space-between; align-items:flex-end; gap:24px;
+  padding:26px 8px 20px;
+}
+.hero-kicker{font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:8px}
+.hero-title{font-size:clamp(38px,6vw,66px); line-height:1; letter-spacing:.06em; color:var(--ink)}
+.hero-motto{font-family:var(--serif); font-style:italic; color:var(--ink-2); margin:12px 0 0; font-size:17px}
+.hero-right{display:flex; align-items:center; gap:22px; flex:0 0 auto}
+.hero-stat{text-align:center; line-height:1.1}
+.hero-stat b{display:block; font-family:var(--serif); font-size:26px; color:var(--ink)}
+.hero-stat span{font-size:12px; color:var(--ink-3)}
+.hero-season{font-size:13px; color:var(--ink-2); border-left:1px solid var(--line-2); padding-left:20px}
+
+/* ---------------- portals ---------------- */
+.portals{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:8px 0 22px}
+.portal{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:14px 16px; text-align:left; transition:.18s; box-shadow:var(--shadow-sm);
+}
+.portal span{font-size:22px}
+.portal b{font-size:15px; color:var(--ink); margin-top:4px}
+.portal i{font-style:normal; font-size:11px; letter-spacing:.08em; color:var(--ink-3); text-transform:uppercase}
+.portal:hover{transform:translateY(-2px); border-color:var(--gold-soft)}
+
+/* ---------------- cards ---------------- */
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 24px; margin-bottom:22px; box-shadow:var(--shadow);
+}
+.card-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px}
+.card-head h2{font-size:21px; color:var(--ink)}
+.card-sub{font-size:13px; color:var(--ink-3)}
+
+/* ---------------- today ---------------- */
+.quests{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.quest{
+  display:flex; align-items:center; gap:13px; text-align:left;
+  background:var(--card-2); border:1px solid var(--line); border-radius:14px;
+  padding:13px 15px; transition:.16s; position:relative; overflow:hidden;
+}
+.quest::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--isl); opacity:.75}
+.quest:hover{transform:translateY(-1px); border-color:var(--isl)}
+.quest-check{
+  width:24px; height:24px; border-radius:50%; flex:0 0 auto;
+  border:2px solid var(--isl); color:#fff; display:grid; place-items:center; font-size:13px; transition:.16s;
+}
+.quest.done .quest-check{background:var(--isl)}
+.quest.done{opacity:.62}
+.quest.done .quest-title{text-decoration:line-through; text-decoration-color:var(--ink-3)}
+.quest-icon{font-size:20px}
+.quest-main{display:flex; flex-direction:column}
+.quest-title{font-size:15px; color:var(--ink)}
+.quest-tag{font-size:11.5px; color:var(--ink-3)}
+
+/* ---------------- world map ---------------- */
+.mapwrap{border-radius:22px; overflow:hidden}
+.worldmap{width:100%; height:auto; display:block}
+.worldmap .isle{cursor:pointer}
+.worldmap .isle-body{transition:transform .25s ease}
+.worldmap .isle:hover .isle-body{transform:translateY(-5px)}
+.worldmap .isle:focus{outline:none}
+.worldmap .isle:focus .isle-body{transform:translateY(-5px)}
+.worldmap .isle-no{font-family:var(--serif); font-size:13px; fill:#fff; opacity:.9; letter-spacing:.1em}
+.worldmap .isle-name{font-family:var(--serif); font-size:19px; fill:var(--ink); font-weight:600}
+.worldmap .isle-en{font-size:10px; fill:var(--ink-3); letter-spacing:.14em; text-transform:uppercase}
+.worldmap .isle.cheer .isle-body{animation:isleCheer .9s ease}
+@keyframes isleCheer{0%{transform:translateY(0)}30%{transform:translateY(-12px)}60%{transform:translateY(-2px)}100%{transform:translateY(0)}}
+.walker,.boat{animation:bob 4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+/* ---------------- baseline & beyond ---------------- */
+.bb{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+.bb .card{margin-bottom:0}
+.baseline-list{display:flex; flex-direction:column; gap:9px}
+.bl-item{display:flex; align-items:center; gap:12px; background:var(--card-2);
+  border:1px solid var(--line); border-radius:12px; padding:11px 14px; text-align:left; transition:.15s}
+.bl-item:hover{border-color:var(--sage)}
+.bl-check{width:22px; height:22px; border-radius:7px; border:2px solid var(--sage);
+  color:#fff; display:grid; place-items:center; font-size:12px; flex:0 0 auto}
+.bl-item.done .bl-check{background:var(--sage)}
+.bl-item.done{opacity:.6}
+.bl-ic{font-size:17px}
+.bl-title{font-size:14.5px; color:var(--ink)}
+.beyond-list{display:flex; flex-direction:column; gap:9px}
+.by-item{display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:12px;
+  background:var(--card-2); border:1px dashed var(--line-2)}
+.by-ic{font-size:18px}
+.by-main{display:flex; flex-direction:column; flex:1}
+.by-title{font-size:14.5px; color:var(--ink)}
+.by-status{font-size:11.5px; color:var(--ink-3)}
+.by-item.st-done{border-style:solid; border-color:var(--gold-soft); background:#f7edd6}
+.by-credit{font-size:13px; color:var(--gold); font-family:var(--serif)}
+.by-hint{margin-top:12px; font-size:12px; color:var(--ink-3); font-style:italic}
+
+.worldfoot{display:flex; justify-content:space-between; align-items:center;
+  margin-top:26px; padding-top:16px; border-top:1px solid var(--line); color:var(--ink-3); font-size:13px}
+.linkbtn{background:none; border:none; color:var(--ink-3); text-decoration:underline dotted; font-size:13px}
+.linkbtn:hover{color:var(--gold)}
+
+/* ---------------- modal ---------------- */
+.modal-back{position:fixed; inset:0; z-index:60; display:grid; place-items:center;
+  background:rgba(52,42,28,.42); backdrop-filter:blur(3px); opacity:0; transition:opacity .2s; padding:20px}
+.modal-back.in{opacity:1}
+.modal{background:var(--card); border:1px solid var(--line-2); border-radius:24px; width:min(680px,100%);
+  max-height:88vh; overflow:auto; box-shadow:0 30px 70px -24px rgba(50,38,22,.55);
+  transform:translateY(14px) scale(.98); transition:transform .22s ease}
+.modal.wide{width:min(820px,100%)}
+.modal.lab{width:min(560px,100%)}
+.modal-back.in .modal{transform:none}
+.modal-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:20px 24px 12px; position:sticky; top:0; background:linear-gradient(var(--card) 78%, transparent)}
+.modal-title{font-family:var(--serif); font-size:22px; color:var(--ink); display:flex; align-items:center; gap:8px}
+.mt-en{font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
+.mt-ic{font-size:12px}
+.modal-close{width:34px; height:34px; border-radius:50%; border:1px solid var(--line-2);
+  background:var(--card-2); color:var(--ink-2); font-size:14px}
+.modal-close:hover{background:var(--ink); color:#fff}
+.modal-body{padding:6px 24px 26px}
+
+/* island panel */
+.isle-panel{--isl:#c6a15b}
+.ip-hero{display:flex; gap:16px; align-items:center; margin-bottom:16px}
+.ip-badge{width:52px; height:52px; border-radius:14px; background:var(--isl); color:#fff;
+  display:grid; place-items:center; font-family:var(--serif); font-size:20px; flex:0 0 auto}
+.ip-en{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+.ip-blurb{font-size:14px; color:var(--ink-2); margin-top:3px}
+.ip-progress{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+.ip-bar{flex:1; height:12px; border-radius:999px; background:var(--card-2); border:1px solid var(--line); overflow:hidden}
+.ip-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--isl),var(--isl-tint)); transition:width .4s ease}
+.ip-progress b{font-family:var(--serif); color:var(--isl)}
+.ip-note{font-style:italic; color:var(--ink-2); margin:0 0 16px}
+.ip-items{display:grid; gap:9px}
+.ip-item{display:flex; align-items:center; gap:12px; background:var(--card-2); border:1px solid var(--line);
+  border-radius:12px; padding:12px 15px; text-align:left; transition:.15s}
+.ip-item:hover{border-color:var(--isl)}
+.ip-check{width:22px; height:22px; border-radius:50%; border:2px solid var(--isl); color:#fff;
+  display:grid; place-items:center; font-size:12px}
+.ip-item.done .ip-check{background:var(--isl)}
+.ip-item.done{opacity:.6}
+.ip-item span:last-child{font-size:15px; color:var(--ink)}
+
+/* money panel */
+.money-top{display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px}
+.money-total{display:flex; align-items:baseline; gap:6px; background:var(--card-2);
+  border:1px solid var(--line); border-radius:16px; padding:14px 20px}
+.mt-label{font-size:12px; letter-spacing:.1em; color:var(--ink-3); margin-right:6px}
+.mt-num{font-family:var(--serif); font-size:34px; color:var(--teal)}
+.mt-unit{font-size:13px; color:var(--ink-3)}
+.money-goal{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-2); flex:1; min-width:220px}
+.goal-bar{flex:1; height:10px; border-radius:999px; background:var(--card-2); border:1px solid var(--line); overflow:hidden}
+.goal-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--clay),#e0b183); transition:width .4s}
+.goal-pct{font-family:var(--serif); color:var(--clay)}
+.coin-tray{display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:#f6edd7;
+  border:1px dashed var(--gold-soft); border-radius:14px; padding:12px 16px; margin-bottom:16px}
+.tray-label{font-size:13px; color:var(--ink-2)}
+.coins{display:flex; gap:10px}
+.coin{width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
+  font-family:var(--serif); font-size:16px; color:#7a5a23; cursor:grab; user-select:none;
+  background:radial-gradient(circle at 34% 30%, #f6e3a9, #d9b566 70%); border:1px solid #c29a45;
+  box-shadow:0 3px 8px -3px rgba(120,90,30,.5)}
+.coin:active{cursor:grabbing; transform:scale(.94)}
+.vessels{display:grid; grid-template-columns:repeat(5,1fr); gap:12px}
+.vessel{position:relative; background:var(--card-2); border:1px solid var(--line); border-radius:16px;
+  padding:14px 10px 12px; text-align:center; transition:.16s; --pc:#888}
+.vessel.drop{border-style:dashed}
+.vessel.over{border-color:var(--pc); background:#fff; transform:translateY(-2px); box-shadow:var(--shadow-sm)}
+.vessel.is-available{background:#f6edd7; border-color:var(--gold-soft)}
+.vessel-art{height:44px; display:grid; place-items:end center}
+.vessel-art svg{width:56px; height:30px}
+.vessel-amt{font-family:var(--serif); font-size:24px; color:var(--ink); margin-top:4px}
+.vessel-name{font-size:13px; color:var(--ink); margin-top:2px}
+.vessel-name i{font-style:normal; font-size:9px; letter-spacing:.1em; color:var(--ink-3); display:block; text-transform:uppercase}
+.vessel-desc{font-size:11px; color:var(--ink-3); margin-top:3px; min-height:26px}
+.vessel-return{position:absolute; top:8px; right:8px; width:26px; height:22px; border-radius:8px;
+  border:1px solid var(--line-2); background:var(--card); color:var(--ink-3); font-size:11px}
+.vessel-return:hover{background:var(--pc); color:#fff; border-color:var(--pc)}
+.vessel-goal{font-size:10px; color:var(--clay); margin-top:4px}
+.money-hint{text-align:center; font-size:12.5px; color:var(--ink-3); font-style:italic; margin:16px 0 0}
+
+/* journey */
+.jp-intro{font-size:14px; color:var(--ink-2); margin:0 0 10px}
+.jp-legend{display:flex; gap:16px; margin-bottom:6px}
+.lg{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-2)}
+.lg i{width:11px; height:11px; border-radius:50%; display:inline-block}
+.jp-mapwrap{background:linear-gradient(var(--card-2),#f6efe0); border:1px solid var(--line); border-radius:18px; padding:6px}
+.journey-map{width:100%; height:auto; display:block}
+.journey-map .jn-title{font-family:var(--serif); font-size:12px; fill:var(--ink)}
+.journey-map .jn-sub{font-size:9px; fill:var(--ink-3); letter-spacing:.08em}
+.journey-map .jnode{cursor:pointer}
+.journey-map .jnode:hover circle:not(.pulse){filter:brightness(1.05)}
+.journey-map .pulse{animation:pulse 2.4s ease-out infinite; opacity:.5}
+@keyframes pulse{0%{r:16px; opacity:.55}100%{r:30px; opacity:0}}
+.jp-detail{margin-top:14px; background:var(--card-2); border:1px solid var(--line); border-radius:14px;
+  padding:14px 16px; font-size:14px; color:var(--ink-2); min-height:56px}
+.jp-detail b{display:inline-block; font-family:var(--serif); font-size:16px}
+.jd-status{margin-left:10px; font-size:12px; color:var(--ink-3)}
+.jp-detail p{margin:6px 0 0; color:var(--ink-2)}
+
+/* my year atlas */
+.atlas-intro{font-size:14px; color:var(--ink-2); margin:0 0 14px}
+.mo-rail{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px}
+.mo{border:1px solid var(--line-2); background:var(--card-2); color:var(--ink-3);
+  border-radius:999px; padding:5px 12px; font-size:12.5px; transition:.15s}
+.mo.has{color:var(--ink); border-color:var(--gold-soft)}
+.mo.on{background:var(--ink); color:#f7efdf; border-color:var(--ink)}
+.mo:hover{transform:translateY(-1px)}
+.atlas-list{display:flex; flex-direction:column; gap:12px}
+.atlas-ev{display:flex; align-items:center; gap:14px; background:var(--card-2);
+  border:1px solid var(--line); border-radius:14px; padding:13px 16px; position:relative}
+.atlas-ev::after{content:""; position:absolute; left:74px; bottom:-12px; width:1px; height:12px; background:var(--line-2)}
+.atlas-ev:last-child::after{display:none}
+.ev-mo{font-family:var(--serif); font-size:13px; color:var(--gold); width:44px; flex:0 0 auto}
+.ev-ic{font-size:24px}
+.ev-body{display:flex; flex-direction:column}
+.ev-body b{font-size:15px; color:var(--ink)}
+.ev-body span{font-size:12.5px; color:var(--ink-3)}
+.atlas-empty{color:var(--ink-3); font-style:italic; padding:14px}
+.atlas-foot{margin-top:16px; text-align:center; font-size:12.5px; color:var(--ink-3)}
+.atlas-foot b{font-family:var(--serif); color:var(--ink-2)}
+
+/* decision lab */
+.lab-panel{padding:6px 2px}
+.lab-door{background:linear-gradient(var(--card-2),#f5eedd); border:1px solid var(--line);
+  border-radius:18px; padding:26px 22px; text-align:center}
+.lab-step{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+.lab-q{font-size:26px; color:var(--ink); margin:10px 0 4px}
+.lab-en{font-size:12px; letter-spacing:.1em; color:var(--ink-3); margin-bottom:16px}
+.lab-input{width:100%; border:1px solid var(--line-2); border-radius:12px; background:var(--card);
+  padding:12px 14px; font-family:var(--sans); font-size:15px; color:var(--ink); resize:vertical}
+.lab-input:focus{outline:none; border-color:var(--gold-soft)}
+.lab-nav{display:flex; justify-content:space-between; align-items:center; margin-top:16px}
+.lab-back{background:none; border:none; color:var(--ink-3); font-size:14px}
+.lab-next{background:var(--ink); color:#f7efdf; border:none; border-radius:999px; padding:10px 24px; font-size:15px}
+.lab-next:hover{background:var(--gold)}
+.lab-final{display:flex; gap:12px; justify-content:center; margin-top:8px}
+.lab-yes{background:var(--sage); color:#fff; border:none; border-radius:999px; padding:12px 24px; font-size:15px}
+.lab-not{background:var(--card); color:var(--ink-2); border:1px solid var(--line-2); border-radius:999px; padding:12px 24px; font-size:15px}
+.lab-yes:hover{filter:brightness(1.05)} .lab-not:hover{border-color:var(--ink-3)}
+.lab-result{text-align:center; padding:24px}
+.lab-res-ic{font-size:42px}
+.lab-result h3{font-size:24px; margin:8px 0}
+.lab-result p{color:var(--ink-2); max-width:360px; margin:0 auto 16px}
+.lab-recall{background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:12px 16px; font-size:14px; color:var(--ink)}
+.lab-recall span{color:var(--ink-3)}
+.lab-again{margin-top:16px; background:none; border:1px solid var(--line-2); border-radius:999px; padding:9px 20px; color:var(--ink-2)}
+.lab-again:hover{border-color:var(--gold-soft); color:var(--ink)}
+
+/* ---------------- parent mode ---------------- */
+.parent{padding-top:6px}
+.p-overview .ov-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+.ov-card{background:var(--card-2); border:1px solid var(--line); border-radius:16px; padding:16px 18px}
+.ov-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px}
+.ov-top b{font-family:var(--serif); font-size:18px}
+.ov-top span{font-size:12px; color:var(--ink-3)}
+.ov-bars{display:flex; gap:8px; align-items:flex-end; height:56px; margin-bottom:10px}
+.ov-bar{flex:1; height:100%; background:var(--card); border-radius:6px; display:flex; align-items:flex-end; overflow:hidden; border:1px solid var(--line)}
+.ov-bar i{display:block; width:100%; border-radius:5px}
+.ov-meta{display:flex; gap:14px; font-size:12.5px; color:var(--ink-2); margin-bottom:12px}
+.ov-edit{width:100%; border:1px solid var(--line-2); background:var(--card); border-radius:10px; padding:9px; font-size:13px; color:var(--ink-2)}
+.ov-edit:hover{border-color:var(--gold-soft)}
+.ov-edit.on{background:var(--gold); color:#fff; border-color:var(--gold)}
+.p-editing{display:flex; align-items:baseline; gap:10px; margin:6px 4px 16px}
+.p-tag{font-size:11px; letter-spacing:.1em; text-transform:uppercase; background:var(--orb); color:#fff; padding:3px 10px; border-radius:999px}
+.p-editing b{font-family:var(--serif); font-size:20px}
+.p-en{font-size:12px; color:var(--ink-3)}
+.p-cols{columns:2; column-gap:22px}
+.p-sec{break-inside:avoid; display:inline-block; width:100%}
+.p-list{display:flex; flex-direction:column; gap:8px; margin-bottom:12px}
+.p-row{display:flex; align-items:center; gap:10px; background:var(--card-2); border:1px solid var(--line);
+  border-radius:11px; padding:9px 12px}
+.p-status{width:26px; height:26px; border-radius:8px; border:1px solid var(--line-2); background:var(--card);
+  font-size:13px; color:var(--ink-2); flex:0 0 auto}
+.p-status.st-done{background:var(--sage); color:#fff; border-color:var(--sage)}
+.p-status.st-current{background:var(--gold); color:#fff; border-color:var(--gold)}
+.p-status.st-doing{background:var(--sky); color:#fff; border-color:var(--sky)}
+.p-status.st-locked,.p-status.st-idea{color:var(--ink-3)}
+.p-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+.p-ic{font-size:16px}
+.p-mo{font-family:var(--serif); font-size:12px; color:var(--gold); width:30px; flex:0 0 auto}
+.p-row-main{flex:1; display:flex; flex-direction:column; min-width:0}
+.p-row-main b{font-size:14px; color:var(--ink); font-weight:500}
+.p-row-main i{font-style:normal; font-size:11.5px; color:var(--ink-3)}
+.p-del{width:24px; height:24px; border-radius:7px; border:none; background:transparent; color:var(--ink-3); font-size:12px}
+.p-del:hover{background:#e9d5cf; color:var(--rose)}
+.p-form{display:flex; flex-wrap:wrap; gap:7px; align-items:center; padding-top:4px; border-top:1px dashed var(--line-2); margin-top:4px}
+.p-form input,.p-form select{border:1px solid var(--line-2); background:var(--card); border-radius:9px;
+  padding:8px 10px; font-family:inherit; font-size:13px; color:var(--ink); min-width:0; flex:1 1 90px}
+.p-form input:focus,.p-form select:focus{outline:none; border-color:var(--gold-soft)}
+.pf-add{background:var(--ink); color:#f7efdf; border:none; border-radius:9px; padding:8px 14px; font-size:13px; flex:0 0 auto}
+.pf-add:hover{background:var(--gold)}
+.pf-check{display:flex; align-items:center; gap:5px; font-size:12.5px; color:var(--ink-2); flex:0 0 auto}
+.p-money{display:flex; flex-wrap:wrap; gap:10px}
+.pm-field{display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--ink-3); flex:1 1 120px}
+.pm-field.pm-wide{flex:1 1 100%}
+.pm-field input{border:1px solid var(--line-2); background:var(--card); border-radius:9px; padding:8px 10px; font-size:14px; color:var(--ink)}
+.pm-save{flex:1 1 100%; background:var(--teal); color:#fff; border:none; border-radius:10px; padding:10px; margin-top:4px; font-size:14px}
+.pm-save:hover{filter:brightness(1.05)}
+
+/* ---------------- toast ---------------- */
+.toast{position:fixed; left:50%; bottom:32px; transform:translate(-50%,20px); z-index:80;
+  background:var(--ink); color:#f7efdf; padding:12px 22px; border-radius:999px; font-size:14px;
+  box-shadow:0 14px 30px -12px rgba(40,30,15,.6); opacity:0; pointer-events:none; transition:.3s}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+
+/* ---------------- responsive ---------------- */
+@media (max-width:840px){
+  #app{padding:0 16px 60px}
+  .topbar{flex-wrap:wrap; gap:12px}
+  .switcher{order:3; width:100%}
+  .hero{flex-direction:column; align-items:flex-start; gap:14px}
+  .portals{grid-template-columns:repeat(2,1fr)}
+  .quests{grid-template-columns:1fr}
+  .bb{grid-template-columns:1fr}
+  .vessels{grid-template-columns:repeat(2,1fr)}
+  .p-cols{columns:1}
+  .p-overview .ov-grid{grid-template-columns:1fr}
+}
+
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+/* ============================================================
+   NOYA Kids · Life Lab — Seed Data
+   ------------------------------------------------------------
+   Design principle:  same system + different child profiles
+                      + different age levels.
+
+   Everything a child "owns" lives inside one child profile.
+   Two children never share a data object — each is stored and
+   counted separately.  To add a third child later, add another
+   profile here; to add a harder/easier version, add an AGE_LEVEL
+   and point a child's `ageLevel` at it.  Nothing else changes.
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+
+  /* Age levels let the SAME world scale in difficulty & playfulness.
+     v1 only uses them as labels + a couple of gentle switches, but the
+     structure is ready for real per-level logic later. */
+  NOYA.AGE_LEVELS = {
+    sprout: {
+      id: 'sprout',
+      label: '小芽 · Sprout',
+      note: '刚开始探索自己的世界',
+      todayCount: 3,       // how many quests a day feels right
+    },
+    explorer: {
+      id: 'explorer',
+      label: '探索者 · Explorer',
+      note: '开始自己做更多选择',
+      todayCount: 4,
+    },
+  };
+
+  /* The five islands — shared definition (identity, colour, order).
+     Per-child *progress and content* live inside each profile. */
+  NOYA.ISLANDS = [
+    { id: 'learning', no: '01', name: '学习岛', en: 'Learning Island',
+      color: '#c6a15b', tint: '#efe2c0', blurb: '学校学习、学期目标、数学、语文、英语、阅读。' },
+    { id: 'life',     no: '02', name: '生活岛', en: 'Life Island',
+      color: '#86a9c4', tint: '#dce8f0', blurb: '起床、整理、卫生、准备自己的物品、生活习惯。' },
+    { id: 'home',     no: '03', name: '家庭岛', en: 'Home Island',
+      color: '#c08763', tint: '#eddbcd', blurb: '家务、照顾宠物、帮助家人、自己的家庭责任。' },
+    { id: 'growth',   no: '04', name: '成长岛', en: 'Growth Island',
+      color: '#85a16e', tint: '#dbe6cf', blurb: '运动、阅读、音乐、兴趣、创造、新技能。' },
+    { id: 'money',    no: '05', name: '财富岛', en: 'Money Island',
+      color: '#5c9187', tint: '#cfe2dc', blurb: '自己的钱、收入、使用、储蓄、目标与分配。' },
+  ];
+
+  /* Money pools — shared definition. Each child holds its own amounts. */
+  NOYA.MONEY_POOLS = [
+    { id: 'available', name: '可用', en: 'AVAILABLE', vessel: 'purse',  color: '#c99a52', desc: '现在可以使用' },
+    { id: 'save',      name: '储蓄', en: 'SAVE',      vessel: 'jar',    color: '#6f9c8f', desc: '留给未来' },
+    { id: 'goal',      name: '目标', en: 'GOAL',      vessel: 'chest',  color: '#c0784f', desc: '为一个目标积累' },
+    { id: 'give',      name: '分享', en: 'GIVE',      vessel: 'heart',  color: '#c06f7a', desc: '礼物 · 帮助别人' },
+    { id: 'invest',    name: '种子', en: 'INVEST',    vessel: 'seed',   color: '#7d8bb0', desc: '未来会长大' },
+  ];
+
+  NOYA.DECISION_STEPS = [
+    { key: 'want',  q: '你想要什么？',        en: 'What do you want?' },
+    { key: 'why',   q: '为什么想要？',         en: 'Why do you want it?' },
+    { key: 'cost',  q: '它需要付出什么？',     en: 'What will it cost?' },
+    { key: 'give',  q: '你要暂时放弃什么？',   en: 'What will you give up?' },
+    { key: 'still', q: '你还想要吗？',         en: 'Still want it?' },
+  ];
+
+  /* --- helpers to keep seed data readable --- */
+  const q  = (island, icon, title) => ({ id: 'q_' + Math.round(Math.random()*1e6), island, icon, title, done: false });
+  const it = (title, done) => ({ title, done: !!done });
+
+  /* ============================================================
+     CHILD PROFILES
+     ============================================================ */
+  NOYA.SEED = {
+    version: 1,
+    currentChild: 'donut',
+    parentMode: false,
+    children: {
+
+      /* ---------------- 甜甜圈 · a sunrise world ---------------- */
+      donut: {
+        id: 'donut',
+        name: '甜甜圈',
+        en: 'Donut',
+        ageLevel: 'explorer',
+        worldTheme: 'sunrise',     // rosy / warm world tint
+        day: 128,
+        season: '初秋 · Early Autumn',
+        stars: 24,
+        motto: '慢慢地，把自己的世界建起来。',
+
+        today: [
+          { id: 't1', island: 'learning', icon: '📖', title: '复习乘法 6–9', done: false },
+          { id: 't2', island: 'life',     icon: '🌙', title: '自己准备明天的书包', done: true },
+          { id: 't3', island: 'growth',   icon: '🎵', title: '练习钢琴 15 分钟', done: false },
+          { id: 't4', island: 'growth',   icon: '✨', title: '读 10 页《夏洛的网》', done: false, optional: true },
+        ],
+
+        islands: {
+          learning: { progress: 62, note: '乘法快熟练了，阅读在慢慢加速。',
+            items: [ it('乘法 6–9', false), it('语文课文背诵', true), it('英语听说', true), it('每周阅读 3 次', false) ] },
+          life: { progress: 74, note: '早晨越来越顺，自己的东西自己管。',
+            items: [ it('自己起床', true), it('整理书桌', true), it('准备第二天用品', false), it('刷牙洗脸', true) ] },
+          home: { progress: 55, note: '开始照顾家里的一部分。',
+            items: [ it('喂猫', true), it('饭后收碗', false), it('给植物浇水', true) ] },
+          growth: { progress: 68, note: '钢琴和游泳都在往前走。',
+            items: [ it('钢琴练习', false), it('游泳课', true), it('画画', true), it('每天运动', false) ] },
+          money: { progress: 40, note: '在为水彩颜料存钱。',
+            items: [ it('这周有零花钱', true), it('分配到各个罐子', false) ] },
+        },
+
+        semester: {
+          subjects: [
+            { id: 'math', name: '数学', color: '#c6a15b' },
+            { id: 'chinese', name: '语文', color: '#c08763' },
+            { id: 'english', name: '英语', color: '#86a9c4' },
+          ],
+          stages: [
+            { id: 's1', subject: 'math',    title: '乘法启程',    status: 'done',    note: '认识乘法的意义' },
+            { id: 's2', subject: 'chinese', title: '阅读森林',    status: 'done',    note: '每周读完一本绘本' },
+            { id: 's3', subject: 'math',    title: '乘法熟练',    status: 'current', note: '6–9 的乘法口诀' },
+            { id: 's4', subject: 'english', title: 'Noya 表达',   status: 'locked',  note: '一句地道的日常表达' },
+            { id: 's5', subject: 'math',    title: '计算稳定',    status: 'locked',  note: '减少粗心的小错误' },
+            { id: 's6', subject: 'chinese', title: '写作小溪',    status: 'locked',  note: '写一段自己的话' },
+            { id: 's7', subject: 'english', title: '听说山谷',    status: 'locked',  note: '听懂一个小故事' },
+          ],
+        },
+
+        baseline: [
+          { icon: '🎒', title: '整理自己的东西', done: true },
+          { icon: '📚', title: '完成学校作业',   done: false },
+          { icon: '🪥', title: '个人卫生',       done: true },
+          { icon: '🧹', title: '适龄家务',       done: false },
+          { icon: '🌙', title: '准备第二天用品', done: false },
+        ],
+        beyond: [
+          { icon: '🖼️', title: '完成一幅水彩画', status: 'done',    credit: 8 },
+          { icon: '📖', title: '给妹妹讲一个故事', status: 'doing',  credit: 5 },
+          { icon: '🧩', title: '自己解决了一个难题', status: 'idea', credit: 0 },
+        ],
+
+        money: {
+          goalName: '一套水彩颜料',
+          goalTarget: 60,
+          pools: { available: 45, save: 30, goal: 25, give: 10, invest: 10 },
+        },
+
+        timeline: [
+          { month: 2,  icon: '🌱', title: '开始每天练琴', note: '一个新习惯的开始' },
+          { month: 3,  icon: '📚', title: '读完《小王子》', note: '第一本自己读完的长书' },
+          { month: 4,  icon: '🏊', title: '学会换气', note: '游泳课的一个小突破' },
+          { month: 5,  icon: '😢', title: '一次没考好', note: '难过了一天，后来又试了一次' },
+          { month: 6,  icon: '🏆', title: '钢琴小演出', note: '自己真正骄傲的时刻' },
+          { month: 8,  icon: '✈️', title: '海边的夏天', note: '看见了很大的海' },
+        ],
+
+        decisions: [],
+      },
+
+      /* ---------------- 甜甜豆 · a meadow world ---------------- */
+      bean: {
+        id: 'bean',
+        name: '甜甜豆',
+        en: 'Bean',
+        ageLevel: 'sprout',
+        worldTheme: 'meadow',      // fresh / green world tint
+        day: 76,
+        season: '初秋 · Early Autumn',
+        stars: 15,
+        motto: '一点点长大，一点点变厉害。',
+
+        today: [
+          { id: 'b1', island: 'learning', icon: '🔤', title: '认读 5 个新汉字', done: false },
+          { id: 'b2', island: 'life',     icon: '🪥', title: '自己刷牙洗脸', done: true },
+          { id: 'b3', island: 'growth',   icon: '🏊', title: '游泳课', done: false },
+          { id: 'b4', island: 'home',     icon: '✨', title: '把玩具收回箱子', done: false, optional: true },
+        ],
+
+        islands: {
+          learning: { progress: 40, note: '认识越来越多的字了。',
+            items: [ it('认字', false), it('数数到 100', true), it('英文儿歌', true) ] },
+          life: { progress: 58, note: '自己的小事情自己做。',
+            items: [ it('自己穿衣服', true), it('刷牙洗脸', true), it('收拾玩具', false) ] },
+          home: { progress: 42, note: '会帮一点点小忙了。',
+            items: [ it('摆好自己的鞋', true), it('帮忙拿东西', false) ] },
+          growth: { progress: 50, note: '喜欢游泳和搭积木。',
+            items: [ it('游泳课', false), it('搭积木', true), it('听故事', true) ] },
+          money: { progress: 25, note: '刚刚有了自己的小钱袋。',
+            items: [ it('认识硬币', true), it('存进小猪罐', false) ] },
+        },
+
+        semester: {
+          subjects: [
+            { id: 'chinese', name: '语文', color: '#c08763' },
+            { id: 'math', name: '数学', color: '#c6a15b' },
+            { id: 'english', name: '英语', color: '#86a9c4' },
+          ],
+          stages: [
+            { id: 'b_s1', subject: 'chinese', title: '认字小路',  status: 'done',    note: '认识常用字' },
+            { id: 'b_s2', subject: 'math',    title: '数数草原',  status: 'current', note: '数到 100' },
+            { id: 'b_s3', subject: 'math',    title: '加法小桥',  status: 'locked',  note: '10 以内加法' },
+            { id: 'b_s4', subject: 'english', title: '听说花园',  status: 'locked',  note: '听懂简单指令' },
+            { id: 'b_s5', subject: 'chinese', title: '读绘本',    status: 'locked',  note: '和大人一起读' },
+          ],
+        },
+
+        baseline: [
+          { icon: '🧸', title: '收好自己的玩具', done: false },
+          { icon: '🪥', title: '刷牙洗脸',       done: true },
+          { icon: '👟', title: '摆好自己的鞋',   done: true },
+          { icon: '🍽️', title: '自己吃饭',       done: true },
+        ],
+        beyond: [
+          { icon: '🏰', title: '搭一个积木城堡', status: 'doing', credit: 3 },
+          { icon: '🤝', title: '帮姐姐拿东西',   status: 'done',  credit: 2 },
+        ],
+
+        money: {
+          goalName: '一只毛绒小熊',
+          goalTarget: 40,
+          pools: { available: 30, save: 15, goal: 10, give: 5, invest: 0 },
+        },
+
+        timeline: [
+          { month: 3, icon: '🚲', title: '学会了平衡车', note: '不用扶就能滑' },
+          { month: 4, icon: '🔤', title: '认识自己的名字', note: '会写“甜甜豆”了' },
+          { month: 6, icon: '🏊', title: '第一次下水', note: '有点怕，后来笑了' },
+          { month: 8, icon: '🌻', title: '种了一颗向日葵', note: '每天去看它' },
+        ],
+
+        decisions: [],
+      },
+    },
+  };
+
+  /* Order children appear in the switcher */
+  NOYA.CHILD_ORDER = ['donut', 'bean'];
+
+})(window.NOYA = window.NOYA || {});
+
+
+/* ============================================================ */
+
+/* ============================================================
+   NOYA Kids · Life Lab — Store
+   ------------------------------------------------------------
+   Tiny state container over localStorage.
+   - Deep-merges saved data on top of SEED, so adding new fields
+     or new children to data.js never breaks an existing save.
+   - Any mutation goes through updateChild()/update(), which saves
+     and then notifies subscribers (the app re-renders).
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+
+  const KEY = 'noya-kids-life-lab-v1';
+
+  function deepMerge(base, over) {
+    if (Array.isArray(base)) {
+      // Arrays are treated as whole values: prefer the saved one if present.
+      return over === undefined ? base : over;
+    }
+    if (base && typeof base === 'object') {
+      const out = {};
+      const keys = new Set([...Object.keys(base), ...Object.keys(over || {})]);
+      keys.forEach((k) => {
+        if (over && k in over && !(base[k] && typeof base[k] === 'object' && !Array.isArray(base[k]))) {
+          out[k] = deepMerge(base[k] !== undefined ? base[k] : over[k], over[k]);
+        } else if (base[k] && typeof base[k] === 'object') {
+          out[k] = deepMerge(base[k], over ? over[k] || {} : {});
+        } else {
+          out[k] = over && k in over ? over[k] : base[k];
+        }
+      });
+      return out;
+    }
+    return over === undefined ? base : over;
+  }
+
+  const Store = {
+    state: null,
+    subs: [],
+
+    load() {
+      let saved = null;
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) saved = JSON.parse(raw);
+      } catch (e) { saved = null; }
+      // Merge saved over a fresh clone of SEED.
+      const fresh = JSON.parse(JSON.stringify(NOYA.SEED));
+      this.state = saved ? deepMerge(fresh, saved) : fresh;
+      return this.state;
+    },
+
+    save() {
+      try { localStorage.setItem(KEY, JSON.stringify(this.state)); }
+      catch (e) { /* storage full / disabled — prototype degrades gracefully */ }
+    },
+
+    reset() {
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      this.load();
+      this.emit();
+    },
+
+    subscribe(fn) { this.subs.push(fn); },
+    emit() { this.subs.forEach((fn) => fn(this.state)); },
+
+    /* --- accessors --- */
+    child(id) { return this.state.children[id || this.state.currentChild]; },
+    current() { return this.child(this.state.currentChild); },
+
+    /* --- mutations (save + re-render) --- */
+    update(fn) { fn(this.state); this.save(); this.emit(); },
+    updateChild(id, fn) { fn(this.state.children[id]); this.save(); this.emit(); },
+
+    setChild(id) { this.update((s) => { s.currentChild = id; }); },
+    setParentMode(on) { this.update((s) => { s.parentMode = !!on; }); },
+  };
+
+  NOYA.Store = Store;
+})(window.NOYA = window.NOYA || {});
+
+
+/* ============================================================ */
+
+/* ============================================================
+   NOYA Kids · Life Lab — SVG art
+   ------------------------------------------------------------
+   All illustrations are hand-drawn as light line-art so the world
+   feels like a storybook map, not a cartoon app.  Everything is a
+   pure string builder — no dependencies — so it's easy to tweak
+   or extend an island later.
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+
+  const SVG = {};
+
+  /* Small line motifs drawn INSIDE each island, in soft ink. */
+  const MOTIF = {
+    learning: `
+      <g stroke="#5b4f3f" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-16 6 q16 -8 16 0 q0 -8 16 0" />
+        <path d="M-16 6 v-13 q16 -8 16 0 v13" />
+        <path d="M16 6 v-13 q-16 -8 -16 0" />
+        <path d="M0 -7 v13" />
+      </g>
+      <g stroke="#c69a3f" stroke-width="1.4" fill="none" stroke-linecap="round">
+        <circle cx="14" cy="-16" r="3.4" fill="#e7c66e" stroke="#c69a3f"/>
+        <path d="M14 -23 v-3 M14 -6 v-3 M21 -16 h3 M4 -16 h3 M19 -21 l2 -2 M9 -21 l-2 -2"/>
+      </g>`,
+    life: `
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-18 8 q18 -14 36 0" stroke="#5b4f3f" stroke-width="1.6"/>
+        <circle cx="0" cy="-6" r="7" fill="#f0d9a8" stroke="#c9a24b" stroke-width="1.4"/>
+        <g stroke="#c9a24b" stroke-width="1.3">
+          <path d="M0 -18 v-3 M0 4 v3 M-13 -6 h-3 M13 -6 h3 M-9 -15 l-2 -2 M9 -15 l2 -2"/>
+        </g>
+        <path d="M-6 12 q6 6 12 0" stroke="#7fa1bd" stroke-width="1.5"/>
+      </g>`,
+    home: `
+      <g fill="none" stroke="#5b4f3f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-13 8 v-11 l13 -10 l13 10 v11 z"/>
+        <path d="M-17 -3 l17 -13 l17 13"/>
+        <rect x="-4" y="-1" width="8" height="9" rx="1"/>
+      </g>
+      <path d="M6 -18 q6 -3 6 -9" fill="none" stroke="#c08763" stroke-width="1.4" stroke-linecap="round"/>`,
+    growth: `
+      <g fill="none" stroke="#5b7a52" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M0 10 v-20"/>
+        <path d="M0 -4 q-11 -2 -13 -12 q11 0 13 8"/>
+        <path d="M0 -10 q11 -2 13 -12 q-11 0 -13 8"/>
+      </g>`,
+    money: `
+      <g fill="none" stroke="#4c7268" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-13 9 v-9 a13 6 0 0 1 26 0 v9 a13 6 0 0 1 -26 0 z"/>
+        <path d="M-13 0 a13 6 0 0 0 26 0"/>
+      </g>
+      <g stroke="#c9a24b" stroke-width="1.4" fill="#e7c66e">
+        <circle cx="0" cy="-13" r="4.6"/>
+      </g>
+      <path d="M0 -16 v6 M-2.4 -13 h4.8" stroke="#a9822f" stroke-width="1.1" fill="none"/>`,
+  };
+
+  /* One island: soft cast shadow, layered landmass, grass cap, motif,
+     a ring of progress dots, and its label.  cx/cy = centre on the map. */
+  SVG.island = function (isl, opts) {
+    const { cx, cy, scale = 1, progress = 0 } = opts;
+    const c = isl.color, tint = isl.tint;
+    const dots = 5;
+    const filled = Math.round((progress / 100) * dots);
+    let dotStr = '';
+    for (let i = 0; i < dots; i++) {
+      const dx = cx - (dots - 1) * 6 + i * 12;
+      dotStr += `<circle cx="${dx}" cy="${cy + 58 * scale}" r="3"
+        fill="${i < filled ? c : 'none'}" stroke="${c}" stroke-width="1.4" opacity="0.9"/>`;
+    }
+    return `
+      <g class="isle" data-action="open-island" data-island="${isl.id}" role="button" tabindex="0"
+         aria-label="${isl.name} ${isl.en}">
+        <ellipse cx="${cx}" cy="${cy + 34 * scale}" rx="${70 * scale}" ry="${16 * scale}" fill="#00000012"/>
+        <g class="isle-body">
+          <path d="M${cx - 66 * scale} ${cy + 20 * scale}
+                   q-14 -20 8 -30 q6 -22 34 -22 q18 -8 34 6
+                   q24 2 22 22 q14 12 -4 26 q-10 14 -44 12
+                   q-40 6 -50 -12 z"
+                fill="${c}"/>
+          <path d="M${cx - 60 * scale} ${cy + 8 * scale}
+                   q-8 -18 10 -24 q8 -18 30 -18 q16 -6 30 6
+                   q20 2 18 20 q-30 10 -60 6 q-24 4 -28 4 z"
+                fill="${tint}" opacity="0.85"/>
+          <g transform="translate(${cx}, ${cy - 2 * scale}) scale(${scale})">${MOTIF[isl.id] || ''}</g>
+        </g>
+        <text x="${cx}" y="${cy + 46 * scale}" text-anchor="middle" class="isle-no">${isl.no}</text>
+        <text x="${cx}" y="${cy + 74 * scale}" text-anchor="middle" class="isle-name">${isl.name}</text>
+        <text x="${cx}" y="${cy + 88 * scale}" text-anchor="middle" class="isle-en">${isl.en}</text>
+        ${dotStr}
+      </g>`;
+  };
+
+  /* Little scattered scenery so the sea isn't empty. */
+  SVG.tree = (x, y, s = 1) => `
+    <g transform="translate(${x},${y}) scale(${s})" opacity="0.8">
+      <path d="M0 6 v-6" stroke="#7c6a4d" stroke-width="1.6"/>
+      <path d="M0 2 q-8 -2 -9 -11 q9 1 9 7 q0 -6 9 -7 q-1 9 -9 11z" fill="#8ba676" stroke="#5b7a52" stroke-width="1"/>
+    </g>`;
+
+  SVG.star = (x, y, r = 2.4, o = 0.9) => `
+    <path transform="translate(${x},${y})" opacity="${o}" fill="#e7cf9a"
+      d="M0 ${-r} L${r*0.3} ${-r*0.3} L${r} 0 L${r*0.3} ${r*0.3} L0 ${r} L${-r*0.3} ${r*0.3} L${-r} 0 L${-r*0.3} ${-r*0.3} Z"/>`;
+
+  SVG.lighthouse = (x, y) => `
+    <g transform="translate(${x},${y})" opacity="0.9">
+      <path d="M-6 22 L-3 -8 L3 -8 L6 22 Z" fill="#eadfca" stroke="#7c6a4d" stroke-width="1.3"/>
+      <path d="M-4 6 L4 6 M-5 14 L5 14" stroke="#c08763" stroke-width="2"/>
+      <rect x="-4" y="-14" width="8" height="6" rx="1" fill="#d9a441" stroke="#7c6a4d" stroke-width="1"/>
+      <path d="M-3 -14 L0 -19 L3 -14 Z" fill="#c08763" stroke="#7c6a4d" stroke-width="1"/>
+      <path d="M4 -11 q10 -1 14 3" stroke="#e7cf9a" stroke-width="1.4" fill="none" opacity="0.7"/>
+    </g>`;
+
+  SVG.compass = (x, y) => `
+    <g transform="translate(${x},${y})" opacity="0.75">
+      <circle r="16" fill="#f7efdd" stroke="#7c6a4d" stroke-width="1.3"/>
+      <circle r="16" fill="none" stroke="#c9a24b" stroke-width="0.6" stroke-dasharray="1 3"/>
+      <path d="M0 -12 L4 0 L0 12 L-4 0 Z" fill="#c08763" stroke="#7c6a4d" stroke-width="0.8"/>
+      <path d="M0 -12 L4 0 L-4 0 Z" fill="#d9a441"/>
+      <text y="-18" text-anchor="middle" font-size="7" fill="#7c6a4d" font-family="Georgia,serif">N</text>
+    </g>`;
+
+  SVG.boat = (x, y) => `
+    <g transform="translate(${x},${y})" opacity="0.9">
+      <path d="M-10 4 q10 6 20 0 l-3 5 q-7 3 -14 0 z" fill="#c08763" stroke="#7c6a4d" stroke-width="1"/>
+      <path d="M0 4 v-14 l9 10 z" fill="#f2e6cf" stroke="#7c6a4d" stroke-width="1"/>
+    </g>`;
+
+  /* Money vessels — a purse, jar, chest, heart-jar and seed-pot. */
+  SVG.vessel = function (type, color) {
+    const base = { fill: color, stroke: '#5b4f3f', 'stroke-width': 1.6 };
+    const s = `fill="${color}" stroke="#5b4f3f" stroke-width="1.6" stroke-linejoin="round"`;
+    switch (type) {
+      case 'purse': return `<g ${s}><path d="M8 18 q-4 -20 20 -20 q24 0 20 20 z"/><path d="M14 -2 q6 -8 20 0" fill="none"/><circle cx="28" cy="9" r="2.4" fill="#fff8e8"/></g>`;
+      case 'jar':   return `<g ${s}><rect x="10" y="0" width="36" height="26" rx="6"/><rect x="14" y="-6" width="28" height="8" rx="3"/></g>`;
+      case 'chest': return `<g ${s}><rect x="8" y="6" width="40" height="18" rx="3"/><path d="M8 8 q20 -14 40 0 v0" /><rect x="24" y="10" width="8" height="8" rx="1.5" fill="#f0d9a8"/></g>`;
+      case 'heart': return `<g ${s}><path d="M28 24 q-20 -10 -20 -22 q0 -8 10 -6 q6 1 10 8 q4 -7 10 -8 q10 -2 10 6 q0 12 -20 22z"/></g>`;
+      case 'seed':  return `<g ${s}><path d="M12 24 q4 -14 16 -14 q12 0 16 14 z"/><path d="M28 10 q0 -10 8 -14 q-2 10 -8 14" fill="#8ba676" stroke="#5b7a52"/></g>`;
+      default:      return `<circle cx="28" cy="12" r="14" ${s}/>`;
+    }
+  };
+
+  NOYA.SVG = SVG;
+})(window.NOYA = window.NOYA || {});
+
+
+/* ============================================================ */
+
+/* ============================================================
+   NOYA Kids · Life Lab — Views
+   ------------------------------------------------------------
+   Pure-ish render functions.  The world map, Today, Journey,
+   Baseline/Beyond render from state; the interactive overlays
+   (Island, Money, My Year, Decision Lab, Parent) manage their
+   own small pieces of local UI state and persist through Store.
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+
+  const { Store, SVG } = NOYA;
+  const V = {};
+
+  /* ---------- tiny DOM helpers ---------- */
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+  const islandById = (id) => NOYA.ISLANDS.find((i) => i.id === id);
+
+  let toastTimer = null;
+  function toast(msg) {
+    let t = document.querySelector('.toast');
+    if (!t) { t = h('<div class="toast" role="status"></div>'); document.body.appendChild(t); }
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  V.toast = toast;
+
+  /* ---------- generic modal ---------- */
+  function modal(titleHTML, bodyNode, cls) {
+    const back = h(`<div class="modal-back"></div>`);
+    const win = h(`<div class="modal ${cls || ''}"></div>`);
+    const head = h(`<div class="modal-head"><div class="modal-title">${titleHTML}</div>
+      <button class="modal-close" aria-label="关闭">✕</button></div>`);
+    win.appendChild(head);
+    const body = h(`<div class="modal-body"></div>`);
+    body.appendChild(bodyNode);
+    win.appendChild(body);
+    back.appendChild(win);
+    const close = () => { back.classList.remove('in'); setTimeout(() => back.remove(), 200); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    head.querySelector('.modal-close').addEventListener('click', close);
+    back.addEventListener('click', (e) => { if (e.target === back) close(); });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add('in'));
+    return { back, win, body, close };
+  }
+  V.modal = modal;
+
+  /* ============================================================
+     TOP-LEVEL RENDER
+     ============================================================ */
+  V.render = function (state) {
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+    app.appendChild(V.header(state));
+    if (state.parentMode) {
+      app.appendChild(V.parent(state));
+    } else {
+      const child = Store.current();
+      app.setAttribute('data-theme', child.worldTheme);
+      app.appendChild(V.world(child));
+    }
+  };
+
+  /* ---------- header + child switcher ---------- */
+  V.header = function (state) {
+    const wrap = h(`<header class="topbar"></header>`);
+    wrap.innerHTML = `
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <span class="brand-name">NOYA Kids <span class="brand-dot">·</span> Life Lab</span>
+      </div>
+      <div class="switcher" role="tablist" aria-label="选择孩子"></div>
+      <button class="parent-btn ${state.parentMode ? 'on' : ''}" data-action="toggle-parent">
+        ${state.parentMode ? '← 回到孩子的世界' : '家长入口'}
+      </button>`;
+    const sw = wrap.querySelector('.switcher');
+    NOYA.CHILD_ORDER.forEach((id) => {
+      const c = state.children[id];
+      const on = !state.parentMode && state.currentChild === id;
+      const b = h(`<button class="chip ${on ? 'on' : ''}" data-action="switch-child" data-id="${id}"
+        role="tab" aria-selected="${on}" data-theme="${c.worldTheme}">
+        <span class="chip-orb"></span><span>${esc(c.name)}</span></button>`);
+      sw.appendChild(b);
+    });
+    return wrap;
+  };
+
+  /* ============================================================
+     MY WORLD
+     ============================================================ */
+  V.world = function (child) {
+    const wrap = h(`<main class="world"></main>`);
+
+    /* hero */
+    const doneCount = child.today.filter((t) => t.done).length;
+    wrap.appendChild(h(`
+      <section class="hero">
+        <div class="hero-left">
+          <div class="hero-kicker">${esc(child.name)} 的世界 · Day ${child.day}</div>
+          <h1 class="hero-title">MY WORLD</h1>
+          <p class="hero-motto">“${esc(child.motto)}”</p>
+        </div>
+        <div class="hero-right">
+          <div class="hero-stat"><b>${child.stars}</b><span>✦ 星星</span></div>
+          <div class="hero-stat"><b>${doneCount}/${child.today.length}</b><span>今日</span></div>
+          <div class="hero-season">${esc(child.season)}</div>
+        </div>
+      </section>`));
+
+    /* portals row */
+    const portals = h(`<nav class="portals"></nav>`);
+    portals.innerHTML = `
+      <button class="portal" data-action="open-journey"><span>🗺️</span><b>学期旅程</b><i>Semester Journey</i></button>
+      <button class="portal" data-action="open-year"><span>📖</span><b>我的一年</b><i>My Life Atlas</i></button>
+      <button class="portal" data-action="open-decision"><span>🔮</span><b>选择实验室</b><i>Decision Lab</i></button>
+      <button class="portal" data-action="open-island" data-island="money"><span>🏝️</span><b>财富岛</b><i>Money Island</i></button>`;
+    wrap.appendChild(portals);
+
+    /* Today */
+    wrap.appendChild(V.today(child));
+
+    /* World map */
+    wrap.appendChild(V.map(child));
+
+    /* Baseline & Beyond */
+    wrap.appendChild(V.baseline(child));
+
+    /* footer note */
+    wrap.appendChild(h(`<footer class="worldfoot">
+      <span>这是 ${esc(child.name)} 自己的世界 — 一点一点建起来。</span>
+      <button class="linkbtn" data-action="reset-data">重置示例数据</button>
+    </footer>`));
+
+    return wrap;
+  };
+
+  /* ---------- Today's Quest ---------- */
+  V.today = function (child) {
+    const sec = h(`<section class="card today"></section>`);
+    sec.appendChild(h(`<div class="card-head"><h2>Today's Quest</h2><span class="card-sub">今天最重要的几件小事</span></div>`));
+    const list = h(`<div class="quests"></div>`);
+    child.today.forEach((q) => {
+      const isl = islandById(q.island);
+      const card = h(`
+        <button class="quest ${q.done ? 'done' : ''}" data-action="toggle-quest" data-id="${q.id}"
+          style="--isl:${isl ? isl.color : '#b0946a'}">
+          <span class="quest-check">${q.done ? '✓' : ''}</span>
+          <span class="quest-icon">${q.icon}</span>
+          <span class="quest-main">
+            <span class="quest-title">${esc(q.title)}</span>
+            <span class="quest-tag">${isl ? esc(isl.name) : ''}${q.optional ? ' · 可选挑战' : ''}</span>
+          </span>
+        </button>`);
+      list.appendChild(card);
+    });
+    sec.appendChild(list);
+    return sec;
+  };
+
+  /* ---------- World Map ---------- */
+  V.map = function (child) {
+    const sec = h(`<section class="card mapcard"></section>`);
+    sec.appendChild(h(`<div class="card-head"><h2>My World Map</h2><span class="card-sub">点一座岛，进去看看</span></div>`));
+
+    const pos = {
+      learning: { cx: 205, cy: 165, scale: 1 },
+      life:     { cx: 795, cy: 150, scale: 1 },
+      home:     { cx: 260, cy: 410, scale: 1 },
+      growth:   { cx: 800, cy: 410, scale: 1 },
+      money:    { cx: 515, cy: 295, scale: 1.12 },
+    };
+
+    let isles = '';
+    NOYA.ISLANDS.forEach((isl) => {
+      isles += SVG.island(isl, { ...pos[isl.id], progress: child.islands[isl.id].progress });
+    });
+
+    /* scenery */
+    let stars = '';
+    const starPts = [[120,70],[360,60],[640,80],[900,70],[70,300],[940,300],[430,120],[700,250]];
+    starPts.forEach((p, i) => stars += SVG.star(p[0], p[1], 2 + (i % 3) * 0.7, 0.75));
+
+    const svg = `
+      <svg viewBox="0 0 1000 560" class="worldmap" role="img" aria-label="${esc(child.name)} 的世界地图" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <radialGradient id="sea" cx="50%" cy="42%" r="70%">
+            <stop offset="0%" stop-color="var(--sea-1)"/>
+            <stop offset="100%" stop-color="var(--sea-2)"/>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="1000" height="560" rx="22" fill="url(#sea)"/>
+        <g class="sea-lines" stroke="var(--sea-line)" stroke-width="1.2" fill="none" opacity="0.5">
+          <path d="M60 470 q40 -10 80 0 t80 0"/>
+          <path d="M700 490 q40 -10 80 0 t80 0"/>
+          <path d="M420 500 q30 -8 60 0 t60 0"/>
+        </g>
+        <path class="routes" d="M240 190 Q380 120 505 270 Q640 380 780 180 M300 380 Q420 330 505 300 M540 320 Q680 380 800 380"
+              fill="none" stroke="var(--route)" stroke-width="2.4" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.6"/>
+        ${stars}
+        ${SVG.tree(120, 470, 1.3)} ${SVG.tree(150, 480, 1)} ${SVG.tree(905, 470, 1.2)}
+        ${SVG.boat(620, 470)}
+        ${SVG.lighthouse(70, 150)}
+        ${isles}
+        ${SVG.compass(925, 490)}
+      </svg>`;
+    const holder = h(`<div class="mapwrap"></div>`);
+    holder.innerHTML = svg;
+    sec.appendChild(holder);
+    return sec;
+  };
+
+  /* ---------- Baseline & Beyond ---------- */
+  V.baseline = function (child) {
+    const sec = h(`<section class="bb"></section>`);
+
+    const baseDone = child.baseline.filter((b) => b.done).length;
+    const base = h(`<div class="card bb-base"></div>`);
+    base.appendChild(h(`<div class="card-head"><h2>Baseline · 基本生活线</h2>
+      <span class="card-sub">作为家庭成员、学生和照顾自己的人，本来就要做的事 · ${baseDone}/${child.baseline.length}</span></div>`));
+    const bl = h(`<div class="baseline-list"></div>`);
+    child.baseline.forEach((b, i) => {
+      bl.appendChild(h(`<button class="bl-item ${b.done ? 'done' : ''}" data-action="toggle-baseline" data-index="${i}">
+        <span class="bl-check">${b.done ? '✓' : ''}</span><span class="bl-ic">${b.icon}</span>
+        <span class="bl-title">${esc(b.title)}</span></button>`));
+    });
+    base.appendChild(bl);
+    sec.appendChild(base);
+
+    const beyond = h(`<div class="card bb-beyond"></div>`);
+    beyond.appendChild(h(`<div class="card-head"><h2>Beyond the Line · 超越基本线</h2>
+      <span class="card-sub">主动创造的额外价值 — 未来会变成 Value Credit</span></div>`));
+    const yl = h(`<div class="beyond-list"></div>`);
+    const statusLabel = { done: '已完成', doing: '进行中', idea: '想法' };
+    child.beyond.forEach((b) => {
+      yl.appendChild(h(`<div class="by-item st-${b.status}">
+        <span class="by-ic">${b.icon}</span>
+        <span class="by-main"><span class="by-title">${esc(b.title)}</span>
+        <span class="by-status">${statusLabel[b.status] || ''}</span></span>
+        <span class="by-credit">${b.credit ? '✦ ' + b.credit : '—'}</span></div>`));
+    });
+    beyond.appendChild(yl);
+    beyond.appendChild(h(`<div class="by-hint">value credit 只是让努力被看见，不是“做一件赚多少钱”。</div>`));
+    sec.appendChild(beyond);
+
+    return sec;
+  };
+
+  /* ============================================================
+     ISLAND OVERLAY
+     ============================================================ */
+  V.openIsland = function (id) {
+    if (id === 'money') return V.openMoney();
+    const child = Store.current();
+    const isl = islandById(id);
+    const data = child.islands[id];
+    const body = h(`<div class="isle-panel" style="--isl:${isl.color};--isl-tint:${isl.tint}"></div>`);
+    let items = '';
+    data.items.forEach((it, i) => {
+      items += `<button class="ip-item ${it.done ? 'done' : ''}" data-ip="${i}">
+        <span class="ip-check">${it.done ? '✓' : ''}</span><span>${esc(it.title)}</span></button>`;
+    });
+    body.innerHTML = `
+      <div class="ip-hero">
+        <div class="ip-badge">${isl.no}</div>
+        <div>
+          <div class="ip-en">${isl.en}</div>
+          <div class="ip-blurb">${esc(isl.blurb)}</div>
+        </div>
+      </div>
+      <div class="ip-progress"><div class="ip-bar"><i style="width:${data.progress}%"></i></div><b>${data.progress}%</b></div>
+      <p class="ip-note">${esc(data.note)}</p>
+      <div class="ip-items">${items}</div>`;
+
+    const m = modal(`<span class="mt-ic" style="color:${isl.color}">●</span> ${esc(isl.name)} <span class="mt-en">${isl.en}</span>`, body, 'wide');
+
+    body.querySelectorAll('.ip-item').forEach((el) => {
+      el.addEventListener('click', () => {
+        const i = +el.getAttribute('data-ip');
+        Store.updateChild(child.id, (c) => {
+          const item = c.islands[id].items[i];
+          item.done = !item.done;
+          const done = c.islands[id].items.filter((x) => x.done).length;
+          c.islands[id].progress = Math.round((done / c.islands[id].items.length) * 100);
+        });
+        const nd = Store.child(child.id).islands[id];
+        el.classList.toggle('done');
+        el.querySelector('.ip-check').textContent = el.classList.contains('done') ? '✓' : '';
+        body.querySelector('.ip-bar i').style.width = nd.progress + '%';
+        body.querySelector('.ip-progress b').textContent = nd.progress + '%';
+      });
+    });
+  };
+
+  /* ============================================================
+     MONEY ISLAND
+     ============================================================ */
+  function total(pools) { return Object.values(pools).reduce((a, b) => a + b, 0); }
+
+  V.openMoney = function () {
+    const child = Store.current();
+    const body = h(`<div class="money-panel"></div>`);
+    const m = modal(`<span class="mt-ic" style="color:#5c9187">●</span> 财富岛 <span class="mt-en">Money Island</span>`, body, 'wide');
+
+    function paint() {
+      const c = Store.child(child.id);
+      const p = c.money.pools;
+      const t = total(p);
+      const goalPct = Math.min(100, Math.round((p.goal / c.money.goalTarget) * 100));
+      const vessels = NOYA.MONEY_POOLS.map((pool) => {
+        const amt = p[pool.id];
+        const isAvail = pool.id === 'available';
+        return `
+          <div class="vessel ${isAvail ? 'is-available' : 'drop'}" data-pool="${pool.id}" style="--pc:${pool.color}">
+            <div class="vessel-art">
+              <svg viewBox="0 0 56 26" preserveAspectRatio="xMidYMax meet">${SVG.vessel(pool.vessel, pool.color)}</svg>
+            </div>
+            <div class="vessel-amt">${amt}</div>
+            <div class="vessel-name">${pool.name} <i>${pool.en}</i></div>
+            <div class="vessel-desc">${pool.desc}</div>
+            ${isAvail ? '' : `<button class="vessel-return" data-return="${pool.id}" title="退回 5 到可用">−5</button>`}
+            ${pool.id === 'goal' ? `<div class="vessel-goal">${esc(c.money.goalName)} · ${p.goal}/${c.money.goalTarget}</div>` : ''}
+          </div>`;
+      }).join('');
+
+      body.innerHTML = `
+        <div class="money-top">
+          <div class="money-total">
+            <span class="mt-label">TOTAL · 我拥有的</span>
+            <span class="mt-num">${t}</span>
+            <span class="mt-unit">枚</span>
+          </div>
+          <div class="money-goal">
+            <span>🎯 ${esc(c.money.goalName)}</span>
+            <div class="goal-bar"><i style="width:${goalPct}%"></i></div>
+            <span class="goal-pct">${goalPct}%</span>
+          </div>
+        </div>
+        <div class="coin-tray">
+          <span class="tray-label">拖一枚硬币，放进想要的地方 →</span>
+          <div class="coins">
+            <span class="coin" draggable="true" data-val="1">1</span>
+            <span class="coin" draggable="true" data-val="5">5</span>
+            <span class="coin" draggable="true" data-val="10">10</span>
+          </div>
+        </div>
+        <div class="vessels">${vessels}</div>
+        <p class="money-hint">有限的资源 → 自己选择 → 分配 → 看到结果。没有标准答案。</p>`;
+
+      wire();
+    }
+
+    function move(from, to, amt) {
+      const c = Store.child(child.id);
+      if (c.money.pools[from] < amt) { toast('可用的不够啦'); return false; }
+      Store.updateChild(child.id, (cc) => { cc.money.pools[from] -= amt; cc.money.pools[to] += amt; });
+      return true;
+    }
+
+    function wire() {
+      // drag coins
+      let dragVal = 0;
+      body.querySelectorAll('.coin').forEach((coin) => {
+        coin.addEventListener('dragstart', (e) => {
+          dragVal = +coin.getAttribute('data-val');
+          e.dataTransfer.setData('text/plain', String(dragVal));
+          e.dataTransfer.effectAllowed = 'move';
+        });
+      });
+      body.querySelectorAll('.vessel.drop').forEach((v) => {
+        v.addEventListener('dragover', (e) => { e.preventDefault(); v.classList.add('over'); });
+        v.addEventListener('dragleave', () => v.classList.remove('over'));
+        v.addEventListener('drop', (e) => {
+          e.preventDefault(); v.classList.remove('over');
+          const amt = +(e.dataTransfer.getData('text/plain') || dragVal);
+          const to = v.getAttribute('data-pool');
+          if (move('available', to, amt)) { toast(`放进「${NOYA.MONEY_POOLS.find(p=>p.id===to).name}」 +${amt} ✦`); paint(); }
+        });
+      });
+      // return buttons
+      body.querySelectorAll('.vessel-return').forEach((b) => {
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const from = b.getAttribute('data-return');
+          const c = Store.child(child.id);
+          const amt = Math.min(5, c.money.pools[from]);
+          if (amt <= 0) return;
+          Store.updateChild(child.id, (cc) => { cc.money.pools[from] -= amt; cc.money.pools.available += amt; });
+          paint();
+        });
+      });
+    }
+
+    paint();
+  };
+
+  /* ============================================================
+     SEMESTER JOURNEY
+     ============================================================ */
+  V.openJourney = function () {
+    const child = Store.current();
+    const body = h(`<div class="journey-panel"></div>`);
+    const st = child.semester.stages;
+    const subjById = {}; child.semester.subjects.forEach((s) => subjById[s.id] = s);
+
+    // winding path points across width
+    const N = st.length;
+    const W = 720, H = 300, padX = 60;
+    const pts = st.map((s, i) => {
+      const x = padX + (i / (N - 1)) * (W - padX * 2);
+      const y = H / 2 + Math.sin(i * 1.15) * 78;
+      return { x, y };
+    });
+    let path = `M${pts[0].x} ${pts[0].y}`;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const mx = (a.x + b.x) / 2;
+      path += ` C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
+    }
+    const doneIdx = st.map((s, i) => s.status === 'done' ? i : -1).filter((i) => i >= 0);
+    const lastDone = doneIdx.length ? Math.max(...doneIdx) : 0;
+
+    let nodes = '';
+    st.forEach((s, i) => {
+      const p = pts[i], sub = subjById[s.subject] || { color: '#b0946a', name: '' };
+      const r = s.status === 'current' ? 16 : 13;
+      nodes += `
+        <g class="jnode st-${s.status}" data-jn="${i}" transform="translate(${p.x},${p.y})">
+          <circle r="26" fill="transparent"/>
+          ${s.status === 'current' ? `<circle r="24" class="pulse" fill="none" stroke="${sub.color}"/>` : ''}
+          <circle r="${r}" fill="${s.status === 'locked' ? '#e7ddc9' : sub.color}"
+                  stroke="#fff" stroke-width="3"/>
+          ${s.status === 'done' ? `<path d="M-5 0 l3 4 l7 -8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+          ${s.status === 'current' ? `<circle r="4" fill="#fff"/>` : ''}
+          <text y="${r + 16}" text-anchor="middle" class="jn-title">${esc(s.title)}</text>
+          <text y="${r + 30}" text-anchor="middle" class="jn-sub">${esc(sub.name)}</text>
+        </g>`;
+    });
+    // walker at last done node moving toward current
+    const walker = pts[lastDone];
+
+    const legend = child.semester.subjects.map((s) =>
+      `<span class="lg"><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('');
+
+    body.innerHTML = `
+      <p class="jp-intro">每完成一个阶段，就在地图上往前走一步。这学期的路，是这样的：</p>
+      <div class="jp-legend">${legend}</div>
+      <div class="jp-mapwrap">
+        <svg viewBox="0 0 ${W} ${H + 30}" class="journey-map" preserveAspectRatio="xMidYMid meet">
+          <path d="${path}" fill="none" stroke="#e3d8c1" stroke-width="10" stroke-linecap="round"/>
+          <path d="${path}" fill="none" stroke="var(--isl,#c6a15b)" stroke-width="3.4"
+                stroke-dasharray="3 8" stroke-linecap="round" opacity="0.55"/>
+          ${nodes}
+          <g transform="translate(${walker.x},${walker.y - 26})" class="walker">
+            <text text-anchor="middle" font-size="20">🚶</text>
+          </g>
+        </svg>
+      </div>
+      <div class="jp-detail" id="jp-detail">点一个路标，看看那一关是什么。</div>`;
+
+    const m = modal(`🗺️ 学期旅程 <span class="mt-en">Semester Journey</span>`, body, 'wide');
+
+    const detail = body.querySelector('#jp-detail');
+    body.querySelectorAll('.jnode').forEach((n) => {
+      n.addEventListener('click', () => {
+        const s = st[+n.getAttribute('data-jn')];
+        const sub = subjById[s.subject];
+        const label = { done: '已经走过 ✓', current: '正在这里 ★', locked: '还没解锁' }[s.status];
+        detail.innerHTML = `<b style="color:${sub.color}">${esc(sub.name)} · ${esc(s.title)}</b>
+          <span class="jd-status">${label}</span><p>${esc(s.note)}</p>`;
+      });
+    });
+  };
+
+  /* ============================================================
+     MY YEAR · Life Atlas
+     ============================================================ */
+  V.openYear = function () {
+    const child = Store.current();
+    const body = h(`<div class="year-panel"></div>`);
+    const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+    let filter = 0; // 0 = all
+
+    function paint() {
+      const evs = child.timeline.slice().sort((a, b) => a.month - b.month);
+      const shown = filter ? evs.filter((e) => e.month === filter) : evs;
+      const rail = months.map((mn, i) => {
+        const has = evs.some((e) => e.month === i + 1);
+        const on = filter === i + 1;
+        return `<button class="mo ${has ? 'has' : ''} ${on ? 'on' : ''}" data-mo="${i + 1}">${mn}</button>`;
+      }).join('');
+      const cards = shown.length ? shown.map((e) => `
+        <div class="atlas-ev">
+          <div class="ev-mo">${months[e.month - 1]}</div>
+          <div class="ev-ic">${e.icon}</div>
+          <div class="ev-body"><b>${esc(e.title)}</b><span>${esc(e.note)}</span></div>
+        </div>`).join('') : `<div class="atlas-empty">这个月还没有记录 — 未来可以加进来。</div>`;
+
+      body.innerHTML = `
+        <p class="atlas-intro">这里记录的不只是成绩，是 ${esc(child.name)} 真正经历过的时刻。</p>
+        <div class="mo-rail">
+          <button class="mo ${filter === 0 ? 'on' : ''}" data-mo="0">全部</button>${rail}
+        </div>
+        <div class="atlas-list">${cards}</div>
+        <div class="atlas-foot">未来可以生成 · <b>${esc(child.name)} · MY 2026</b> 年度成长图</div>`;
+      body.querySelectorAll('.mo').forEach((b) =>
+        b.addEventListener('click', () => { filter = +b.getAttribute('data-mo'); paint(); }));
+    }
+    paint();
+    modal(`📖 我的一年 <span class="mt-en">My Life Atlas</span>`, body, 'wide');
+  };
+
+  /* ============================================================
+     DECISION LAB
+     ============================================================ */
+  V.openDecision = function () {
+    const child = Store.current();
+    const steps = NOYA.DECISION_STEPS;
+    const answers = {};
+    let i = 0;
+    const body = h(`<div class="lab-panel"></div>`);
+
+    function paint() {
+      if (i < steps.length) {
+        const s = steps[i];
+        body.innerHTML = `
+          <div class="lab-door">
+            <div class="lab-step">第 ${i + 1} / ${steps.length} 道门</div>
+            <h3 class="lab-q">${esc(s.q)}</h3>
+            <div class="lab-en">${s.en}</div>
+            ${s.key === 'still'
+              ? `<div class="lab-final">
+                   <button class="lab-yes" data-final="yes">YES · 我还想要</button>
+                   <button class="lab-not" data-final="not">NOT NOW · 现在先不要</button>
+                 </div>`
+              : `<textarea class="lab-input" rows="3" placeholder="用自己的话写一写…">${esc(answers[s.key] || '')}</textarea>
+                 <div class="lab-nav">
+                   ${i > 0 ? `<button class="lab-back">← 上一道</button>` : `<span></span>`}
+                   <button class="lab-next">下一道 →</button>
+                 </div>`}
+          </div>`;
+        const ta = body.querySelector('.lab-input');
+        if (ta) ta.addEventListener('input', () => answers[s.key] = ta.value);
+        const nb = body.querySelector('.lab-next');
+        if (nb) nb.addEventListener('click', () => { i++; paint(); });
+        const bb = body.querySelector('.lab-back');
+        if (bb) bb.addEventListener('click', () => { i--; paint(); });
+        body.querySelectorAll('[data-final]').forEach((b) =>
+          b.addEventListener('click', () => finish(b.getAttribute('data-final') === 'yes')));
+      }
+    }
+
+    function finish(yes) {
+      Store.updateChild(child.id, (c) => {
+        c.decisions.unshift({ want: answers.want || '', result: yes ? 'yes' : 'not', day: c.day });
+        if (c.decisions.length > 20) c.decisions.pop();
+      });
+      body.innerHTML = `
+        <div class="lab-result ${yes ? 'yes' : 'not'}">
+          <div class="lab-res-ic">${yes ? '🌟' : '🌙'}</div>
+          <h3>${yes ? '你选择了：YES' : '你选择了：NOT NOW'}</h3>
+          <p>${yes
+            ? '你想清楚了，也知道要付出什么。这是你自己的选择。'
+            : '现在先不要，不代表永远不要。你可以以后再回来。'}</p>
+          <div class="lab-recall">
+            <span>你想要的：</span>${esc(answers.want || '（没有写）')}
+          </div>
+          <button class="lab-again" data-action="open-decision">再走一次</button>
+        </div>`;
+    }
+
+    paint();
+    modal(`🔮 选择实验室 <span class="mt-en">Decision Lab</span>`, body, 'lab');
+  };
+
+  NOYA.V = V;
+  NOYA._esc = esc; NOYA._h = h;
+})(window.NOYA = window.NOYA || {});
+
+
+/* ============================================================ */
+
+/* ============================================================
+   NOYA Kids · Life Lab — Parent Mode
+   ------------------------------------------------------------
+   A calm build-the-environment panel, not a surveillance center.
+   The parent seeds goals, tasks, baseline, challenges, money and
+   growth events — then hands the world back to the child.
+   Text/number edits commit on an explicit button (so typing is
+   never interrupted by a re-render); toggles commit immediately.
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+  const { Store, V } = NOYA;
+  const esc = NOYA._esc, h = NOYA._h;
+
+  let editId = null; // which child the parent is editing
+
+  V.parent = function (state) {
+    if (!editId || !state.children[editId]) editId = state.currentChild;
+    const child = state.children[editId];
+    const wrap = h(`<main class="parent"></main>`);
+
+    /* ---- overview of both children ---- */
+    const ov = h(`<section class="card p-overview"></section>`);
+    ov.appendChild(h(`<div class="card-head"><h2>近期状态</h2><span class="card-sub">帮助搭建环境，然后把管理权交给孩子</span></div>`));
+    const grid = h(`<div class="ov-grid"></div>`);
+    NOYA.CHILD_ORDER.forEach((id) => {
+      const c = state.children[id];
+      const doneToday = c.today.filter((t) => t.done).length;
+      const avg = Math.round(NOYA.ISLANDS.reduce((a, i) => a + c.islands[i.id].progress, 0) / NOYA.ISLANDS.length);
+      const bars = NOYA.ISLANDS.map((i) =>
+        `<span class="ov-bar" title="${esc(i.name)}"><i style="height:${c.islands[i.id].progress}%;background:${i.color}"></i></span>`).join('');
+      grid.appendChild(h(`
+        <div class="ov-card" data-theme="${c.worldTheme}">
+          <div class="ov-top"><b>${esc(c.name)}</b><span>${NOYA.AGE_LEVELS[c.ageLevel].label}</span></div>
+          <div class="ov-bars">${bars}</div>
+          <div class="ov-meta">
+            <span>✦ ${c.stars}</span><span>今日 ${doneToday}/${c.today.length}</span><span>平均 ${avg}%</span>
+          </div>
+          <button class="ov-edit ${id === editId ? 'on' : ''}" data-edit="${id}">${id === editId ? '编辑中' : '编辑这个孩子'}</button>
+        </div>`));
+    });
+    ov.appendChild(grid);
+    wrap.appendChild(ov);
+
+    /* ---- editing panels for the selected child ---- */
+    const head = h(`<div class="p-editing"><span class="p-tag" data-theme="${child.worldTheme}">正在编辑</span>
+      <b>${esc(child.name)}</b><span class="p-en">${child.en} · ${NOYA.AGE_LEVELS[child.ageLevel].label}</span></div>`);
+    wrap.appendChild(head);
+
+    const cols = h(`<div class="p-cols"></div>`);
+
+    /* helper to build a section card */
+    const section = (title, sub) => {
+      const s = h(`<section class="card p-sec"></section>`);
+      s.appendChild(h(`<div class="card-head"><h2>${title}</h2>${sub ? `<span class="card-sub">${sub}</span>` : ''}</div>`));
+      return s;
+    };
+    const commit = (fn) => Store.updateChild(editId, fn);
+
+    /* ---- Semester goals ---- */
+    const sem = section('学期目标', '完成一关，地图上前进一步');
+    const cycle = { locked: 'done', done: 'current', current: 'locked' };
+    const stList = h(`<div class="p-list"></div>`);
+    child.semester.stages.forEach((s, idx) => {
+      const sub = child.semester.subjects.find((x) => x.id === s.subject) || {};
+      const row = h(`<div class="p-row">
+        <button class="p-status st-${s.status}" title="切换状态">${{done:'✓',current:'★',locked:'·'}[s.status]}</button>
+        <span class="p-dot" style="background:${sub.color||'#ccc'}"></span>
+        <span class="p-row-main"><b>${esc(s.title)}</b><i>${esc(sub.name||'')} · ${esc(s.note||'')}</i></span>
+        <button class="p-del" title="删除">✕</button></div>`);
+      row.querySelector('.p-status').addEventListener('click', () => commit((c) => { c.semester.stages[idx].status = cycle[s.status]; }));
+      row.querySelector('.p-del').addEventListener('click', () => commit((c) => c.semester.stages.splice(idx, 1)));
+      stList.appendChild(row);
+    });
+    sem.appendChild(stList);
+    const subjOpts = child.semester.subjects.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    const semForm = h(`<div class="p-form">
+      <select class="pf-sub">${subjOpts}</select>
+      <input class="pf-title" placeholder="关卡名，如「乘法熟练」"/>
+      <input class="pf-note" placeholder="说明（可选）"/>
+      <button class="pf-add">＋ 添加关卡</button></div>`);
+    semForm.querySelector('.pf-add').addEventListener('click', () => {
+      const title = semForm.querySelector('.pf-title').value.trim(); if (!title) return;
+      commit((c) => c.semester.stages.push({
+        id: 's_' + Date.now(), subject: semForm.querySelector('.pf-sub').value,
+        title, status: 'locked', note: semForm.querySelector('.pf-note').value.trim() }));
+    });
+    sem.appendChild(semForm);
+    cols.appendChild(sem);
+
+    /* ---- Today quests ---- */
+    const tod = section('今日任务', '只放今天最重要的几件');
+    const tList = h(`<div class="p-list"></div>`);
+    child.today.forEach((t, idx) => {
+      const isl = NOYA.ISLANDS.find((i) => i.id === t.island) || {};
+      const row = h(`<div class="p-row">
+        <span class="p-ic">${t.icon}</span>
+        <span class="p-row-main"><b>${esc(t.title)}</b><i>${esc(isl.name||'')}${t.optional?' · 可选':''}${t.done?' · 已完成':''}</i></span>
+        <button class="p-del">✕</button></div>`);
+      row.querySelector('.p-del').addEventListener('click', () => commit((c) => c.today.splice(idx, 1)));
+      tList.appendChild(row);
+    });
+    tod.appendChild(tList);
+    const islOpts = NOYA.ISLANDS.map((i) => `<option value="${i.id}">${esc(i.name)}</option>`).join('');
+    const todForm = h(`<div class="p-form">
+      <input class="pf-ic" placeholder="📚" value="📚" maxlength="2" style="max-width:56px"/>
+      <select class="pf-isl">${islOpts}</select>
+      <input class="pf-title" placeholder="任务，如「复习乘法」"/>
+      <label class="pf-check"><input type="checkbox" class="pf-opt"/>可选挑战</label>
+      <button class="pf-add">＋ 添加任务</button></div>`);
+    todForm.querySelector('.pf-add').addEventListener('click', () => {
+      const title = todForm.querySelector('.pf-title').value.trim(); if (!title) return;
+      commit((c) => c.today.push({ id: 't_' + Date.now(),
+        island: todForm.querySelector('.pf-isl').value,
+        icon: todForm.querySelector('.pf-ic').value || '✨',
+        title, done: false, optional: todForm.querySelector('.pf-opt').checked }));
+    });
+    tod.appendChild(todForm);
+    cols.appendChild(tod);
+
+    /* ---- Baseline ---- */
+    const base = section('Baseline · 基本生活线', '本来就要承担的基本责任');
+    const bList = h(`<div class="p-list"></div>`);
+    child.baseline.forEach((b, idx) => {
+      const row = h(`<div class="p-row">
+        <button class="p-status ${b.done ? 'st-done' : 'st-locked'}">${b.done ? '✓' : '·'}</button>
+        <span class="p-ic">${b.icon}</span>
+        <span class="p-row-main"><b>${esc(b.title)}</b></span>
+        <button class="p-del">✕</button></div>`);
+      row.querySelector('.p-status').addEventListener('click', () => commit((c) => c.baseline[idx].done = !c.baseline[idx].done));
+      row.querySelector('.p-del').addEventListener('click', () => commit((c) => c.baseline.splice(idx, 1)));
+      bList.appendChild(row);
+    });
+    base.appendChild(bList);
+    const bForm = h(`<div class="p-form">
+      <input class="pf-ic" placeholder="🎒" value="✓" maxlength="2" style="max-width:56px"/>
+      <input class="pf-title" placeholder="基本责任，如「准备第二天用品」"/>
+      <button class="pf-add">＋ 添加</button></div>`);
+    bForm.querySelector('.pf-add').addEventListener('click', () => {
+      const title = bForm.querySelector('.pf-title').value.trim(); if (!title) return;
+      commit((c) => c.baseline.push({ icon: bForm.querySelector('.pf-ic').value || '✓', title, done: false }));
+    });
+    base.appendChild(bForm);
+    cols.appendChild(base);
+
+    /* ---- Beyond ---- */
+    const bey = section('Beyond · 超越基本线', '主动创造的额外价值');
+    const yList = h(`<div class="p-list"></div>`);
+    const yCycle = { idea: 'doing', doing: 'done', done: 'idea' };
+    child.beyond.forEach((b, idx) => {
+      const row = h(`<div class="p-row">
+        <button class="p-status st-${b.status}" title="切换状态">${{done:'✓',doing:'…',idea:'○'}[b.status]}</button>
+        <span class="p-ic">${b.icon}</span>
+        <span class="p-row-main"><b>${esc(b.title)}</b><i>✦ ${b.credit||0}</i></span>
+        <button class="p-del">✕</button></div>`);
+      row.querySelector('.p-status').addEventListener('click', () => commit((c) => c.beyond[idx].status = yCycle[b.status]));
+      row.querySelector('.p-del').addEventListener('click', () => commit((c) => c.beyond.splice(idx, 1)));
+      yList.appendChild(row);
+    });
+    bey.appendChild(yList);
+    const yForm = h(`<div class="p-form">
+      <input class="pf-ic" placeholder="🌟" value="🌟" maxlength="2" style="max-width:56px"/>
+      <input class="pf-title" placeholder="额外挑战"/>
+      <input class="pf-credit" type="number" min="0" placeholder="✦" value="3" style="max-width:64px"/>
+      <button class="pf-add">＋ 添加</button></div>`);
+    yForm.querySelector('.pf-add').addEventListener('click', () => {
+      const title = yForm.querySelector('.pf-title').value.trim(); if (!title) return;
+      commit((c) => c.beyond.push({ icon: yForm.querySelector('.pf-ic').value || '🌟', title,
+        status: 'idea', credit: +yForm.querySelector('.pf-credit').value || 0 }));
+    });
+    bey.appendChild(yForm);
+    cols.appendChild(bey);
+
+    /* ---- Money ---- */
+    const money = section('财富账户', '调整各个池子里的资源');
+    const mForm = h(`<div class="p-money"></div>`);
+    const poolInputs = NOYA.MONEY_POOLS.map((p) =>
+      `<label class="pm-field"><span style="color:${p.color}">${esc(p.name)} ${p.en}</span>
+        <input type="number" min="0" class="pm-in" data-pool="${p.id}" value="${child.money.pools[p.id]}"/></label>`).join('');
+    mForm.innerHTML = `
+      ${poolInputs}
+      <label class="pm-field pm-wide"><span>目标名称</span><input class="pm-goal" value="${esc(child.money.goalName)}"/></label>
+      <label class="pm-field"><span>目标金额</span><input type="number" min="1" class="pm-target" value="${child.money.goalTarget}"/></label>
+      <button class="pm-save">保存财富账户</button>`;
+    mForm.querySelector('.pm-save').addEventListener('click', () => {
+      commit((c) => {
+        mForm.querySelectorAll('.pm-in').forEach((inp) => c.money.pools[inp.getAttribute('data-pool')] = Math.max(0, +inp.value || 0));
+        c.money.goalName = mForm.querySelector('.pm-goal').value.trim() || c.money.goalName;
+        c.money.goalTarget = Math.max(1, +mForm.querySelector('.pm-target').value || 1);
+      });
+      V.toast('已保存 ✦');
+    });
+    money.appendChild(mForm);
+    cols.appendChild(money);
+
+    /* ---- Timeline ---- */
+    const tl = section('成长事件', '记录真正经历过的时刻');
+    const tlList = h(`<div class="p-list"></div>`);
+    child.timeline.slice().sort((a,b)=>a.month-b.month).forEach((e) => {
+      const idx = child.timeline.indexOf(e);
+      const row = h(`<div class="p-row">
+        <span class="p-mo">${e.month}月</span><span class="p-ic">${e.icon}</span>
+        <span class="p-row-main"><b>${esc(e.title)}</b><i>${esc(e.note||'')}</i></span>
+        <button class="p-del">✕</button></div>`);
+      row.querySelector('.p-del').addEventListener('click', () => commit((c) => c.timeline.splice(idx, 1)));
+      tlList.appendChild(row);
+    });
+    tl.appendChild(tlList);
+    const moOpts = Array.from({length:12}, (_,i)=>`<option value="${i+1}">${i+1}月</option>`).join('');
+    const tlForm = h(`<div class="p-form">
+      <select class="pf-mo">${moOpts}</select>
+      <input class="pf-ic" placeholder="🌟" value="🌟" maxlength="2" style="max-width:56px"/>
+      <input class="pf-title" placeholder="事件"/>
+      <input class="pf-note" placeholder="一句话（可选）"/>
+      <button class="pf-add">＋ 添加</button></div>`);
+    tlForm.querySelector('.pf-add').addEventListener('click', () => {
+      const title = tlForm.querySelector('.pf-title').value.trim(); if (!title) return;
+      commit((c) => c.timeline.push({ month: +tlForm.querySelector('.pf-mo').value,
+        icon: tlForm.querySelector('.pf-ic').value || '🌟', title,
+        note: tlForm.querySelector('.pf-note').value.trim() }));
+    });
+    tl.appendChild(tlForm);
+    cols.appendChild(tl);
+
+    wrap.appendChild(cols);
+
+    /* wire the child-edit switch */
+    ov.querySelectorAll('.ov-edit').forEach((b) =>
+      b.addEventListener('click', () => { editId = b.getAttribute('data-edit'); Store.emit(); }));
+
+    return wrap;
+  };
+})(window.NOYA = window.NOYA || {});
+
+
+/* ============================================================ */
+
+/* ============================================================
+   NOYA Kids · Life Lab — App boot + event routing
+   ------------------------------------------------------------
+   One delegated click handler keeps the world screen wiring in
+   one place; the overlays wire their own internal events.
+   ============================================================ */
+(function (NOYA) {
+  'use strict';
+  const { Store, V } = NOYA;
+
+  const CHEERS = [
+    '地图上前进了一步 ✦', '一颗星星亮了 ✦', '一小片区域被点亮了 ✧',
+    '小树又长高了一点 🌱', '你的世界更完整了一点 ✦',
+  ];
+  const cheer = () => CHEERS[Math.floor(Date.now() / 900) % CHEERS.length];
+
+  function pulseIsland(islandId) {
+    const g = document.querySelector(`.isle[data-island="${islandId}"]`);
+    if (!g) return;
+    g.classList.remove('cheer'); void g.getBoundingClientRect();
+    g.classList.add('cheer');
+    setTimeout(() => g.classList.remove('cheer'), 900);
+  }
+
+  function handle(action, el) {
+    const state = Store.state;
+    switch (action) {
+      case 'switch-child':
+        Store.setChild(el.getAttribute('data-id'));
+        break;
+      case 'toggle-parent':
+        Store.setParentMode(!state.parentMode);
+        break;
+      case 'open-island':
+        V.openIsland(el.getAttribute('data-island'));
+        break;
+      case 'open-journey':  V.openJourney(); break;
+      case 'open-year':     V.openYear(); break;
+      case 'open-decision': V.openDecision(); break;
+
+      case 'toggle-quest': {
+        const id = el.getAttribute('data-id');
+        const child = Store.current();
+        const q = child.today.find((t) => t.id === id);
+        const willComplete = !q.done;
+        Store.updateChild(child.id, (c) => {
+          const t = c.today.find((x) => x.id === id);
+          t.done = !t.done;
+          c.stars = Math.max(0, c.stars + (t.done ? 1 : -1));
+        });
+        if (willComplete) { pulseIsland(q.island); V.toast(cheer()); }
+        break;
+      }
+      case 'toggle-baseline': {
+        const i = +el.getAttribute('data-index');
+        Store.updateChild(Store.current().id, (c) => { c.baseline[i].done = !c.baseline[i].done; });
+        break;
+      }
+      case 'reset-data':
+        if (confirm('重置为示例数据？两个孩子当前的数据都会清空。')) Store.reset();
+        break;
+    }
+  }
+
+  function onActivate(e) {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    if (e.type === 'keydown') {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+    }
+    handle(el.getAttribute('data-action'), el);
+  }
+
+  document.addEventListener('click', onActivate);
+  document.addEventListener('keydown', (e) => {
+    // only route keyboard activation for the SVG island buttons / focusable roles
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-action][tabindex]')) onActivate(e);
+  });
+
+  /* boot */
+  Store.load();
+  Store.subscribe(V.render);
+  V.render(Store.state);
+})(window.NOYA = window.NOYA || {});
+
+  </script>
+</body>
+</html>
